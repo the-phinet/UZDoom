@@ -295,8 +295,11 @@ static void InitTokenMap()
 #undef TOKENDEF
 #undef TOKENDEF2
 
-FARG(dumpast, "", "", "", "");
-FARG(tracefile, "", "", "", "");
+FARG_ADVANCED(dumpast, "Debug", "",
+	"Writes ZScript AST in a LISP-like format to a file");
+FARG_ADVANCED(tracefile, "Debug", "",
+	"Invokes Lemon's debug tracer output to print messages for every change of the parser state."
+	" See https://sqlite.org/src/doc/trunk/doc/lemon.html");
 
 //**--------------------------------------------------------------------------
 

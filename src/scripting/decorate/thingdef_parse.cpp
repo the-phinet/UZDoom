@@ -55,7 +55,9 @@
 void ParseOldDecoration(FScanner &sc, EDefinitionType def, PNamespace *ns);
 EXTERN_CVAR(Bool, strictdecorate);
 
-FARG(allowdecoratecrossincludes, "", "", "", "");
+FARG_ADVANCED(allowdecoratecrossincludes, "Deprecated", "",
+	"This disables the check that normally prevents external DECORATE lumps from overriding those"
+	" with the same name in the main .pk3");
 
 //==========================================================================
 //
