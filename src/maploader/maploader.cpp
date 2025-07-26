@@ -96,8 +96,11 @@ enum
 CVAR (Bool, genblockmap, false, CVAR_SERVERINFO|CVAR_GLOBALCONFIG);
 CVAR (Bool, gennodes, false, CVAR_SERVERINFO|CVAR_GLOBALCONFIG);
 
-FARG(blockmap, "", "", "", "");
-FARG(enablelightmaps, "", "", "", "");
+FARG(blockmap, "Configuration", "Regenerates the map's BLOCKMAP.", "",
+	"Causes " GAMENAME " to ignore all the BLOCKMAP information a map provides and generate it"
+	" instead. This is equivalent to +set genblockmap 1.");
+
+FARG_ADVANCED(enablelightmaps, "Experimental", "", "");
 
 EXTERN_FARG(xlat);
 

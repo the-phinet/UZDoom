@@ -55,6 +55,9 @@
 
 
 
+FARG(nocustommenu, "", "", "",
+	"");
+
 bool CheckSkipGameOptionBlock(FScanner& sc);
 
 MenuDescriptorList MenuDescriptors;
@@ -1620,8 +1623,6 @@ static void ParseImageScroller(FScanner& sc)
 //
 //=============================================================================
 
-FARG(nocustommenu, "", "", "", "");
-
 void M_ParseMenuDefs()
 {
 	int lump, lastlump = 0;
@@ -1795,5 +1796,3 @@ void M_CreateMenus()
 		I_BuildALResamplersList(*opt);
 	}
 }
-
-

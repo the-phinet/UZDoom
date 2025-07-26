@@ -49,7 +49,8 @@ RenderContext gl;
 static double realglversion;
 static bool bindless;
 
-FARG(glversion, "", "", "", "");
+FARG(glversion, "", "", "",
+	"");
 
 //==========================================================================
 //

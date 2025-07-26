@@ -67,7 +67,9 @@ CVAR (Int, r_rail_trailsparsity, 1, CVAR_ARCHIVE);
 CVAR (Bool, r_particles, true, 0);
 EXTERN_CVAR(Int, r_maxparticles);
 
-FARG(numparticles, "", "", "", "");
+FARG(numparticles, "Performance", "Max number of particles", "",
+	"Sets r_maxparticles on a per-run basis, controlling the maximum number of particles that are"
+	" allowed to spawn at one time");
 
 FCRandom pr_railtrail("RailTrail");
 
