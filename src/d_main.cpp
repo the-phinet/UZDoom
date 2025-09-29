@@ -31,8 +31,8 @@
 // HEADER FILES ------------------------------------------------------------
 
 #include "c_cvars.h"
-#include "i_soundinternal.h"
 #include "i_net.h"
+#include "i_soundinternal.h"
 
 #ifdef _WIN32
 #include <direct.h>
@@ -55,6 +55,7 @@
 #include "c_dispatch.h"
 #include "cmdlib.h"
 #include "common/scripting/dap/DebugServer.h"
+#include "common/widgets/errorwindow.h"
 #include "d_buttons.h"
 #include "d_dehacked.h"
 #include "d_event.h"
@@ -97,6 +98,7 @@
 #include "p_local.h"
 #include "p_setup.h"
 #include "po_man.h"
+#include "printf.h"
 #include "r_data/r_vanillatrans.h"
 #include "r_sky.h"
 #include "r_utility.h"
@@ -211,7 +213,7 @@ extern const char * const BACKEND;
 
 void DrawHUD();
 void D_DoAnonStats();
-void I_DetectOS();
+FString I_DetectOS();
 void UpdateGenericUI(bool cvar);
 void Local_Job_Init();
 
@@ -3856,6 +3858,16 @@ static int D_DoomMain_Internal (void)
 
 	C_InitConsole(80*8, 25*8, false);
 
+	Printf(
+		"%s version %s\nBuild: %s version compiled on %s, dated %s\nOS: %s\n",
+		GAMENAME,
+		GetVersionString(),
+		BACKEND,
+		__DATE__,
+		GetGitTime(),
+		I_DetectOS().GetChars()
+	);
+
 	bool wantsVersion = Args->CheckParm(FArg_version)
 		|| Args->CheckParm(FArg_v);
 	bool wantsHelp = Args->CheckParm(FArg_help)
@@ -3869,8 +3881,6 @@ static int D_DoomMain_Internal (void)
 			FArgs::PrintHelpMessage(Args->CheckParm(FArg_help_all));
 		return 0;
 	}
-
-	I_DetectOS();
 
 	// +logfile gets checked too late to catch the full startup log in the logfile so do some extra check for it here.
 	FString logfile = Args->TakeValue(FArg_logfile);
