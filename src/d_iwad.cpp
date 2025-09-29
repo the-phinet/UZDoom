@@ -60,6 +60,8 @@ EXTERN_CVAR(Bool, autoloadwidescreen)
 EXTERN_CVAR(String, language)
 
 CVAR(Bool, i_loadsupportwad, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) // Disabled in net games.
+CVAR(Bool, i_is_new_release, true, 0)
+CVAR(Int, i_display_new_release, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) // 0:no, 1: yes, 2: always for testing
 
 EXTERN_FARG(iwad);
 EXTERN_FARG(host);
@@ -826,6 +828,8 @@ int FIWadManager::IdentifyVersion (std::vector<std::string>&wadfiles, const char
 		if (i_loadsupportwad) flags |= 16;
 
 		FStartupSelectionInfo info = FStartupSelectionInfo(wads, *Args, flags);
+		info.isNewRelease = (i_display_new_release>1) || i_is_new_release;
+		info.notifyNewRelease = !!i_display_new_release;
 		if (I_PickIWad(queryiwad || HoldingQueryKey(queryiwad_key), info))
 		{
 			pick = info.SaveInfo();
@@ -834,6 +838,8 @@ int FIWadManager::IdentifyVersion (std::vector<std::string>&wadfiles, const char
 			autoloadbrightmaps = !!(info.DefaultStartFlags & 4);
 			autoloadwidescreen = !!(info.DefaultStartFlags & 8);
 			i_loadsupportwad = !!(info.DefaultStartFlags & 16);
+			if (!info.notifyNewRelease)
+				i_display_new_release = 0; // don't change truthy values
 		}
 		else
 		{
