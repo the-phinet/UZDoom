@@ -122,7 +122,7 @@ void VulkanPrintLog(const char* typestr, const std::string& msg)
 }
 
 VulkanRenderDevice::VulkanRenderDevice(void *hMonitor, bool fullscreen, std::shared_ptr<VulkanSurface> surface) :
-	Super(hMonitor, fullscreen) 
+	Super(hMonitor, fullscreen)
 {
 	VulkanDeviceBuilder builder;
 	builder.OptionalRayQuery();
@@ -210,6 +210,8 @@ void VulkanRenderDevice::InitializeState()
 #endif
 }
 
+
+
 void VulkanRenderDevice::Update()
 {
 	twoD.Reset();
@@ -217,10 +219,21 @@ void VulkanRenderDevice::Update()
 
 	Flush3D.Clock();
 
-	GetPostprocess()->SetActiveRenderTarget();
+	auto vrmode = VRMode::GetVRMode(true);
+	if (vrmode->mEyeCount > 1)
+	{
+		mPostprocess->PresentStereo();
 
-	Draw2D();
-	twod->Clear();
+		Draw2D();
+		twod->Clear();
+	}
+	else
+	{
+		GetPostprocess()->SetActiveRenderTarget();
+
+		Draw2D();
+		twod->Clear();
+	}
 
 	mRenderState->EndRenderPass();
 	mRenderState->EndFrame();
