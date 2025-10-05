@@ -43,6 +43,7 @@
 #include "r_videoscale.h"
 
 EXTERN_CVAR(Int, gl_dither_bpc)
+EXTERN_CVAR(Int, vr_mode)
 
 VkPostprocess::VkPostprocess(VulkanRenderDevice* fb) : fb(fb)
 {
@@ -290,4 +291,144 @@ void VkPostprocess::UpdateShadowMap()
 
 void VkPostprocess::NextEye(int eyeCount)
 {
+}
+
+PresentUniforms VkPostprocess::GetPresentUniforms(bool applyGamma)
+{
+	PresentUniforms uniforms;
+	if (!applyGamma)
+	{
+		uniforms.InvGamma = 1.0f;
+		uniforms.Contrast = 1.0f;
+		uniforms.Brightness = 0.0f;
+		uniforms.Saturation = 1.0f;
+	}
+	else
+	{
+		uniforms.InvGamma = 1.0f / clamp<float>(vid_gamma, 0.1f, 4.f);
+		uniforms.Contrast = clamp<float>(vid_contrast, 0.1f, 3.f);
+		uniforms.Brightness = clamp<float>(vid_brightness, -0.8f, 0.8f);
+		uniforms.Saturation = clamp<float>(vid_saturation, -15.0f, 15.f);
+		uniforms.GrayFormula = static_cast<int>(gl_satformula);
+	}
+	uniforms.ColorScale = (gl_dither_bpc == -1) ? 255.0f : (float)((1 << gl_dither_bpc) - 1);
+
+	uniforms.Scale = { screen->mScreenViewport.width / (float)fb->GetBuffers()->GetWidth(), -screen->mScreenViewport.height / (float)fb->GetBuffers()->GetHeight() };
+	uniforms.Offset = { 0.0f, 1.0f };
+
+	if (applyGamma && fb->GetFramebufferManager()->SwapChain->Format().colorSpace == VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT)
+	{
+		uniforms.HdrMode = 1;
+	}
+	else
+	{
+		uniforms.HdrMode = 0;
+	}
+	return uniforms;
+}
+
+void VkPostprocess::DrawTextureToViewport(VkTextureImage* tex, const IntRect& box, bool isFirstDraw)
+{
+	VkPPRenderState renderstate(fb);
+
+	renderstate.Shader = &hw_postprocess.present.Present;
+	renderstate.Uniforms.Set(GetPresentUniforms(true));
+	renderstate.Viewport = box;
+
+	renderstate.SetInputVulkanTexture(0, tex, ViewportLinearScale() ? PPFilterMode::Linear : PPFilterMode::Nearest);
+
+	renderstate.SetOutputSwapChain();
+	renderstate.SetClearOutput(isFirstDraw);
+
+	renderstate.SetNoBlend();
+	renderstate.Draw();
+}
+
+void VkPostprocess::PresentAnaglyph(PPShader* shader)
+{
+}
+
+void VkPostprocess::PresentInterleaved(PPShader* shader)
+{
+	VkPPRenderState renderstate(fb);
+	auto buffers = fb->GetBuffers();
+
+	renderstate.Shader = shader;
+	renderstate.Uniforms.Set(GetPresentUniforms(true));
+
+	renderstate.SetInputVulkanTexture(0, &buffers->EyeImage[0], PPFilterMode::Nearest);
+	renderstate.SetInputVulkanTexture(1, &buffers->EyeImage[1], PPFilterMode::Nearest);
+
+	renderstate.SetOutputSwapChain();
+	renderstate.SetNoBlend();
+	renderstate.Draw();
+}
+
+void VkPostprocess::PresentSideBySide(int vrmode)
+{
+	auto buffers = fb->GetBuffers();
+
+	int leftWidth = screen->mOutputLetterbox.width / 2;
+	int rightWidth = screen->mOutputLetterbox.width - leftWidth;
+	IntRect leftHalfScreen = screen->mOutputLetterbox;
+	leftHalfScreen.width = leftWidth;
+	IntRect rightHalfScreen = screen->mOutputLetterbox;
+	rightHalfScreen.width = rightWidth;
+	rightHalfScreen.left += leftWidth;
+
+	DrawTextureToViewport(&buffers->EyeImage[0], leftHalfScreen, true);
+	DrawTextureToViewport(&buffers->EyeImage[1], rightHalfScreen, false);
+}
+
+void VkPostprocess::PresentTopBottom()
+{
+	auto buffers = fb->GetBuffers();
+
+	int topHeight = screen->mOutputLetterbox.height / 2;
+	int bottomHeight = screen->mOutputLetterbox.height - topHeight;
+	IntRect topHalfScreen = screen->mOutputLetterbox;
+	topHalfScreen.height = topHeight;
+	IntRect bottomHalfScreen = screen->mOutputLetterbox;
+	bottomHalfScreen.height = bottomHeight;
+	bottomHalfScreen.top += topHeight;
+
+	DrawTextureToViewport(&buffers->EyeImage[0], topHalfScreen, true);
+	DrawTextureToViewport(&buffers->EyeImage[1], bottomHalfScreen, false);
+}
+
+void VkPostprocess::PresentStereo()
+{
+	switch (vr_mode)
+	{
+		default:
+			DrawTextureToViewport(&fb->GetBuffers()->EyeImage[0], screen->mOutputLetterbox, true);
+			break;
+
+		case VR_GREENMAGENTA:
+		case VR_REDCYAN:
+		case VR_AMBERBLUE:
+			break;
+
+		case VR_SIDEBYSIDEFULL:
+		case VR_SIDEBYSIDESQUISHED:
+		case VR_SIDEBYSIDELETTERBOX:
+			PresentSideBySide(vr_mode);
+			break;
+
+		case VR_TOPBOTTOM:
+			PresentTopBottom();
+			break;
+
+		case VR_ROWINTERLEAVED:
+			PresentInterleaved(&hw_postprocess.present.Row3D);
+			break;
+
+		case VR_COLUMNINTERLEAVED:
+			PresentInterleaved(&hw_postprocess.present.Column3D);
+			break;
+
+		case VR_CHECKERINTERLEAVED:
+			PresentInterleaved(&hw_postprocess.present.Checker3D);
+			break;
+	}
 }

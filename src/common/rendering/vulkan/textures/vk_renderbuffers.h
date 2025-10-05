@@ -32,6 +32,7 @@ public:
 	VkTextureImage SceneDepthStencil;
 	VkTextureImage SceneNormal;
 	VkTextureImage SceneFog;
+	VkTextureImage EyeImage[2];
 
 	VkFormat PipelineDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;
 	VkFormat SceneDepthStencilFormat = VK_FORMAT_D24_UNORM_S8_UINT;

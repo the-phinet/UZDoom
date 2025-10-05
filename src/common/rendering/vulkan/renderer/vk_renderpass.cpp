@@ -409,8 +409,16 @@ void VkPPRenderPassSetup::CreatePipeline(const VkPPRenderPassKey& key)
 void VkPPRenderPassSetup::CreateRenderPass(const VkPPRenderPassKey& key)
 {
 	RenderPassBuilder builder;
+
 	if (key.SwapChain)
-		builder.AddAttachment(key.OutputFormat, key.Samples, VK_ATTACHMENT_LOAD_OP_CLEAR, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		builder.AddAttachment(
+			key.OutputFormat,
+			key.Samples,
+			key.Clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
+			VK_ATTACHMENT_STORE_OP_STORE,
+			key.Clear ? VK_IMAGE_LAYOUT_UNDEFINED : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		);
 	else
 		builder.AddAttachment(key.OutputFormat, key.Samples, VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	if (key.StencilTest == WhichDepthStencil::Scene)

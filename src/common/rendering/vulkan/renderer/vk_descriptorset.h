@@ -9,6 +9,7 @@ class VulkanRenderDevice;
 class VkMaterial;
 class PPTextureInput;
 class VkPPRenderPassSetup;
+class VkPPRenderState;
 
 class VkDescriptorSetManager
 {
@@ -33,7 +34,7 @@ public:
 
 	std::unique_ptr<VulkanDescriptorSet> AllocateTextureDescriptorSet(int numLayers);
 
-	VulkanDescriptorSet* GetInput(VkPPRenderPassSetup* passSetup, const TArray<PPTextureInput>& textures, bool bindShadowMapBuffers);
+	VulkanDescriptorSet* GetInput(VkPPRenderState* renderState, VkPPRenderPassSetup* passSetup, const TArray<PPTextureInput>& textures, bool bindShadowMapBuffers);
 
 	void AddMaterial(VkMaterial* texture);
 	void RemoveMaterial(VkMaterial* texture);

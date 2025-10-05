@@ -23,6 +23,7 @@
 #include "vk_descriptorset.h"
 #include "vk_streambuffer.h"
 #include "vk_raytrace.h"
+#include "vulkan/renderer/vk_pprenderstate.h"
 #include "vulkan/shaders/vk_shader.h"
 #include "vulkan/textures/vk_samplers.h"
 #include "vulkan/textures/vk_renderbuffers.h"
@@ -192,7 +193,7 @@ void VkDescriptorSetManager::RemoveMaterial(VkMaterial* texture)
 	Materials.erase(texture->it);
 }
 
-VulkanDescriptorSet* VkDescriptorSetManager::GetInput(VkPPRenderPassSetup* passSetup, const TArray<PPTextureInput>& textures, bool bindShadowMapBuffers)
+VulkanDescriptorSet* VkDescriptorSetManager::GetInput(VkPPRenderState* renderState, VkPPRenderPassSetup* passSetup, const TArray<PPTextureInput>& textures, bool bindShadowMapBuffers)
 {
 	auto descriptors = AllocatePPDescriptorSet(passSetup->DescriptorLayout.get());
 	descriptors->SetDebugName("VkPostprocess.descriptors");
@@ -204,7 +205,17 @@ VulkanDescriptorSet* VkDescriptorSetManager::GetInput(VkPPRenderPassSetup* passS
 	{
 		const PPTextureInput& input = textures[index];
 		VulkanSampler* sampler = fb->GetSamplerManager()->Get(input.Filter, input.Wrap);
-		VkTextureImage* tex = fb->GetTextureManager()->GetTexture(input.Type, input.Texture);
+		VkTextureImage* tex =nullptr;
+
+        auto it = renderState->mOverrideTextures.find(index);
+        if (it != renderState->mOverrideTextures.end())
+        {
+            tex = it->second;
+        }
+        else
+        {
+            tex = fb->GetTextureManager()->GetTexture(input.Type, input.Texture);
+        }
 
 		write.AddCombinedImageSampler(descriptors.get(), index, tex->DepthOnlyView ? tex->DepthOnlyView.get() : tex->View.get(), sampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		imageTransition.AddImage(tex, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, false);

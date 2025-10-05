@@ -40,8 +40,17 @@ public:
 
 	int GetCurrentPipelineImage() const { return mCurrentPipelineImage; }
 
+	void PresentStereo();
+
 private:
 	void NextEye(int eyeCount);
+
+	PresentUniforms GetPresentUniforms(bool applyGamma);
+	void DrawTextureToViewport(VkTextureImage* tex, const IntRect& box, bool isFirstDraw);
+	void PresentAnaglyph(PPShader* shader);
+	void PresentSideBySide(int vrmode);
+	void PresentTopBottom();
+	void PresentInterleaved(PPShader* shader);
 
 	VulkanRenderDevice* fb = nullptr;
 

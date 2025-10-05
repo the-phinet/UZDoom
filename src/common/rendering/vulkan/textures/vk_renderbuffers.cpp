@@ -152,11 +152,34 @@ void VkRenderBuffers::CreateScene(int width, int height, VkSampleCountFlagBits s
 	SceneDepthStencil.Reset(fb);
 	SceneNormal.Reset(fb);
 	SceneFog.Reset(fb);
+	EyeImage[0].Reset(fb);
+	EyeImage[1].Reset(fb);
 
 	CreateSceneColor(width, height, samples);
 	CreateSceneDepthStencil(width, height, samples);
 	CreateSceneNormal(width, height, samples);
 	CreateSceneFog(width, height, samples);
+
+	ImageBuilder ibuilder = ImageBuilder()
+		.Size(width, height)
+		.Samples(VK_SAMPLE_COUNT_1_BIT)
+		.Format(VK_FORMAT_R16G16B16A16_SFLOAT)
+		.Usage(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+
+	EyeImage[0].Image = ibuilder.DebugName("EyeImage[0]").Create(fb->device.get());
+	EyeImage[1].Image = ibuilder.DebugName("EyeImage[1]").Create(fb->device.get());
+
+	EyeImage[0].View = ImageViewBuilder()
+		.Image(EyeImage[0].Image.get(), VK_FORMAT_R16G16B16A16_SFLOAT)
+		.Type(VK_IMAGE_VIEW_TYPE_2D)
+		.DebugName("EyeImage[0].View")
+		.Create(fb->device.get());
+
+	EyeImage[1].View = ImageViewBuilder()
+		.Image(EyeImage[1].Image.get(), VK_FORMAT_R16G16B16A16_SFLOAT)
+		.Type(VK_IMAGE_VIEW_TYPE_2D)
+		.DebugName("EyeImage[1].View")
+		.Create(fb->device.get());
 
 	VkImageTransition()
 		.AddImage(&SceneColor, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, true)

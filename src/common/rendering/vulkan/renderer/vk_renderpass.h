@@ -94,6 +94,7 @@ public:
 	int ShadowMapBuffers;
 	WhichDepthStencil StencilTest;
 	VkSampleCountFlagBits Samples;
+	bool Clear;
 
 	bool operator<(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) < 0; }
 	bool operator==(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) == 0; }

@@ -15,6 +15,9 @@ class VkPPRenderState : public PPRenderState
 public:
 	VkPPRenderState(VulkanRenderDevice* fb);
 
+	void SetInputVulkanTexture(int index, VkTextureImage* image, PPFilterMode filter = PPFilterMode::Nearest, PPWrapMode wrap = PPWrapMode::Clamp);
+	void SetClearOutput(bool clear) { mClearOutput = clear; }
+
 	void PushGroup(const FString &name) override;
 	void PopGroup() override;
 
@@ -23,5 +26,9 @@ public:
 private:
 	void RenderScreenQuad(VkPPRenderPassSetup *passSetup, VulkanDescriptorSet *descriptorSet, VulkanFramebuffer *framebuffer, int framebufferWidth, int framebufferHeight, int x, int y, int width, int height, const void *pushConstants, uint32_t pushConstantsSize, bool stencilTest);
 
+	std::map<int, VkTextureImage*> mOverrideTextures;
 	VulkanRenderDevice* fb = nullptr;
+	bool mClearOutput = true;
+
+	friend class VkDescriptorSetManager;
 };

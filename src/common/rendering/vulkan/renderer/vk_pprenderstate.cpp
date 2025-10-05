@@ -64,7 +64,10 @@ void VkPPRenderState::Draw()
 	if (Output.Type == PPTextureType::PPTexture)
 		key.OutputFormat = fb->GetTextureManager()->GetTextureFormat(Output.Texture);
 	else if (Output.Type == PPTextureType::SwapChain)
+	{
 		key.OutputFormat = fb->GetFramebufferManager()->SwapChain->Format().format;
+		key.Clear = mClearOutput;
+	}
 	else if (Output.Type == PPTextureType::ShadowMap)
 		key.OutputFormat = VK_FORMAT_R32_SFLOAT;
 	else
@@ -83,8 +86,10 @@ void VkPPRenderState::Draw()
 
 	auto passSetup = fb->GetRenderPassManager()->GetPPRenderPass(key);
 
+
 	int framebufferWidth = 0, framebufferHeight = 0;
-	VulkanDescriptorSet *input = fb->GetDescriptorSetManager()->GetInput(passSetup, Textures, ShadowMapBuffers);
+
+	VulkanDescriptorSet *input = fb->GetDescriptorSetManager()->GetInput(this, passSetup, Textures, ShadowMapBuffers);
 	VulkanFramebuffer *output = fb->GetBuffers()->GetOutput(passSetup, Output, key.StencilTest, framebufferWidth, framebufferHeight);
 
 	RenderScreenQuad(passSetup, input, output, framebufferWidth, framebufferHeight, Viewport.left, Viewport.top, Viewport.width, Viewport.height, Uniforms.Data.Data(), Uniforms.Data.Size(), key.StencilTest == WhichDepthStencil::Scene);
@@ -136,4 +141,9 @@ void VkPPRenderState::RenderScreenQuad(VkPPRenderPassSetup *passSetup, VulkanDes
 		cmdbuffer->pushConstants(passSetup->PipelineLayout.get(), VK_SHADER_STAGE_FRAGMENT_BIT, 0, pushConstantsSize, pushConstants);
 	cmdbuffer->draw(3, 1, FFlatVertexBuffer::PRESENT_INDEX, 0);
 	cmdbuffer->endRenderPass();
+}
+
+void VkPPRenderState::SetInputVulkanTexture(int index, VkTextureImage* image, PPFilterMode filter, PPWrapMode wrap)
+{
+	mOverrideTextures[index] = image;
 }
