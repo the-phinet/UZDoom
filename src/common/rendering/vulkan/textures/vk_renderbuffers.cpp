@@ -186,6 +186,8 @@ void VkRenderBuffers::CreateScene(int width, int height, VkSampleCountFlagBits s
 		.AddImage(&SceneDepthStencil, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, true)
 		.AddImage(&SceneNormal, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, true)
 		.AddImage(&SceneFog, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, true)
+        .AddImage(&EyeImage[0], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, true)
+        .AddImage(&EyeImage[1], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, true)
 		.Execute(fb->GetCommands()->GetDrawCommands());
 }
 

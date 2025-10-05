@@ -96,9 +96,37 @@ public:
 	VkSampleCountFlagBits Samples;
 	bool Clear;
 
-	bool operator<(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) < 0; }
-	bool operator==(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) == 0; }
-	bool operator!=(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) != 0; }
+	// bool operator<(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) < 0; }
+	// bool operator==(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) == 0; }
+	// bool operator!=(const VkPPRenderPassKey& other) const { return memcmp(this, &other, sizeof(VkPPRenderPassKey)) != 0; }
+
+	bool operator==(const VkPPRenderPassKey& other) const
+	{
+		return Shader == other.Shader &&
+				Uniforms == other.Uniforms &&
+				InputTextures == other.InputTextures &&
+				// BlendMode == other.BlendMode &&
+				OutputFormat == other.OutputFormat &&
+				SwapChain == other.SwapChain &&
+				ShadowMapBuffers == other.ShadowMapBuffers &&
+				StencilTest == other.StencilTest &&
+				Samples == other.Samples &&
+				Clear == other.Clear;
+	}
+
+	bool operator<(const VkPPRenderPassKey& other) const
+	{
+		return std::tie(
+			Shader, Uniforms, InputTextures, /*BlendMode,*/ OutputFormat, SwapChain, ShadowMapBuffers, StencilTest, Samples, Clear
+		) < std::tie(
+			other.Shader, other.Uniforms, other.InputTextures, /*other.BlendMode,*/ other.OutputFormat, other.SwapChain, other.ShadowMapBuffers, other.StencilTest, other.Samples, other.Clear
+		);
+	}
+
+	bool operator!=(const VkPPRenderPassKey& other) const
+	{
+		return !(*this == other);
+	}
 };
 
 class VkPPRenderPassSetup
