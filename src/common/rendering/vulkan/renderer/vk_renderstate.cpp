@@ -22,6 +22,7 @@
 
 #include "vk_renderstate.h"
 #include "vulkan/system/vk_renderdevice.h"
+#include "vulkan/textures/vk_framebuffer.h"
 #include "zvulkan/vulkanbuilders.h"
 #include "vulkan/system/vk_commandbuffer.h"
 #include "vulkan/system/vk_buffer.h"
@@ -38,6 +39,7 @@
 #include "flatvertices.h"
 #include "hwrenderer/data/hw_viewpointbuffer.h"
 #include "hwrenderer/data/shaderuniforms.h"
+#include "zvulkan/vulkanswapchain.h"
 
 CVAR(Int, vk_submit_size, 1000, 0);
 EXTERN_CVAR(Bool, r_skipmats)
@@ -528,6 +530,32 @@ void VkRenderState::SetRenderTarget(VkTextureImage *image, VulkanImageView *dept
 	mRenderTarget.Height = height;
 	mRenderTarget.Format = format;
 	mRenderTarget.Samples = samples;
+}
+
+void VkRenderState::SetRenderTarget(VulkanImage *image, VulkanImageView *view, VulkanImageView *depthStencilView, int width, int height, VkFormat format, VkSampleCountFlagBits samples)
+{
+	SetRenderTarget(nullptr, depthStencilView, width, height, format, samples);
+
+	mRenderTarget.ImageOverride = image;
+	mRenderTarget.ViewOverride = view;
+}
+
+void VkRenderState::BeginSwapChainRenderPass(bool clear)
+{
+	auto fbmanager = fb->GetFramebufferManager();
+	auto swapchain = fbmanager->SwapChain;
+
+	SetRenderTarget(
+		swapchain->GetImage(fbmanager->PresentImageIndex),
+		swapchain->GetImageView(fbmanager->PresentImageIndex),
+		nullptr,
+		swapchain->Width(),
+		swapchain->Height(),
+		swapchain->Format().format,
+		VK_SAMPLE_COUNT_1_BIT
+	);
+	mClearTargets = clear ? CT_Color : 0;
+	BeginRenderPass(fb->GetCommands()->GetDrawCommands());
 }
 
 void VkRenderState::BeginRenderPass(VulkanCommandBuffer *cmdbuffer)

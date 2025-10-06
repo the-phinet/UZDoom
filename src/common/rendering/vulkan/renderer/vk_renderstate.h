@@ -45,7 +45,9 @@ public:
 	void EnableDrawBuffers(int count, bool apply) override;
 
 	void BeginFrame();
+	void BeginSwapChainRenderPass(bool clear);
 	void SetRenderTarget(VkTextureImage *image, VulkanImageView *depthStencilView, int width, int height, VkFormat Format, VkSampleCountFlagBits samples);
+	void SetRenderTarget(VulkanImage *image, VulkanImageView *view, VulkanImageView *depthStencilView, int width, int height, VkFormat Format, VkSampleCountFlagBits samples);
 	void Bind(int bindingpoint, uint32_t offset);
 	void EndRenderPass();
 	void EndFrame();
@@ -116,6 +118,8 @@ protected:
 	{
 		VkTextureImage *Image = nullptr;
 		VulkanImageView *DepthStencil = nullptr;
+		VulkanImage* ImageOverride = nullptr;
+		VulkanImageView* ViewOverride = nullptr;
 		int Width = 0;
 		int Height = 0;
 		VkFormat Format = VK_FORMAT_R16G16B16A16_SFLOAT;

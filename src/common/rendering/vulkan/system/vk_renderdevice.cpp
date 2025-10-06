@@ -210,8 +210,6 @@ void VulkanRenderDevice::InitializeState()
 #endif
 }
 
-
-
 void VulkanRenderDevice::Update()
 {
 	twoD.Reset();
@@ -222,15 +220,21 @@ void VulkanRenderDevice::Update()
 	auto vrmode = VRMode::GetVRMode(true);
 	if (vrmode->mEyeCount > 1)
 	{
+		// 1. This draws the 3D stereo scene. It begins and ends its own render passes.
 		mPostprocess->PresentStereo();
 
+		// 2. THE FIX: Now, begin a NEW render pass for the UI.
+		//    We pass 'false' so it DOES NOT clear the 3D scene we just drew.
+		mRenderState->BeginSwapChainRenderPass(false);
+
+		// 3. Now it is safe to draw the UI on top.
 		Draw2D();
 		twod->Clear();
 	}
 	else
 	{
+		// Original mono path
 		GetPostprocess()->SetActiveRenderTarget();
-
 		Draw2D();
 		twod->Clear();
 	}
