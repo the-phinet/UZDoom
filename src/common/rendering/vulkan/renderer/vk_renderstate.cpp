@@ -545,9 +545,11 @@ void VkRenderState::BeginSwapChainRenderPass(bool clear)
 	auto fbmanager = fb->GetFramebufferManager();
 	auto swapchain = fbmanager->SwapChain;
 
+    int presentIndex = fbmanager->GetPresentIndex();
+
 	SetRenderTarget(
-		swapchain->GetImage(fbmanager->PresentImageIndex),
-		swapchain->GetImageView(fbmanager->PresentImageIndex),
+		swapchain->GetImage(presentIndex),
+		swapchain->GetImageView(presentIndex),
 		nullptr,
 		swapchain->Width(),
 		swapchain->Height(),
@@ -568,32 +570,55 @@ void VkRenderState::BeginRenderPass(VulkanCommandBuffer *cmdbuffer)
 
 	mPassSetup = fb->GetRenderPassManager()->GetRenderPass(key);
 
-	auto &framebuffer = mRenderTarget.Image->RSFramebuffers[key];
-	if (!framebuffer)
+	std::unique_ptr<VulkanFramebuffer> *framebuffer_ptr = nullptr;
+	VulkanFramebuffer *framebuffer = nullptr;
+
+	if (mRenderTarget.ImageOverride != nullptr)
 	{
-		auto buffers = fb->GetBuffers();
-		FramebufferBuilder builder;
-		builder.RenderPass(mPassSetup->GetRenderPass(0));
-		builder.Size(mRenderTarget.Width, mRenderTarget.Height);
-		builder.AddAttachment(mRenderTarget.Image->View.get());
-		if (key.DrawBuffers > 1)
-			builder.AddAttachment(buffers->SceneFog.View.get());
-		if (key.DrawBuffers > 2)
-			builder.AddAttachment(buffers->SceneNormal.View.get());
-		if (key.DepthStencil)
-			builder.AddAttachment(mRenderTarget.DepthStencil);
-		builder.DebugName("VkRenderPassSetup.Framebuffer");
-		framebuffer = builder.Create(fb->device.get());
+		auto fbmanager = fb->GetFramebufferManager();
+		framebuffer_ptr = &fbmanager->Framebuffers[fbmanager->PresentImageIndex];
+		if (!*framebuffer_ptr)
+		{
+			FramebufferBuilder builder;
+			builder.RenderPass(mPassSetup->GetRenderPass(0));
+			builder.Size(mRenderTarget.Width, mRenderTarget.Height);
+			builder.AddAttachment(mRenderTarget.ViewOverride);
+			if (key.DepthStencil)
+				builder.AddAttachment(mRenderTarget.DepthStencil);
+			builder.DebugName("VkRenderState.SwapChainFramebuffer");
+			*framebuffer_ptr = builder.Create(fb->device.get());
+		}
+		framebuffer = framebuffer_ptr->get();
+	}
+	else
+	{
+		framebuffer_ptr = &mRenderTarget.Image->RSFramebuffers[key];
+		if (!*framebuffer_ptr)
+		{
+			auto buffers = fb->GetBuffers();
+			FramebufferBuilder builder;
+			builder.RenderPass(mPassSetup->GetRenderPass(0));
+			builder.Size(mRenderTarget.Width, mRenderTarget.Height);
+			builder.AddAttachment(mRenderTarget.Image->View.get()); // Use the normal view
+			if (key.DrawBuffers > 1)
+				builder.AddAttachment(buffers->SceneFog.View.get());
+			if (key.DrawBuffers > 2)
+				builder.AddAttachment(buffers->SceneNormal.View.get());
+			if (key.DepthStencil)
+				builder.AddAttachment(mRenderTarget.DepthStencil);
+			builder.DebugName("VkRenderPassSetup.Framebuffer");
+			*framebuffer_ptr = builder.Create(fb->device.get());
+		}
+		framebuffer = framebuffer_ptr->get();
 	}
 
-	// Only clear depth+stencil if the render target actually has that
 	if (!mRenderTarget.DepthStencil)
 		mClearTargets &= ~(CT_Depth | CT_Stencil);
 
 	RenderPassBegin beginInfo;
 	beginInfo.RenderPass(mPassSetup->GetRenderPass(mClearTargets));
 	beginInfo.RenderArea(0, 0, mRenderTarget.Width, mRenderTarget.Height);
-	beginInfo.Framebuffer(framebuffer.get());
+	beginInfo.Framebuffer(framebuffer);
 	beginInfo.AddClearColor(screen->mSceneClearColor[0], screen->mSceneClearColor[1], screen->mSceneClearColor[2], screen->mSceneClearColor[3]);
 	if (key.DrawBuffers > 1)
 		beginInfo.AddClearColor(0.0f, 0.0f, 0.0f, 0.0f);

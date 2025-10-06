@@ -303,8 +303,8 @@ VulkanFramebuffer* VkRenderBuffers::GetOutput(VkPPRenderPassSetup* passSetup, co
 	}
 	else
 	{
-		view = fb->GetFramebufferManager()->SwapChain->GetImageView(fb->GetFramebufferManager()->PresentImageIndex)->view;
-		framebufferptr = &fb->GetFramebufferManager()->Framebuffers[fb->GetFramebufferManager()->PresentImageIndex];
+		view = fb->GetFramebufferManager()->SwapChain->GetImageView(fb->GetFramebufferManager()->GetPresentIndex())->view;
+		framebufferptr = &fb->GetFramebufferManager()->Framebuffers[fb->GetFramebufferManager()->GetPresentIndex()];
 		w = fb->GetFramebufferManager()->SwapChain->Width();
 		h = fb->GetFramebufferManager()->SwapChain->Height();
 	}

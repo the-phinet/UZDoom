@@ -77,3 +77,12 @@ void VkFramebufferManager::QueuePresent()
 	if (PresentImageIndex != -1)
 		SwapChain->QueuePresent(PresentImageIndex, RenderFinishedSemaphore.get());
 }
+
+int VkFramebufferManager::GetPresentIndex()
+{
+	if (PresentImageIndex < 0)
+	{
+		AcquireImage();
+	}
+	return PresentImageIndex;
+}

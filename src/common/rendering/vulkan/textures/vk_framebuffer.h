@@ -17,6 +17,7 @@ public:
 
 	void AcquireImage();
 	void QueuePresent();
+	int GetPresentIndex();
 
 	std::map<int, std::unique_ptr<VulkanFramebuffer>> Framebuffers;
 
