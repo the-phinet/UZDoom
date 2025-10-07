@@ -91,6 +91,9 @@ public:
 
 	void WaitForCommands(bool finish) override;
 
+	void FirstEye() override;
+	void NextEye(int eyeCount) override;
+
 	bool RaytracingEnabled();
 
 private:
@@ -115,6 +118,7 @@ private:
 	VkRenderBuffers *mActiveRenderBuffers = nullptr;
 
 	bool mVSync = false;
+	int mCurrentEye = 0;
 };
 
 class CVulkanError : public CEngineError

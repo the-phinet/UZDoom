@@ -214,26 +214,22 @@ void VulkanRenderDevice::Update()
 {
 	twoD.Reset();
 	Flush3D.Reset();
-
 	Flush3D.Clock();
 
 	auto vrmode = VRMode::GetVRMode(true);
 	if (vrmode->mEyeCount > 1)
 	{
-		// 1. This draws the 3D stereo scene. It begins and ends its own render passes.
-		mPostprocess->PresentStereo();
-
-		// 2. THE FIX: Now, begin a NEW render pass for the UI.
-		//    We pass 'false' so it DOES NOT clear the 3D scene we just drew.
-		mRenderState->BeginSwapChainRenderPass(false);
-
-		// 3. Now it is safe to draw the UI on top.
-		Draw2D();
+		for (int i = 0; i < vrmode->mEyeCount; i++)
+		{
+			mRenderState->SetRenderTarget(&GetBuffers()->EyeImage[i], nullptr, GetBuffers()->GetWidth(), GetBuffers()->GetHeight(), VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLE_COUNT_1_BIT);
+			mRenderState->Clear(0);
+			Draw2D();
+		}
 		twod->Clear();
+		mPostprocess->PresentStereo();
 	}
 	else
 	{
-		// Original mono path
 		GetPostprocess()->SetActiveRenderTarget();
 		Draw2D();
 		twod->Clear();
@@ -243,7 +239,6 @@ void VulkanRenderDevice::Update()
 	mRenderState->EndFrame();
 
 	Flush3D.Unclock();
-
 	mCommands->WaitForCommands(true);
 	mCommands->UpdateGpuStats();
 
@@ -290,8 +285,16 @@ void VulkanRenderDevice::RenderTextureView(FCanvasTexture* tex, std::function<vo
 
 void VulkanRenderDevice::PostProcessScene(bool swscene, int fixedcm, float flash, const std::function<void()> &afterBloomDrawEndScene2D)
 {
-	if (!swscene) mPostprocess->BlitSceneToPostprocess(); // Copy the resulting scene to the current post process texture
-	mPostprocess->PostProcessScene(fixedcm, flash, afterBloomDrawEndScene2D);
+	auto vrmode = VRMode::GetVRMode(true);
+	if (vrmode->mEyeCount > 1)
+	{
+		mPostprocess->BlitSceneToEyeTexture(mCurrentEye);
+	}
+	else
+	{
+		if (!swscene) mPostprocess->BlitSceneToPostprocess(); // Copy the resulting scene to the current post process texture
+		mPostprocess->PostProcessScene(fixedcm, flash, afterBloomDrawEndScene2D);
+	}
 }
 
 const char* VulkanRenderDevice::DeviceName() const
@@ -589,4 +592,32 @@ void VulkanRenderDevice::SetSceneRenderTarget(bool useSSAO)
 bool VulkanRenderDevice::RaytracingEnabled()
 {
 	return vk_raytrace && device->SupportsExtension(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+}
+
+void VulkanRenderDevice::FirstEye()
+{
+	mCurrentEye = 0;
+}
+
+void VulkanRenderDevice::NextEye(int eyeCount)
+{
+	mPostprocess->BlitSceneToEyeTexture(mCurrentEye);
+
+	mCurrentEye++;
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.srcAccessMask = 0;
+	barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = GetBuffers()->SceneColor.Image->image;
+	barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+	GetCommands()->GetDrawCommands()->pipelineBarrier(
+		VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		0, 0, nullptr, 0, nullptr, 1, &barrier);
 }

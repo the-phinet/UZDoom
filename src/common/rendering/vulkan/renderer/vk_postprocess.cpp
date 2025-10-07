@@ -432,3 +432,36 @@ void VkPostprocess::PresentStereo()
 			break;
 	}
 }
+
+void VkPostprocess::BlitSceneToEyeTexture(int eye)
+{
+	fb->GetRenderState()->EndRenderPass();
+
+	auto buffers = fb->GetBuffers();
+	auto cmdbuffer = fb->GetCommands()->GetDrawCommands();
+
+	VkTextureImage* destImage = &buffers->EyeImage[eye];
+
+	VkImageTransition()
+		.AddImage(&buffers->SceneColor, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, false)
+		.AddImage(destImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, true)
+		.Execute(cmdbuffer);
+
+	if (buffers->GetSceneSamples() != VK_SAMPLE_COUNT_1_BIT)
+	{
+		VkImageResolve resolve = {};
+		resolve.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		resolve.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		resolve.extent = { (uint32_t)buffers->GetSceneWidth(), (uint32_t)buffers->GetSceneHeight(), 1 };
+		cmdbuffer->resolveImage(buffers->SceneColor.Image->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, destImage->Image->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolve);
+	}
+	else
+	{
+		VkImageBlit blit = {};
+		blit.srcOffsets[1] = { buffers->GetSceneWidth(), buffers->GetSceneHeight(), 1 };
+		blit.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		blit.dstOffsets[1] = { destImage->Image->width, destImage->Image->height, 1 };
+		blit.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
+		cmdbuffer->blitImage(buffers->SceneColor.Image->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, destImage->Image->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_NEAREST);
+	}
+}
