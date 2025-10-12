@@ -1314,7 +1314,7 @@ void D_PageDrawer (void)
 	if (Subtitle != nullptr)
 	{
 		FFont* font = generic_ui ? NewSmallFont : SmallFont;
-		DrawFullscreenSubtitle(font, GStrings.CheckString(Subtitle));
+		DrawFullscreenSubtitle(font, Subtitle);
 	}
 	if (Advisory.isValid())
 	{
