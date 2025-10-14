@@ -1234,6 +1234,8 @@ OptionMenu "SpriteOptions" protected
 	Option "$GLPREFMNU_SPRBILLFACECAMERA",		gl_billboard_faces_camera,		"OnOff"
 	Option "$GLPREFMNU_SPRBILLFACECAMERAFORCE",	hw_force_cambbpref,				"OnOff"
 	Option "$GLPREFMNU_PARTICLESTYLE",			gl_particles_style,				"Particles"
+
+	Class "VideoOptions"
 }
 
 //-------------------------------------------------------------------------------------------
