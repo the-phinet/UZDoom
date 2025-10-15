@@ -321,6 +321,7 @@ int NoWipe;				// [RH] Allow wipe? (Needs to be set each time)
 bool singletics = false;	// debug flag to cancel adaptiveness
 FString startmap;
 bool setmap;
+int setskill = -1;
 bool autostart;
 bool advancedemo;
 FILE *debugfile;
@@ -2166,11 +2167,12 @@ static void CheckCmdLine()
 		startmap = "&wt@01";
 	}
 	autostart = StoredWarp.IsNotEmpty();
-				
+
+	setskill = -1;
 	const char *val = Args->CheckValue ("-skill");
 	if (val)
 	{
-		gameskill = val[0] - '1';
+		setskill = val[0] - '1';
 		autostart = true;
 	}
 
@@ -2257,7 +2259,7 @@ static void CheckCmdLine()
 		StartScreen->AppendStatusLine("Respawning...");
 	if (autostart)
 	{
-		FStringf temp("Warp to map %s, Skill %d ", startmap.GetChars(), gameskill + 1);
+		FStringf temp("Warp to map %s, Skill %d ", startmap.GetChars(), setskill + 1);
 		StartScreen->AppendStatusLine(temp.GetChars());
 	}
 }
@@ -2291,6 +2293,20 @@ static void CheckEpisodeCmd()
 	setmap = true;
 	if (setEpisode)
 		autostart = true;
+}
+
+static void CheckDefaultSkill()
+{
+	// Change skill cvar default to this game's defaultskill
+	UCVarValue val;
+	val.Int = DefaultSkill;
+	gameskill->SetGenericRepDefault(val, CVAR_Int);
+
+	if (setskill >= 0)
+	{
+		// -skill was defined, use that instead.
+		gameskill = setskill;
+	}
 }
 
 static void NewFailure ()
@@ -3388,6 +3404,7 @@ static int D_InitGame(const FIWADInfo* iwad_info, std::vector<std::string>& allw
 	// [RH] Parse through all loaded mapinfo lumps
 	if (!batchrun) Printf ("G_ParseMapInfo: Load map definitions.\n");
 	G_ParseMapInfo (iwad_info->MapInfo);
+	CheckDefaultSkill();
 	CheckEpisodeCmd();
 	MessageBoxClass = gameinfo.MessageBoxClass;
 	endoomName = gameinfo.Endoom;
