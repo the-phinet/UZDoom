@@ -153,7 +153,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: nightly
-          name: "Nightly Build (Commit ${{ slice github.sha 0 7 }})"
+          name: "Nightly Build (Commit ${{ substring(github.sha, 0, 7) }})"
           body: "This is the latest development build, automatically generated from the `main` branch."
           prerelease: true
           files: packages/*/*
