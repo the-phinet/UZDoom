@@ -45,6 +45,7 @@ public:
 	virtual void Drawer(int bottom) = 0;
 
 	virtual void NewResolution() = 0;
+	virtual void NewUIScale() = 0;
 	virtual void LevelInit() = 0;
 	virtual void UpdateShowAllLines() = 0;
 	virtual void GoBig() = 0;

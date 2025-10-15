@@ -3103,6 +3103,9 @@ static void System_HudScaleChanged()
 		StatusBar->SetScale();
 		setsizeneeded = true;
 	}
+
+	if (primaryLevel && primaryLevel->automap)
+		primaryLevel->automap->NewUIScale();
 }
 
 bool  CheckSkipGameOptionBlock(const char* str);
