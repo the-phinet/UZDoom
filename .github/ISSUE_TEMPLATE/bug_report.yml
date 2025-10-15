@@ -2,6 +2,7 @@ name: Bug Report
 description: File a Bug report
 title: '[BUG] '
 labels: bug
+type: bug
 #assignees: 'anonymous@temp'
 
 body:
@@ -18,7 +19,7 @@ body:
       description: |
         What version are you using?
         Run `gzdoom --version` or check in the console in game.
-        Make sure to update to latest [release](https://github.com/uzdoom/uzdoom/releases) version and test again before continuing.
+        Make sure to update to latest [release](https://github.com/UZDoom/UZDoom/releases) version and test again before continuing.
       placeholder: "ex: UZDoom 4.0.0, Git version, Branch, other"
     validations:
       required: false
@@ -44,13 +45,9 @@ body:
       options:
         - Windows 11
         - Windows 10
-        - Windows 8
-        - Windows 7
-        - Windows Other
         - Mac OS
-        - Linux x86
         - Linux x86_64
-        - Linux ARM (Raspberry Pi)
+        - Linux ARM
         - Other
     validations:
       required: false
