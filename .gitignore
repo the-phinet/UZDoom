@@ -7,6 +7,7 @@
 flatpak/
 gzdoom-crash.log
 fmodapi*linux/
+gitinfo.h
 
 # editor/tooling/os files
 *~
