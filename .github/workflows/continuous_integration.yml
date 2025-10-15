@@ -1,5 +1,8 @@
 name: Continuous Integration
 
+permissions:
+  contents: write
+
 on: [push, pull_request]
 
 jobs:
@@ -139,3 +142,30 @@ jobs:
       run: |
         git status
         ls -lR build
+
+  release:
+    name: Create Public Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download all build packages
+        uses: actions/download-artifact@v4
+        with:
+          path: packages
+
+      - name: Delete old nightly release and tag
+        run: |
+          gh release delete nightly -y --cleanup-tag || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create New Nightly Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: "Nightly Build (Commit ${{ slice github.sha 0 7 }})"
+          body: "This is the latest development build, automatically generated from the `main` branch."
+          prerelease: true
+          files: packages/*/*
