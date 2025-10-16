@@ -122,7 +122,7 @@ jobs:
       shell: bash
       run: |
         cd build/package
-        local archive_name="gzdoom-${{ runner.os }}-${{ matrix.config.build_type }}"
+        archive_name="gzdoom-${{ runner.os }}-${{ matrix.config.build_type }}"
 
         if [[ "${{ runner.os }}" == 'Windows' ]]; then
           # Use 7-Zip to create a .zip file
