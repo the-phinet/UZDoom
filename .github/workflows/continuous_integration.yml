@@ -132,7 +132,7 @@ jobs:
           tar -czvf "../../${archive_name}.tar.gz" ./*
         fi
 
-   - name: Upload Artifact for Release
+    - name: Upload Artifact for Release
       uses: actions/upload-artifact@v4
       with:
         name: package-${{ runner.os }}-${{ matrix.config.build_type }}
