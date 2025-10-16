@@ -129,7 +129,7 @@ jobs:
           7z a "../${archive_name}.zip" ./*
         else
           # Use tar to create a .tar.gz file for Linux and macOS
-          tar -czvf "../${archive_name}.tar.gz" ./*
+          tar -czvf "${archive_name}.tar.gz" ./*
         fi
 
     - name: Upload Artifact for Release
