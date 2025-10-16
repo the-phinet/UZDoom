@@ -118,11 +118,25 @@ jobs:
           fi
         fi
 
-    - name: Upload Package
+    - name: Archive the Package
+      shell: bash
+      run: |
+        cd build/package
+        local archive_name="gzdoom-${{ runner.os }}-${{ matrix.config.build_type }}"
+
+        if [[ "${{ runner.os }}" == 'Windows' ]]; then
+          # Use 7-Zip to create a .zip file
+          7z a "../../${archive_name}.zip" ./*
+        else
+          # Use tar to create a .tar.gz file for Linux and macOS
+          tar -czvf "../../${archive_name}.tar.gz" ./*
+        fi
+
+   - name: Upload Artifact for Release
       uses: actions/upload-artifact@v4
       with:
-        path: build/package
-        name: ${{ matrix.config.name }} ${{ matrix.config.build_type }}
+        name: package-${{ runner.os }}-${{ matrix.config.build_type }}
+        path: build/*.{zip,tar.gz}
 
     - name: List Build Directory
       if: always()
