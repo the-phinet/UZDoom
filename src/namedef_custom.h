@@ -682,6 +682,7 @@ xx(Vavoom)
 xx(GZDoom)
 xx(Eternity)
 xx(Dsda)
+xx(UZDoom) // for future use, just in case
 
 xx(Xpanningfloor)
 xx(Ypanningfloor)

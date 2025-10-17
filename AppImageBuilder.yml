@@ -3,11 +3,11 @@ version: 1
 AppDir:
   path: ./AppDir
   app_info:
-    id: com.GZDoom.app
-    name: GZDoom
-    icon: game_icon.png
+    id: org.uzdoom.UZDoom
+    name: UZDoom
+    icon: org.uzdoom.UZDoom
     version: latest
-    exec: ./gzdoom
+    exec: ./usr/bin/uzdoom
     exec_args: $@
   apt:
     arch: amd64
