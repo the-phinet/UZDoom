@@ -197,7 +197,7 @@ class OptionMenu : Menu
 		Super.UpdateTooltip(tooltip);
 	}
 
-	virtual void DrawHoverTooltip(OptionMenuItemOptionBase selected, int indent, int y, int bottom)
+	version("4.15.1") virtual void DrawHoverTooltip(OptionMenuItemOptionBase selected, int indent, int y, int bottom)
 	{
 		if (!selected)
 			return;

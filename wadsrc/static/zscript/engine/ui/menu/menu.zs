@@ -326,7 +326,7 @@ class Menu : Object native ui version("2.4")
 		return false;
 	}
 
-	virtual void GetTooltipArea(ScreenArea body, ScreenArea text = null)
+	version("4.15.1") virtual void GetTooltipArea(ScreenArea body, ScreenArea text = null)
 	{
 		int xPad = 10 * CleanXFac;
 		int yPad = 5 * CleanYFac;
@@ -349,7 +349,7 @@ class Menu : Object native ui version("2.4")
 			text.SetArea(body.x + xPad, body.y + yPad, body.width - xPad * 2, body.height - yPad * 2);
 	}
 
-	virtual void UpdateTooltip(string tooltip)
+	version("4.15.1") virtual void UpdateTooltip(string tooltip)
 	{
 		if (tooltip == mCurrentTooltip)
 			return;
@@ -359,7 +359,7 @@ class Menu : Object native ui version("2.4")
 		mTooltipScrollTimer = m_tooltip_delay;
 	}
 
-	virtual void DrawTooltip()
+	version("4.15.1") virtual void DrawTooltip()
 	{
 		ScreenArea box, text;
 		GetTooltipArea(box, text);
