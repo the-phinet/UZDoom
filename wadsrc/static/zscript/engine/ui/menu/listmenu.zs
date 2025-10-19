@@ -94,7 +94,8 @@ class ListMenu : Menu
 		Animated = mDesc.mAnimated;
 		DontBlur = mDesc.mDontBlur;
 		DontDim = mDesc.mDontDim;
-		mTooltipFont = mDesc.mTooltipFont;
+		if (mDesc.mTooltipFont)
+			mTooltipFont = mDesc.mTooltipFont;
 		if (desc.mCenter)
 		{
 			double center = 160;

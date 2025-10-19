@@ -129,7 +129,7 @@ class OptionMenu : Menu
 		AnimatedTransition = desc.mAnimatedTransition;
 		Animated = desc.mAnimated;
 		MaxItems = 1;
-		mTooltipFont = desc.mTooltipFont;
+		mTooltipFont = desc.mTooltipFont ? desc.mTooltipFont : NewConsoleFont;
 		mCurrentTooltip = "";
 		mTooltipScrollTimer = m_tooltip_delay;
 		mTooltipScrollOffset = 0.0;
