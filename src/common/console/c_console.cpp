@@ -67,7 +67,7 @@ namespace Console::Defaults
 {
 	static inline constexpr uint8_t left_margin = 8;
 	static inline constexpr uint8_t right_margin = 8;
-	static inline constexpr uint8_t bottom_margin = 12;
+	static inline constexpr uint8_t bottom_margin = 4;
 
 	static inline constexpr uint8_t max_hist_size = 50;
 
