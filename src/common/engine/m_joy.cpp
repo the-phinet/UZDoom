@@ -7,6 +7,7 @@
 **
 ** Copyright 2005-2016 Randy Heit
 ** Copyright 2017-2025 GZDoom Maintainers and Contributors
+** Copyright 2025 UZDoom Maintainers and Contributors
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -97,6 +98,8 @@ CUSTOM_CVARD(Bool, use_joystick, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINI
 	joy_xinput->Callback();
 #endif
 }
+
+FARG(nojoy, "", "", "", "");
 
 // PRIVATE DATA DEFINITIONS ------------------------------------------------
 
