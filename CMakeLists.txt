@@ -243,6 +243,7 @@ option( NO_OPENAL "Disable OpenAL sound support" OFF )
 
 find_package( BZip2 )
 find_package( VPX )
+find_package( CURL )
 if (NOT FORCE_INTERNAL_CPPDAP)
 	find_package( cppdap CONFIG )
 endif()
