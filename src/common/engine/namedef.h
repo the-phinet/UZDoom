@@ -276,7 +276,7 @@ xx(OptionMenuItemColorPicker)
 xx(OptionMenuItemStaticText)
 xx(OptionMenuItemStaticTextSwitchable)
 
-xx(Handler)
+xx(InternalHandler)
 
 xx(Color)
 
