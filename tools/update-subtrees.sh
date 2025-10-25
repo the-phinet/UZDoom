@@ -12,5 +12,6 @@ pull() {
 	fi
 }
 
-pull "$1" 'zwidget' 'libraries/ZWidget' 'https://github.com/dpjudas/ZWidget' 'master'
-pull "$1" 'zmusic'  'libraries/ZMusic'  'https://github.com/ZDoom/ZMusic'    'master'
+pull "$1" 'zwidget'     'libraries/ZWidget'     'https://github.com/dpjudas/ZWidget'    'master'
+pull "$1" 'zmusic'      'libraries/ZMusic'      'https://github.com/ZDoom/ZMusic'       'master'
+pull "$1" 'translation' 'libraries/Translation' 'git@github.com:UZDoom/Translation.git' 'main'
