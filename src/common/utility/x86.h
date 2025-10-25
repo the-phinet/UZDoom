@@ -223,6 +223,8 @@ struct CPUInfo	// 92 bytes
 		};
 		uint32_t AMD_DataL1Info;
 	};
+
+	static inline constexpr uint8_t AssumedDefaultCacheLineSizeBytes = 64;
 };
 
 
