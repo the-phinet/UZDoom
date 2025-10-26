@@ -1271,6 +1271,7 @@ OptionMenu "MiscOptions" protected
 
 OptionValue MapColorTypes
 {
+	-1, "$OPTVAL_DEFAULT"
 	0, "$OPTVAL_CUSTOM"
 	1, "$OPTVAL_TRADITIONALDOOM"
 	2, "$OPTVAL_TRADITIONALSTRIFE"
