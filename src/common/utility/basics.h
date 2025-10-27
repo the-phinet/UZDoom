@@ -1,8 +1,9 @@
 #pragma once
 
+#include <algorithm>
 #include <stddef.h>
 #include <stdint.h>
-#include <algorithm>
+#include <type_traits>
 
 #define MAXWIDTH 12000
 #define MAXHEIGHT 5000
@@ -74,4 +75,12 @@ template<typename T>
 T clamp(T val, T minval, T maxval)
 {
     return std::max<T>(std::min<T>(val, maxval), minval);
+}
+
+static inline void PrefetchL3(const void* Address)
+{
+#ifdef _M_X64
+    static constexpr int L3CacheHint = 2;
+    _mm_prefetch(static_cast<const char*>(Address), L3CacheHint);
+#endif
 }
