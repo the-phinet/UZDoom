@@ -2029,6 +2029,7 @@ void C_SerializeCVars(FSerializer& arc, const char* label, uint32_t filter)
 
 void SetupLoadingCVars();
 void FinishLoadingCVars();
+bool CheckGZDoomSaveCompat(FString &engine, FString &software);
 
 void G_DoLoadGame ()
 {
@@ -2073,7 +2074,17 @@ void G_DoLoadGame ()
 	arc("Engine", engine);
 	arc("Current Map", map);
 
+	#if LOAD_GZDOOM_4142_SAVES
+	FString software = arc.GetString("Software");
+	bool gzdoom_compat_ok = false;
+	if(engine.Compare("GZDOOM") == 0)
+	{
+		gzdoom_compat_ok = CheckGZDoomSaveCompat(engine, software);
+	}
+	if (engine.CompareNoCase(GAMESIG) != 0 && !gzdoom_compat_ok)
+	#else
 	if (engine.CompareNoCase(GAMESIG) != 0)
+	#endif
 	{
 		// Make a special case for the message printed for old savegames that don't
 		// have this information.

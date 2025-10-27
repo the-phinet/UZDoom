@@ -92,6 +92,11 @@ const char *GetVersionString();
 
 // This is so that derivates can use the same savegame versions without worrying about engine compatibility
 #define GAMESIG "UZDOOM"
+
+#ifndef LOAD_GZDOOM_4142_SAVES
+    #define LOAD_GZDOOM_4142_SAVES 1
+#endif
+
 #define BASEWAD "uzdoom.pk3"
 // Set OPTIONALWAD to "" (null) to disable searching for it
 #define OPTIONALWAD "game_support.pk3"
