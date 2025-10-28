@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <type_traits>
+#include <xmmintrin.h>
 
 #define MAXWIDTH 12000
 #define MAXHEIGHT 5000
@@ -79,8 +80,7 @@ T clamp(T val, T minval, T maxval)
 
 static inline void PrefetchL3(const void* Address)
 {
-#ifdef _M_X64
-    static constexpr int L3CacheHint = 2;
-    _mm_prefetch(static_cast<const char*>(Address), L3CacheHint);
+#if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
+    _mm_prefetch(static_cast<const char*>(Address), _MM_HINT_T1);
 #endif
 }
