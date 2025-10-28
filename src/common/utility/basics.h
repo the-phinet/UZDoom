@@ -4,7 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <type_traits>
+
+#if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
 #include <xmmintrin.h>
+#endif
 
 #define MAXWIDTH 12000
 #define MAXHEIGHT 5000
