@@ -79,7 +79,7 @@ bool CheckGZDoomSaveCompat(FString &engine, FString &software)
 		//GZDoom g4.#
 		int v1 = software[10] - '0';
 
-		if(software[11] >= '0' && software[11] <= '0')
+		if(software[11] >= '0' && software[11] <= '9')
 		{
 			//GZDoom g4.##
 			v1 = (v1 * 10) + (software[11] - '0');
@@ -96,7 +96,7 @@ bool CheckGZDoomSaveCompat(FString &engine, FString &software)
 			{
 				//GZDoom g4.14.#
 				int v2 = software[13] - '0';
-				if(software.Len() >= 14 && software[14] >= '0' && software[14] <= '0')
+				if(software.Len() >= 14 && software[14] >= '0' && software[14] <= '9')
 				{
 					//GZDoom g4.14.##, don't allow
 					return false;
