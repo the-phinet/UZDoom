@@ -645,8 +645,31 @@ bool M_Responder (event_t *ev)
 				// do we want mouse input?
 				if (ev->subtype >= EV_GUI_FirstMouseEvent && ev->subtype <= EV_GUI_LastMouseEvent)
 				{
-						if (!m_use_mouse)
+					if (!m_use_mouse)
+					{
+						LastMousePos.LastUpdate = -1;
+						return true;
+					}
+
+					// Ignore subtle mouse movements to make the menu less finnicky.
+					if (ev->subtype == EV_GUI_MouseMove)
+					{
+						static const int DormantTimer = int(GameTicRate * 0.5);
+						// If the mouse moved < 1% of the screen's height, it's probably the mouse itself bugging out.
+						const float limit = screen->GetHeight() * 0.01f;
+						if (LastMousePos.LastUpdate < 0 || MenuTime - LastMousePos.LastUpdate <= DormantTimer
+							|| fabs(LastMousePos.LastX - ev->data1) >= limit || fabs(LastMousePos.LastY - ev->data2) >= limit)
+						{
+							LastMousePos.LastX = ev->data1;
+							LastMousePos.LastY = ev->data2;
+						}
+						else
+						{
 							return true;
+						}
+					}
+
+					LastMousePos.LastUpdate = MenuTime;
 				}
 
 				// pass everything else on to the current menu
