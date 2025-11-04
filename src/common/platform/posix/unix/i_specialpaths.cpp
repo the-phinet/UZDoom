@@ -35,13 +35,11 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "i_system.h"
+
 #include "cmdlib.h"
-#include "printf.h"
 #include "engineerrors.h"
-
-#include "version.h"	// for GAMENAME
-
+#include "printf.h"
+#include "version.h"
 
 FString GetUserFile (const char *file)
 {
@@ -68,22 +66,7 @@ FString GetUserFile (const char *file)
 			I_FatalError ("$HOME/.config must be a directory");
 		}
 
-		// This can be removed after a release or two
-		// Transfer the old zdoom directory to the new location
-		bool moved = false;
-		FString oldpath = NicePath("$HOME/." GAMENAMELOWERCASE "/");
-		if (stat (oldpath.GetChars(), &extrainfo) != -1)
-		{
-			if (rename(oldpath.GetChars(), path.GetChars()) == -1)
-			{
-				I_Error ("Failed to move old " GAMENAMELOWERCASE " directory (%s) to new location (%s).",
-					oldpath.GetChars(), path.GetChars());
-			}
-			else
-				moved = true;
-		}
-
-		if (!moved && mkdir (path.GetChars(), S_IRUSR | S_IWUSR | S_IXUSR) == -1)
+		if (mkdir (path.GetChars(), S_IRUSR | S_IWUSR | S_IXUSR) == -1)
 		{
 			I_FatalError ("Failed to create %s directory:\n%s",
 				path.GetChars(), strerror (errno));
@@ -237,4 +220,3 @@ FString M_GetNormalizedPath(const char* path)
 	FString fullpath = actualpath;
 	return fullpath;
 }
-
