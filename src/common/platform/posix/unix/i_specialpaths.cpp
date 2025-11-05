@@ -121,7 +121,7 @@ FString GetUserFile (const char *file)
 
 FString M_GetAppDataPath(bool create)
 {
-	static FString path = FStringf("%s/" GAMENAMELOWERCASE, GetDataPath());
+	static FString path = FStringf("%s/games/" GAMENAMELOWERCASE, GetDataPath());
 	path = NicePath(path.GetChars());
 
 	if (create)
@@ -189,8 +189,7 @@ FString M_GetConfigPath(bool for_reading)
 
 FString M_GetDocumentsPath()
 {
-	static FString path = FStringf("%s/" GAMENAMELOWERCASE "/", GetDataPath());
-	return NicePath(path.GetChars());
+	return M_GetAppDataPath(false) + "/";
 }
 
 
