@@ -92,11 +92,11 @@ bool CheckGZDoomSaveCompat(FString &engine, FString &software)
 
 		if(v1 == 14)
 		{
-			if(software.Len() >= 13)
+			if(software.Len() > 13)
 			{
 				//GZDoom g4.14.#
 				int v2 = software[13] - '0';
-				if(software.Len() >= 14 && software[14] >= '0' && software[14] <= '9')
+				if(software.Len() > 14 && software[14] >= '0' && software[14] <= '9')
 				{
 					//GZDoom g4.14.##, don't allow
 					return false;
