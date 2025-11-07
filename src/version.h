@@ -119,8 +119,6 @@ const char *GetVersionString();
 #define GAME_DIR GAMENAME
 #elif defined(__HAIKU__)
 #define GAME_DIR "config/settings/" GAMENAME
-#else
-#define GAME_DIR ".config/" GAMENAMELOWERCASE
 #endif
 
 #define DEFAULT_DISCORD_APP_ID "1428620310302691349"
@@ -129,6 +127,5 @@ const int SAVEPICWIDTH = 216;
 const int SAVEPICHEIGHT = 162;
 const int VID_MIN_WIDTH = 320;
 const int VID_MIN_HEIGHT = 200;
-
 
 #endif //__VERSION_H__
