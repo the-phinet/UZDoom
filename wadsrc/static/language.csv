@@ -3457,3 +3457,4 @@ Fuel Tank,AMMO_ID24FUELTANK,,,,,,,Benzintank,,,,,,,,,,,,,,,Tanque de Combustíve
 Rocket Explosion Style,DSPLYMNU_ROCKETEXPSTYLE,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Translucent,OPTVAL_ROCKETEXP_STYLE_TRANS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Additive,OPTVAL_ROCKETEXP_STYLE_ADD,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Powerup Fade Intensity,DSPLYMNU_POWERUPFADE,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
