@@ -3458,3 +3458,4 @@ Rocket Explosion Style,DSPLYMNU_ROCKETEXPSTYLE,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Translucent,OPTVAL_ROCKETEXP_STYLE_TRANS,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Additive,OPTVAL_ROCKETEXP_STYLE_ADD,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Powerup Fade Intensity,DSPLYMNU_POWERUPFADE,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+Footstep Volume,SNDMNU_FOOTSTEPVOLUME,,,,,,Hlasitost kroků,,Schrittlautstärke,,Laŭteco de paŝo,Volumen de los pasos,,,,,,,足音の音量,,,,,Volume dos passos,,Volum pași,Громкость шагов,,,,Гучність кроків
