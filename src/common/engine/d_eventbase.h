@@ -29,6 +29,7 @@ struct event_t
 // Ignore minor mouse movements if it hasn't updated in a while.
 struct mousestate_t
 {
+	TArray<EGUIEvent> HeldButtons = {};
 	int LastUpdate = -1;
 	float LastX = 0.0f;
 	float LastY = 0.0f;
