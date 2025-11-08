@@ -110,7 +110,7 @@ jobs:
 
             fetch gzdoom.zip \
                 2b3e7eac9e13bf88d27865165a1596de5778eb1a \
-                https://github.com/ZDoom/gzdoom/releases/download/g4.14.2/gzdoom-4-14-2-windows.zip \
+                https://github.com/ZDoom/gzdoom/releases/download/g4.14.2/gzdoom-4-14-2-windows.zip
             unzip -j gzdoom.zip zmusic.dll -d package
 
             fetch oalsoft.zip \
