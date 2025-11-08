@@ -85,6 +85,10 @@ jobs:
           tar -xf "${ZMUSIC_PACKAGE}"
         fi
 
+    - name: Git describe
+      id: ghd
+      uses: proudust/gh-describe@v2
+
     - name: Configure
       shell: bash
       run: |
