@@ -54,12 +54,12 @@ jobs:
         #   build_type: Release
 
         - name: Linux GCC
-          os: ubuntu-latest
+          os: ubuntu-22.04
           deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
           build_type: Debug
 
         - name: Linux Clang
-          os: ubuntu-latest
+          os: ubuntu-22.04
           extra_options: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
           deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
           build_type: Release
