@@ -2760,6 +2760,11 @@ static bool System_DisableTextureFilter()
 	return !V_IsHardwareRenderer();
 }
 
+static bool System_DisableAnisotropicFiltering()
+{
+	return V_DisableIntelMipmap();
+}
+
 static void System_OnScreenSizeChanged()
 {
 	if (StatusBar != NULL)
@@ -3647,8 +3652,9 @@ static int D_DoomMain_Internal (void)
 		System_LanguageChanged,
 		OkForLocalization,
 		[]() ->FConfigFile* { return GameConfig; },
-		nullptr, 
-		RemapUserTranslation
+		nullptr,
+		RemapUserTranslation,
+		System_DisableAnisotropicFiltering
 	};
 
 	

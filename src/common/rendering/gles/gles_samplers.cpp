@@ -67,7 +67,9 @@ uint8_t FSamplerManager::Bind(int texunit, int num, int lastval)
 {
 
 	int filter = sysCallbacks.DisableTextureFilter && sysCallbacks.DisableTextureFilter() ? 0 : gl_texture_filter;
-	bool anisoAvailable = gles.anistropicFilterAvailable && (!sysCallbacks.DisableTextureFilter || !sysCallbacks.DisableTextureFilter());
+	bool anisoAvailable = gles.anistropicFilterAvailable &&
+	                      (!sysCallbacks.DisableTextureFilter || !sysCallbacks.DisableTextureFilter()) &&
+	                      (!sysCallbacks.DisableAnisotropicFiltering || !sysCallbacks.DisableAnisotropicFiltering());
 
 	glActiveTexture(GL_TEXTURE0 + texunit);
 	switch (num)
