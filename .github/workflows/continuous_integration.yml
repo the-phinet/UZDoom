@@ -16,7 +16,7 @@ jobs:
 
         - name: Visual Studio 2022
           os: windows-2022
-          build_type: Debug
+          build_type: RelWithDebInfo
 
         - name: macOS
           os: macos-14
@@ -27,7 +27,7 @@ jobs:
           os: macos-14
           extra_options: -G Xcode -DDYN_OPENAL=OFF
           deps_cmdline: brew install libvpx
-          build_type: Debug
+          build_type: RelWithDebInfo
 
         # - name: Linux GCC 9
         #   os: ubuntu-22.04
@@ -56,7 +56,7 @@ jobs:
         - name: Linux GCC
           os: ubuntu-22.04
           deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
-          build_type: Debug
+          build_type: RelWithDebInfo
 
         - name: Linux Clang
           os: ubuntu-22.04
