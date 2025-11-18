@@ -54,13 +54,22 @@ jobs:
         #   build_type: Release
 
         - name: Linux GCC
+          os: ubuntu-latest
+          deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
+          build_type: RelWithDebInfo
+
+        - name: Linux GCC
+          os: ubuntu-latest
+          deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
+          build_type: Release
+
+        - name: Linux GCC Legacy
           os: ubuntu-22.04
           deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
           build_type: RelWithDebInfo
 
-        - name: Linux Clang
+        - name: Linux GCC Legacy
           os: ubuntu-22.04
-          extra_options: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
           deps_cmdline: sudo apt-get update && sudo apt-get install libsdl2-dev libvpx-dev libwebp-dev waylandpp-dev libbz2-dev libomp-dev libopenal-dev
           build_type: Release
 
@@ -167,6 +176,9 @@ jobs:
             dpkg --fsys-tarfile gzdoom.deb | tar -xO ./opt/gzdoom/libzmusic.so.1 > libzmusic.so.1
             mkdir -p "$(realpath AppDir)/usr/lib/x86_64-linux-gnu"
             mv libzmusic.so.1 "$(realpath AppDir)/usr/lib/x86_64-linux-gnu/"
+
+            cp ../tools/AppImageEntrypoint.sh "$(realpath AppDir)/usr/bin/uzdoom.sh"
+            chmod +x "$(realpath AppDir)/usr/bin/uzdoom.sh"
 
             sudo apt-get install libfuse2 # renamed to libfuse2t64 in later releases
 
