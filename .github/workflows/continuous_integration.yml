@@ -177,8 +177,15 @@ jobs:
 
             export GIT_DESCRIBE="${{ steps.ghd.outputs.describe }}"
             ./appimage-builder --skip-tests --recipe ../tools/AppImageBuilder.yml
-            mv *.AppImage "package/${packagename}.AppImage"
 
+            # just for testing
+            ./*.AppImage --appimage-extract \
+              && { objdump -p squashfs-root/usr/bin/uzdoom | grep -o "GLIBC_[^ ]\+" | sort --version-sort ; } \
+              && { ldd squashfs-root/usr/bin/uzdoom | grep "not found" ; } \
+              && { rm -r squashfs-root ; } \
+              || true
+
+            mv *.AppImage "package/${packagename}.AppImage"
             rm package/licenses.zip
 
         fi
