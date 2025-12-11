@@ -92,6 +92,13 @@ function( add_pk3 PK3_NAME PK3_DIR )
 	# Generate target name. Just use "pk3" for main pk3 target.
 	string( REPLACE "." "_" PK3_TARGET ${PK3_NAME} )
 
+	execute_process(
+		COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/tools/updaterevision/GitInfo.cmake"
+		ERROR_QUIET OUTPUT_VARIABLE DESCRIBE
+	)
+	string(REGEX REPLACE "\n.*" "" DESCRIBE "${DESCRIBE}")
+	file( WRITE "${PK3_DIR}/VERSION" "${DESCRIBE}" )
+
 	add_custom_command( OUTPUT ${ZDOOM_OUTPUT_DIR}/${PK3_NAME}
 		COMMAND zipdir -udf ${PK3_ZIPDIR_OPTIONS} ${ZDOOM_OUTPUT_DIR}/${PK3_NAME} ${PK3_DIR}
 		DEPENDS zipdir )
