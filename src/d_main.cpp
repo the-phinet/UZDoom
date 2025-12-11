@@ -44,6 +44,7 @@
 
 #include <math.h>
 #include <assert.h>
+#include <filesystem>
 
 #include "a_dynlight.h"
 #include "am_map.h"
@@ -3967,27 +3968,32 @@ static int D_DoomMain_Internal (void)
 
 	D_DoomInit();
 
+	C_InitConsole(80*8, 25*8, false);
+
+	wad = BaseFileSearch(BASEWAD, NULL, true, GameConfig);
+
+	Printf(
+		"%s version %s\nBuild: %s version compiled on %s, dated %s\n"
+		"OS: %s\nWorkDir: %s\nProgDir: %s\nBaseWad: %s\n",
+		GAMENAME,
+		GetVersionString(),
+		BACKEND,
+		__DATE__,
+		GetGitTime(),
+		I_DetectOS().GetChars(),
+		std::filesystem::current_path().c_str(),
+		progdir.GetChars(),
+		wad
+	);
+
 	// [RH] Make sure zdoom.pk3 is always loaded,
 	// as it contains magic stuff we need.
-	wad = BaseFileSearch(BASEWAD, NULL, true, GameConfig);
 	if (wad == NULL)
 	{
 		I_FatalError("Cannot find " BASEWAD);
 	}
 	LoadHexFont(wad);	// load hex font early so we have it during startup.
 	InitWidgetResources(wad);
-
-	C_InitConsole(80*8, 25*8, false);
-
-	Printf(
-		"%s version %s\nBuild: %s version compiled on %s, dated %s\nOS: %s\n",
-		GAMENAME,
-		GetVersionString(),
-		BACKEND,
-		__DATE__,
-		GetGitTime(),
-		I_DetectOS().GetChars()
-	);
 
 	bool wantsVersion = Args->CheckParm(FArg_version)
 		|| Args->CheckParm(FArg_v);
