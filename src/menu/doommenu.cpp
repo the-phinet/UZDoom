@@ -330,7 +330,7 @@ void OnMenuOpen(bool makeSound)
 //
 //==========================================================================
 
-CUSTOM_CVAR(Float, dimamount, -1.f, CVAR_ARCHIVE)
+CUSTOM_CVAR(Float, dimamount, 0.8f, CVAR_ARCHIVE)
 {
 	if (self < 0.f && self != -1.f)
 	{
@@ -341,7 +341,7 @@ CUSTOM_CVAR(Float, dimamount, -1.f, CVAR_ARCHIVE)
 		self = 1.f;
 	}
 }
-CVAR(Color, dimcolor, 0xffd700, CVAR_ARCHIVE)
+CVAR(Color, dimcolor, 0x000000, CVAR_ARCHIVE)
 
 void System_M_Dim()
 {
