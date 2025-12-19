@@ -3003,6 +3003,7 @@ OptionMenu AccessibilityOptions protected
 	Tooltip "$ACCMNU_TOOLTIP_EXAMPLE"
 	Option "$ACCMNU_TOOLTIP_SCALE", "m_tooltip_small", "OffOn"
 	Tooltip "$ACCMNU_TOOLTIP_EXAMPLE"
+	Submenu "$HUDMNU_FONTOPTIONS",			"FontOptions"
 
 	StaticText ""
 	StaticText "$ACCMNU_LIGHT"
