@@ -32,6 +32,7 @@
 **
 */
 
+#include <signal.h>
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -172,12 +173,11 @@ UNSAFE_CCMD (error_fatal)
 //
 //==========================================================================
 
-#if !defined(_WIN32) || !defined(_DEBUG)
 UNSAFE_CCMD (crashout)
 {
-	*(volatile int *)0 = 0;
+	raise(SIGSEGV);
+	Printf("This only works in debug builds\n");
 }
-#endif
 
 
 UNSAFE_CCMD (dir)
