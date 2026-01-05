@@ -83,7 +83,7 @@ jobs:
                 `Please take a moment to familiarize yourself with the resources available in our [README.md](${base}/README.md) file.`,
               ].join(" "));
 
-              if (!updated.some(file => file === 'CONTRIBUTORS'))
+              if (!updated.some(file => file === "CONTRIBUTORS"))
               {
                 temp.push([
                   "-",
@@ -131,7 +131,7 @@ jobs:
             ];
             for (const subtree of subtrees)
             {
-              if (updated.some(file => file.filename.startsWith(subtree)))
+              if (updated.some(file => file.startsWith(subtree)))
               {
                 quibbles.push([
                   "-",
