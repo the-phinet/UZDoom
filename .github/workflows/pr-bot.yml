@@ -28,7 +28,7 @@ jobs:
             const base = `${repository.html_url}/blob/${repository.default_branch}`;
             const body = [
               `<!--${marker}-->`,
-              "#### Thanks for opening this PR! We'll review it soon."
+              "#### Thanks for opening this PR! We'll review it soon.",
               "I'm a bot that checks for some common problems. I'll update this comment with anything I find."
             ];
 
