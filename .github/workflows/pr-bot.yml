@@ -38,6 +38,8 @@ jobs:
 
             console.log(JSON.stringify(pr)); // for debugging
 
+            const link = f => `[${f}](${base}/${f})`;
+
             //
             // Message body stuff
             // Push string to body array to add new sections
@@ -63,7 +65,7 @@ jobs:
               if (!match) {
                 return `Ensure this checkbox is in the PR: '${expected}'`;
               } else if (match[1] !== 'x') {
-                return "Please agree to the terms in CONTRIBUTING.md, by checking the box in the description.";
+                return "Please agree to the terms in ${link("CONTRIBUTING.md")}, by checking the box in the description.";
               }
               return false;
             })();
@@ -84,14 +86,14 @@ jobs:
               temp.push([
                 "-",
                 "Welcome the community and thank you for your contribution!",
-                `Please take a moment to familiarize yourself with the resources available in our [README.md](${base}/README.md) file.`,
+                `Please take a moment to familiarize yourself with the resources available in our ${link("README.md")} file.`,
               ].join(" "));
 
               if (!updated.some(file => file === "CONTRIBUTORS"))
               {
                 temp.push([
                   "-",
-                  `Please take a moment to add your name to the bottom of the [CONTRIBUTORS](${base}/CONTRIBUTORS) file!`,
+                  `Please take a moment to add your name to the bottom of the ${link("CONTRIBUTORS")} file!`,
                 ].join(" "));
               }
 
@@ -99,7 +101,7 @@ jobs:
               {
                 temp.push([
                   "-",
-                  "Please ensure you have read CONTRIBUTING.md and agree to its terms.",
+                  "Please ensure you have read ${link("CONTRIBUTING.md")} and agree to its terms.",
                   "We cannot accept code before this is done.",
                 ].join(" "));
               }
