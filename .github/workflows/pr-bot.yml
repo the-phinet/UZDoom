@@ -101,7 +101,7 @@ jobs:
               {
                 temp.push([
                   "-",
-                  "Please ensure you have read ${link("CONTRIBUTING.md")} and agree to its terms.",
+                  `Please ensure you have read ${link("CONTRIBUTING.md")} and agree to its terms.`,
                   "We cannot accept code before this is done.",
                 ].join(" "));
               }
@@ -150,7 +150,7 @@ jobs:
             if (blockers.length > 0)
             {
               body.push(
-                "#### Here are some issues, that must be fixed.",
+                "#### Here are some issues, that must be fixed:",
                 ...blockers,
               );
             }
@@ -158,7 +158,7 @@ jobs:
             if (quibbles.length > 0)
             {
               body.push(
-                "#### Here are some minor issues, that might need fixing.",
+                "#### Here are some minor issues, that might need fixing:",
                 ...quibbles,
               );
             }
