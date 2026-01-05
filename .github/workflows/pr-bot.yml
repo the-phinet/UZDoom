@@ -148,7 +148,7 @@ jobs:
             if (blockers.length > 0)
             {
               body.push(
-                "#### Here are some issues, that must be fixed.",
+                "#### 🛑 Here are some issues, that must be fixed.",
                 ...blockers,
               );
             }
