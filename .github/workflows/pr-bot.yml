@@ -28,7 +28,8 @@ jobs:
             const base = `${repository.html_url}/blob/${repository.default_branch}`;
             const body = [
               `<!--${marker}-->`,
-              "Thanks for opening this PR! We'll review it shortly."
+              "#### Thanks for opening this PR! We'll review it soon."
+              "I'm a bot that checks for some common problems. I'll update this comment with anything I find."
             ];
 
             console.log(JSON.stringify(pr)); // for debugging
@@ -65,7 +66,7 @@ jobs:
 
             const updated = (await github.paginate(pulls.listFiles, {
               ...auth, pull_number: context.issue.number,
-            }));
+            })).map(f => f.filename);
             console.log("updated", updated);
 
             const blockers = [];
@@ -82,7 +83,7 @@ jobs:
                 `Please take a moment to familiarize yourself with the resources available in our [README.md](${base}/README.md) file.`,
               ].join(" "));
 
-              if (!updated.some(file => file.filename === 'CONTRIBUTORS'))
+              if (!updated.some(file => file === 'CONTRIBUTORS'))
               {
                 temp.push([
                   "-",
