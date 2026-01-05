@@ -22,10 +22,14 @@ jobs:
             //
 
             const marker = "our-nice-little-helper-bot-983247854" // used for comment updates
-            const { pull_request: pr, repository } = context.payload;
+            const { repository } = context.payload;
             const { issues, pulls } = github.rest;
             const auth = { owner: context.repo.owner, repo: context.repo.repo };
             const base = `${repository.html_url}/blob/${repository.default_branch}`;
+            const { data: pr } = await pulls.get({
+              ...auth, pull_number: context.issue.number
+            });
+
             const body = [
               `<!--${marker}-->`,
               "#### Thanks for opening this PR! We'll review it soon.",
