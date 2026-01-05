@@ -65,7 +65,7 @@ jobs:
               if (!match) {
                 return `Ensure this checkbox is in the PR: '${expected}'`;
               } else if (match[1] !== 'x') {
-                return "Please agree to the terms in ${link("CONTRIBUTING.md")}, by checking the box in the description.";
+                return `Please agree to the terms in ${link("CONTRIBUTING.md")}, by checking the box in the description.`;
               }
               return false;
             })();
