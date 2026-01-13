@@ -172,11 +172,6 @@ void FNotifyBuffer::Draw()
 			FString suffix      = "";
 			int     suffixWidth = 0;
 
-			if (font->IsValidDynamicFont())
-			{
-				scale = 1;
-			}
-
 			int w = twod->GetWidth();
 			int h = twod->GetHeight();
 
