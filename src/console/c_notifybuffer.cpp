@@ -182,11 +182,6 @@ void FNotifyBuffer::Draw()
 			int textWidth = font->StringWidth(notify.Text);
 			int xPos = 0;
 
-			if (font->IsValidDynamicFont())
-			{
-				scale = 1;
-			}
-
             if (center)
             {
 				xPos = (twod->GetWidth() / scale - textWidth) / 2;
