@@ -350,6 +350,7 @@ static void I_NetError(const char* error)
 
 static void I_NetInit(const char* msg, bool host)
 {
+	Printf("NetLobby:: %s\n", msg);
 	NetStartWindow::NetInit(msg, host);
 }
 
@@ -357,6 +358,7 @@ static void I_NetInit(const char* msg, bool host)
 // Updates the general status of the lobby.
 static void I_NetMessage(const char* msg)
 {
+	Printf("NetLobby:: %s\n", msg);
 	NetStartWindow::NetMessage(msg);
 }
 
@@ -370,6 +372,8 @@ static bool I_NetLoop(bool (*loopCallback)(void*), void* data)
 // A new client has just entered the game, so add them to the player list.
 static void I_NetClientConnected(int client, unsigned int charLimit = 0u)
 {
+	Printf("NetLobby:: Client '%s' connected.\n", Net_GetClientName(client, 0u));
+
 	const char* name = Net_GetClientName(client, charLimit);
 	unsigned int flags = CFL_NONE;
 	if (client == 0)
@@ -388,6 +392,7 @@ static void I_NetClientUpdated(int client)
 
 static void I_NetClientDisconnected(int client)
 {
+	Printf("NetLobby:: Client '%s' disconnected.\n", Net_GetClientName(client, 0u));
 	NetStartWindow::NetDisconnect(client);
 }
 
