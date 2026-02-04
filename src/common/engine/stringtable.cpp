@@ -22,18 +22,57 @@
 **
 */
 
+#include <cstdint>
+#include <iostream>
 #include <string.h>
 
 #include "c_cvars.h"
 #include "filesystem.h"
 #include "i_interface.h"
+#include "m_crc32.h"
 #include "name.h"
 #include "printf.h"
 #include "sc_man.h"
-#include "zstring.h"
 #include "stringtable.h"
+#include "zstring.h"
 
 EXTERN_CVAR(Int, developer);
+
+//==========================================================================
+//
+//
+//
+//==========================================================================
+
+uint32_t FStringTable::GetID(FString lang)
+{
+	// static TMap<uint32_t, FName> byID;
+	static TMap<FName, uint32_t> byStr;
+
+	FName name = lang;
+
+	// ba   749160980 bg  3318017825 by  1070322242 ceb  249967613 chs 3522719042 cht 1335687393 cs  3322219037
+	// da  2063461778 de  2106599819 el   492281966 ena 1888929598 enb 3919550084 enc 2660804114 eng 2582995467
+	// eni 2118995724 enj 3880001206 enl  237484931 ens 2200942198 ent  491463637 enw 2218947183 enz 4210233042
+	// eo  2220814804 es  2422189467 esa 2415569698 esb  385088152 esc 1643432462 esd 4287651757 ese 2291625787
+	// esf  295583361 esg 1721306647 esh 4129690502 esi 2166432528 esl 4048279455 esm 2253186825 esn  524662451
+	// eso 1749190181 esr  189065980 ess 2084821610 esu 2501934943 esv  204025573 esy 2627089268 esz   94331598
+	// fi  1175455522 fr  3430272718 he  3508889223 hr  1391911744 hu  3432150755 id  3208210256 it  2727245620
+	// ja  3833511964 jp  2395922670 kab 1687791425 ko   450747482 ms  1485186963 nb   421221538 nl  4272126373
+	// no  1739204639 pl   719472250 pt   965664300 ptg  859175243 ro  2178774338 ru  2092928056 sr  4223674586
+	// sv  4239256771 tr  3028401693 uk  3388024732 vi   215094643
+
+	uint32_t *idPtr = byStr.CheckKey(name);
+	if (idPtr) return *idPtr;
+
+	lang.ToLower();
+
+	uint32_t id = CalcCRC32(lang.GetChars());
+	// byID.Insert(id, name);
+	byStr.Insert(name, id);
+
+	return id;
+}
 
 //==========================================================================
 //
@@ -188,7 +227,7 @@ bool FStringTable::ParseLanguageCSV(int filenum, const char* buffer, size_t size
 
 	int labelcol = -1;
 	int filtercol = -1;
-	TArray<std::pair<int, unsigned>> langrows;
+	TArray<std::pair<int, uint32_t>> langrows;
 	bool hasDefaultEntry = false;
 
 	if (data.Size() > 0)
@@ -216,8 +255,7 @@ bool FStringTable::ParseLanguageCSV(int filenum, const char* buffer, size_t size
 					}
 					else if (lang.Len() < 4)
 					{
-						lang.ToLower();
-						langrows.Push(std::make_pair(column, MAKE_ID(lang.Len() > 0 ? lang[0] : 0, lang.Len() > 1 ? lang[1] : 0, lang.Len() > 2 ? lang[2] : 0, 0)));
+						langrows.Push(std::make_pair(column, GetID(lang)));
 					}
 				}
 			}
@@ -296,37 +334,34 @@ void FStringTable::LoadLanguage (int lumpnum, const char* buffer, size_t size)
 			do
 			{
 				size_t len = sc.StringLen;
-				if (len != 2 && len != 3)
+
+				if (len < 1)
 				{
-					if (len == 1 && sc.String[0] == '~')
-					{
-						// deprecated and ignored
-						sc.ScriptMessage("Deprecated option '~' found in language list");
-						sc.MustGetString ();
-						continue;
-					}
-					if (len == 1 && sc.String[0] == '*')
-					{
-						activeMaps.Clear();
-						activeMaps.Push(global_table);
-					}
-					else if (len == 7 && stricmp (sc.String, "default") == 0)
-					{
-						activeMaps.Clear();
-						activeMaps.Push(default_table);
-						hasDefaultEntry = true;
-					}
-					else
-					{
-						sc.ScriptError ("The language code must be 2 or 3 characters long.\n'%s' is %zu characters long.",
-							sc.String, len);
-					}
+					sc.ScriptError ("The language code may not be empty.");
 				}
-				else
+				if (len == 1 && sc.String[0] == '~')
 				{
-					if (activeMaps.Size() != 1 || (activeMaps[0] != default_table && activeMaps[0] != global_table))
-						activeMaps.Push(MAKE_ID(tolower(sc.String[0]), tolower(sc.String[1]), tolower(sc.String[2]), 0));
+					// deprecated and ignored
+					sc.ScriptMessage("Deprecated option '~' found in language list");
+					sc.MustGetString ();
+					continue;
 				}
+				if (len == 1 && sc.String[0] == '*')
+				{
+					activeMaps.Clear();
+					activeMaps.Push(global_table);
+				}
+				else if (len == 7 && stricmp (sc.String, "default") == 0)
+				{
+					activeMaps.Clear();
+					activeMaps.Push(default_table);
+					hasDefaultEntry = true;
+				}
+				else if (activeMaps.Size() != 1 || (activeMaps[0] != default_table && activeMaps[0] != global_table))
+				{
+					activeMaps.Push(GetID(sc.String));
+				}
+
 				sc.MustGetString ();
 			} while (!sc.Compare ("]"));
 		}
@@ -391,7 +426,7 @@ void FStringTable::LoadLanguage (int lumpnum, const char* buffer, size_t size)
 //
 //==========================================================================
 
-void FStringTable::DeleteString(int langid, FName label)
+void FStringTable::DeleteString(uint32_t langid, FName label)
 {
 	allStrings[langid].Remove(label);
 }
@@ -425,7 +460,7 @@ void FStringTable::DeleteForLabel(int filenum, FName label)
 //
 //==========================================================================
 
-void FStringTable::InsertString(int filenum, int langid, FName label, const FString &string)
+void FStringTable::InsertString(int filenum, uint32_t langid, FName label, const FString &string)
 {
 	const char *strlangid = (const char *)&langid;
 	TableElement te = { filenum, { string, string, string, string } };
@@ -463,9 +498,7 @@ void FStringTable::UpdateLanguage(const char *language)
 	else language = activeLanguage.GetChars();
 	size_t langlen = strlen(language);
 
-	int LanguageID = (langlen < 2 || langlen > 3) ?
-		MAKE_ID('e', 'n', 'u', '\0') :
-		MAKE_ID(language[0], language[1], language[2], '\0');
+	uint32_t LanguageID = (langlen < 2) ? GetID("en-us"): GetID(language);
 
 	currentLanguageSet.Clear();
 
@@ -479,7 +512,6 @@ void FStringTable::UpdateLanguage(const char *language)
 	checkone(override_table);
 	checkone(global_table);
 	checkone(LanguageID);
-	checkone(LanguageID & MAKE_ID(0xff, 0xff, 0, 0));
 	checkone(default_table);
 }
 
