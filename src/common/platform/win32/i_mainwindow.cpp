@@ -21,23 +21,25 @@
 **
 */
 
-#include "i_mainwindow.h"
-#include "resource.h"
-#include "startupinfo.h"
-#include "gstrings.h"
-#include "palentry.h"
-#include "st_start.h"
-#include "i_input.h"
-#include "version.h"
-#include "utf8.h"
-#include "v_font.h"
-#include "i_net.h"
-#include "engineerrors.h"
-#include "common/widgets/errorwindow.h"
+
 #include <richedit.h>
 #include <shellapi.h>
 #include <commctrl.h>
 #include <dwmapi.h>
+
+// #include "engineerrors.h"
+// #include "gstrings.h"
+#include "i_input.h"
+#include "i_mainwindow.h"
+#include "i_net.h"
+// #include "palentry.h"
+#include "resource.h"
+#include "st_start.h"
+// #include "startupinfo.h"
+// #include "utf8.h"
+// #include "v_font.h"
+#include "version.h"
+#include "widgets/errorwindow.h"
 
 #pragma comment(lib, "dwmapi.lib")
 
