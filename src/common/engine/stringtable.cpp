@@ -55,6 +55,7 @@ FString GetLocale()
 	if (!lang) lang = std::getenv("LANG");
 	if (!lang) return "en-US";
 
+
 	FString tag = lang;
 	auto dot = tag.IndexOfAny(".@");
 	if (dot != -1) tag=tag.Left(dot);
@@ -72,19 +73,12 @@ FString GetLocale()
 
 LangID FStringTable::GetID(FString lang)
 {
-
-
 	FName name = lang;
 
 	static FName systemlocale = NAME_None;
 
 	if (name == NAME_Auto && systemlocale != NAME_None) name = systemlocale;
-	if (name == NAME_Auto)
-	{
-		name = lang = GetLocale();
-		if (!langMap.CheckKey(name)) name = lang = "en-US";
-		systemlocale = name;
-	}
+	if (name == NAME_Auto) systemlocale = name = lang = GetLocale();
 
 	// should I switch to a map? Or add these the namedef.h? If feels weird to have these very specific values in namedef
 	bool oldmapping = false; // use old generalized alias, or new real alias
@@ -190,6 +184,19 @@ LangID FStringTable::GetID(FString lang)
 	};
 	auto ptr = &langMap.Insert(name, id);
 	langRevMap.Insert(ptr->normalized, ptr);
+
+	auto fallback = langRevMap.CheckKey(ptr->script);
+	if (!fallback || ((*fallback)->script != (*fallback)->normalized))
+	{
+		auto ptr = &langMap.Insert(script, id);
+		langRevMap.Insert(ptr->script, ptr);
+	}
+	fallback = langRevMap.CheckKey(ptr->language);
+	if (!fallback || ((*fallback)->language != (*fallback)->normalized))
+	{
+		auto ptr = &langMap.Insert(language, id);
+		langRevMap.Insert(ptr->language, ptr);
+	}
 
 	return id;
 }
