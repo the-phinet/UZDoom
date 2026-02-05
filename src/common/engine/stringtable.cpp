@@ -39,6 +39,31 @@
 
 EXTERN_CVAR(Int, developer);
 
+FString GetLocale();
+
+#ifdef __WIN32
+FString GetLocale()
+{
+	// TODO: implement me
+	// I think GetUserDefaultLocaleName would be correct
+	return "en-US"; // lol
+}
+#else
+FString GetLocale()
+{
+	const char* lang  = std::getenv("LC_MESSAGES");
+	if (!lang) lang = std::getenv("LANG");
+	if (!lang) return "en-US";
+
+	FString tag = lang;
+	auto dot = tag.IndexOfAny(".@");
+	if (dot != -1) tag=tag.Left(dot);
+	tag.ReplaceChars('_', '-');
+
+	return tag;
+}
+#endif
+
 //==========================================================================
 //
 //
@@ -47,9 +72,19 @@ EXTERN_CVAR(Int, developer);
 
 LangID FStringTable::GetID(FString lang)
 {
+
+
 	FName name = lang;
 
-	// todo: handle "auto"
+	static FName systemlocale = NAME_None;
+
+	if (name == NAME_Auto && systemlocale != NAME_None) name = systemlocale;
+	if (name == NAME_Auto)
+	{
+		name = lang = GetLocale();
+		if (!langMap.CheckKey(name)) name = lang = "en-US";
+		systemlocale = name;
+	}
 
 	// should I switch to a map? Or add these the namedef.h? If feels weird to have these very specific values in namedef
 	bool oldmapping = false; // use old generalized alias, or new real alias
