@@ -23,6 +23,7 @@
 */
 
 #include <cstdint>
+#include <cstdio>
 #include <iostream>
 #include <string.h>
 
@@ -44,32 +45,116 @@ EXTERN_CVAR(Int, developer);
 //
 //==========================================================================
 
-uint32_t FStringTable::GetID(FString lang)
+LangID FStringTable::GetID(FString lang)
 {
-	// static TMap<uint32_t, FName> byID;
-	static TMap<FName, uint32_t> byStr;
-
 	FName name = lang;
 
-	// ba   749160980 bg  3318017825 by  1070322242 ceb  249967613 chs 3522719042 cht 1335687393 cs  3322219037
-	// da  2063461778 de  2106599819 el   492281966 ena 1888929598 enb 3919550084 enc 2660804114 eng 2582995467
-	// eni 2118995724 enj 3880001206 enl  237484931 ens 2200942198 ent  491463637 enw 2218947183 enz 4210233042
-	// eo  2220814804 es  2422189467 esa 2415569698 esb  385088152 esc 1643432462 esd 4287651757 ese 2291625787
-	// esf  295583361 esg 1721306647 esh 4129690502 esi 2166432528 esl 4048279455 esm 2253186825 esn  524662451
-	// eso 1749190181 esr  189065980 ess 2084821610 esu 2501934943 esv  204025573 esy 2627089268 esz   94331598
-	// fi  1175455522 fr  3430272718 he  3508889223 hr  1391911744 hu  3432150755 id  3208210256 it  2727245620
-	// ja  3833511964 jp  2395922670 kab 1687791425 ko   450747482 ms  1485186963 nb   421221538 nl  4272126373
-	// no  1739204639 pl   719472250 pt   965664300 ptg  859175243 ro  2178774338 ru  2092928056 sr  4223674586
-	// sv  4239256771 tr  3028401693 uk  3388024732 vi   215094643
+	// todo: handle "auto"
 
-	uint32_t *idPtr = byStr.CheckKey(name);
+	// should I switch to a map? Or add these the namedef.h? If feels weird to have these very specific values in namedef
+	bool oldmapping = false; // use old generalized alias, or new real alias
+	if (name == "default") { name = lang = "en-US"; }
+	else if (name == "by") { name = lang = "be-Latn"; }
+	else if (name == "chs") { name = lang = "zh-Hans"; }
+	else if (name == "cht") { name = lang = "zh-Hant"; }
+	else if (name == "ena") { name = lang = (oldmapping? "en-GB": "en-AU"); }  // I guessed what the en* ones could be
+	else if (name == "enb") { name = lang = (oldmapping? "en-GB": "en-BZ"); }
+	else if (name == "enc") { name = lang = (oldmapping? "en-GB": "en-CA"); }
+	else if (name == "eng") { name = lang = (oldmapping? "en-GB": "en-GB"); }
+	else if (name == "eni") { name = lang = (oldmapping? "en-GB": "en-IN"); }
+	else if (name == "enj") { name = lang = (oldmapping? "en-GB": "en-JM"); }
+	else if (name == "enl") { name = lang = (oldmapping? "en-GB": "en-IE"); }
+	else if (name == "ens") { name = lang = (oldmapping? "en-GB": "en-ZA"); }
+	else if (name == "ent") { name = lang = (oldmapping? "en-GB": "en-TT"); }
+	else if (name == "enw") { name = lang = (oldmapping? "en-GB": "en-GB-wales"); }
+	else if (name == "enz") { name = lang = (oldmapping? "en-GB": "en-NZ"); }
+	else if (name == "esa") { name = lang = (oldmapping? "es-MX": "es-AR"); }  // I guessed what the es* ones could be
+	else if (name == "esb") { name = lang = (oldmapping? "es-MX": "es-BO"); }
+	else if (name == "esc") { name = lang = (oldmapping? "es-MX": "es-CO"); }
+	else if (name == "esd") { name = lang = (oldmapping? "es-MX": "es-DO"); }
+	else if (name == "ese") { name = lang = (oldmapping? "es-MX": "es-EC"); }
+	else if (name == "esf") { name = lang = (oldmapping? "es-MX": "es-PH"); }
+	else if (name == "esg") { name = lang = (oldmapping? "es-MX": "es-GT"); }
+	else if (name == "esh") { name = lang = (oldmapping? "es-MX": "es-HN"); }
+	else if (name == "esi") { name = lang = (oldmapping? "es-MX": "es"); }
+	else if (name == "esl") { name = lang = (oldmapping? "es-MX": "es-CL"); }
+	else if (name == "esm") { name = lang = (oldmapping? "es-MX": "es-MX"); }
+	else if (name == "esn") { name = lang = (oldmapping? "es-MX": "es"); }
+	else if (name == "eso") { name = lang = (oldmapping? "es-MX": "es-BO"); }
+	else if (name == "esr") { name = lang = (oldmapping? "es-MX": "es-CR"); }
+	else if (name == "ess") { name = lang = (oldmapping? "es-MX": "es-SV"); }
+	else if (name == "esu") { name = lang = (oldmapping? "es-MX": "es-US"); }
+	else if (name == "esv") { name = lang = (oldmapping? "es-MX": "es-VE"); }
+	else if (name == "esy") { name = lang = (oldmapping? "es-MX": "es-PY"); }
+	else if (name == "esz") { name = lang = (oldmapping? "es-MX": "es-BZ"); }
+	else if (name == "jp") { name = lang = "ja"; }
+	else if (name == "nb") { name = lang = "nb-NO"; }
+	else if (name == "no") { name = lang = "nb-NO"; }
+	else if (name == "pt") { name = lang = "pt-BR"; }
+	else if (name == "ptg") { name = lang = "pt"; }
+
+	auto idPtr = langMap.CheckKey(name);
 	if (idPtr) return *idPtr;
 
 	lang.ToLower();
+	// TODO: we **could** validate here, but I don't think we need to
+	lang.ReplaceChars([](auto c) { return !(('a'<=c&&c<='z')||('0'<=c&&c<='9')); }, ' ');
 
-	uint32_t id = CalcCRC32(lang.GetChars());
-	// byID.Insert(id, name);
-	byStr.Insert(name, id);
+	FString _lang = "*", _script = "*", _region = "*";
+
+	FScanner sc;
+	sc.OpenString("language", lang);
+
+	enum { LANG, SCRIPT, REGION, DONE };
+
+	auto step = LANG;
+	while (sc.GetString())
+	{
+		if (sc.StringLen == 1 && sc.String[0] == 'x') // private-use block. skip the rest
+		{
+			step = DONE;
+			break;
+		}
+		switch (step)
+		{
+		case LANG:
+			_lang = sc.String;
+			step = SCRIPT;
+			break;
+		case SCRIPT:
+			if (sc.StringLen == 4) // script
+			{
+				_script = FStringf("%c%s", sc.String[0]+('A'-'a'),  sc.String+1);
+				step = REGION;
+				break;
+			}
+			// fall-through
+		case REGION:
+			if (sc.StringLen == 2) // region
+			{
+				_region = sc.String;
+				_region.ToUpper();
+				step = DONE;
+			}
+			break;
+		case DONE:
+			break;
+		}
+	}
+
+	auto normalized = _lang + "-" + _script + "-" + _region;
+	auto script     = _lang + "-" + _script + "-*";
+	auto language   = _lang + "-*-*";
+
+	LangID id = {
+		name,
+		CalcCRC32(lang.GetChars()),
+		CalcCRC32(normalized.GetChars()),
+		CalcCRC32(script.GetChars()),
+		CalcCRC32(language.GetChars())
+	};
+	auto ptr = &langMap.Insert(name, id);
+	langRevMap.Insert(ptr->normalized, ptr);
 
 	return id;
 }
@@ -255,7 +340,7 @@ bool FStringTable::ParseLanguageCSV(int filenum, const char* buffer, size_t size
 					}
 					else if (lang.Len() < 4)
 					{
-						langrows.Push(std::make_pair(column, GetID(lang)));
+						langrows.Push(std::make_pair(column, GetID(lang).normalized));
 					}
 				}
 			}
@@ -359,7 +444,7 @@ void FStringTable::LoadLanguage (int lumpnum, const char* buffer, size_t size)
 				}
 				else if (activeMaps.Size() != 1 || (activeMaps[0] != default_table && activeMaps[0] != global_table))
 				{
-					activeMaps.Push(GetID(sc.String));
+					activeMaps.Push(GetID(sc.String).normalized);
 				}
 
 				sc.MustGetString ();
@@ -498,7 +583,7 @@ void FStringTable::UpdateLanguage(const char *language)
 	else language = activeLanguage.GetChars();
 	size_t langlen = strlen(language);
 
-	uint32_t LanguageID = (langlen < 2) ? GetID("en-us"): GetID(language);
+	auto LanguageID = ((langlen < 2) ? GetID("default"): GetID(language));
 
 	currentLanguageSet.Clear();
 
@@ -511,7 +596,9 @@ void FStringTable::UpdateLanguage(const char *language)
 
 	checkone(override_table);
 	checkone(global_table);
-	checkone(LanguageID);
+	checkone(LanguageID.normalized);
+	checkone(LanguageID.script);
+	checkone(LanguageID.language);
 	checkone(default_table);
 }
 

@@ -54,6 +54,14 @@ struct StringMacro
 	FString Replacements[4];
 };
 
+struct LangID
+{
+	FName name;
+	uint32_t original;   // full eitf langtag
+	uint32_t normalized; // all the bits we support (aa-bbbb-cc) a:lang,b:script,c:region
+	uint32_t script;     // only the language and script (aa-bbbb)
+	uint32_t language;   // just the language (aa)
+};
 
 class FStringTable
 {
@@ -94,8 +102,10 @@ private:
 	LangMap allStrings;
 	TArray<std::pair<uint32_t, StringMap*>> currentLanguageSet;
 	int defaultgender = 0;
+	TMap<FName, LangID> langMap;
+	TMap<uint32_t, LangID*> langRevMap;
 
-	static uint32_t GetID(FString lang);
+	LangID GetID(FString lang);
 
 	void LoadLanguage (int lumpnum, const char* buffer, size_t size);
 	TArray<TArray<FString>> parseCSV(const char* buffer, size_t size);
