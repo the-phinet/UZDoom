@@ -380,7 +380,7 @@ bool FStringTable::ParseLanguageCSV(int filenum, const char* buffer, size_t size
 						langrows.Push(std::make_pair(column, default_table));
 						hasDefaultEntry = true;
 					}
-					else if (lang.Len() < 4)
+					else
 					{
 						langrows.Push(std::make_pair(column, GetID(lang).normalized));
 					}
