@@ -26,6 +26,7 @@
 #include <cstdio>
 #include <iostream>
 #include <string.h>
+#include <string_view>
 
 #include "c_cvars.h"
 #include "filesystem.h"
@@ -39,22 +40,21 @@
 
 EXTERN_CVAR(Int, developer);
 
-FString GetLocale();
+//==========================================================================
+//
+//
+//
+//==========================================================================
 
-#ifdef __WIN32
-FString GetLocale()
+#ifndef _WIN32
+// TODO: verify this is correct for apple
+FString FStringTable::GetSystemLocale()
 {
-	// TODO: implement me
-	// I think GetUserDefaultLocaleName would be correct
-	return "en-US"; // lol
-}
-#else
-FString GetLocale()
-{
-	const char* lang  = std::getenv("LC_MESSAGES");
+	const char* lang  = std::getenv("LC_ALL");
+	if (!lang) lang = std::getenv("LC_MESSAGES");
 	if (!lang) lang = std::getenv("LANG");
-	if (!lang) return "en-US";
 
+	if (!lang || std::string_view(lang)=="C" || std::string_view(lang)=="POSIX") return "en-US";
 
 	FString tag = lang;
 	auto dot = tag.IndexOfAny(".@");
@@ -63,6 +63,8 @@ FString GetLocale()
 
 	return tag;
 }
+#else
+// this lives somewhere we already have <windows.h>
 #endif
 
 //==========================================================================
@@ -78,7 +80,7 @@ LangID FStringTable::GetID(FString lang)
 	static FName systemlocale = NAME_None;
 
 	if (name == NAME_Auto && systemlocale != NAME_None) name = systemlocale;
-	if (name == NAME_Auto) systemlocale = name = lang = GetLocale();
+	if (name == NAME_Auto) systemlocale = name = lang = GetSystemLocale();
 
 	// should I switch to a map? Or add these the namedef.h? If feels weird to have these very specific values in namedef
 	bool oldmapping = false; // use old generalized alias, or new real alias
