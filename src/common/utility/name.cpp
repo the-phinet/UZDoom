@@ -22,10 +22,11 @@
 */
 
 #include <string.h>
-#include "name.h"
-#include "superfasthash.h"
+
 #include "cmdlib.h"
 #include "m_alloc.h"
+#include "name.h"
+#include "superfasthash.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -175,7 +176,8 @@ void FName::NameManager::InitBuckets ()
 	Inited = true;
 	memset (Buckets, -1, sizeof(Buckets));
 
-	// Register built-in names. 'None' must be name 0.
+	// Register built-in names.
+	assert(0 == strcmp(PredefinedNames[0], "None") && "'None' must be name 0.");
 	for (size_t i = 0; i < countof(PredefinedNames); ++i)
 	{
 		assert((0 == FindName(PredefinedNames[i], true)) && "Predefined name already inserted");
