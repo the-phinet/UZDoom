@@ -64,12 +64,14 @@ static const char *PredefinedNames[] =
 {
 #define xx(n) #n,
 #define xy(n, s) s,
+#define xa(a, n)
 #include "namedef.h"
 #if __has_include("namedef_custom.h")
 	#include "namedef_custom.h"
 #endif
 #undef xx
 #undef xy
+#undef xa
 };
 
 // CODE --------------------------------------------------------------------
