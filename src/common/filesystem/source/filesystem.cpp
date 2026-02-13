@@ -133,6 +133,7 @@ struct FileSystem::LumpRecord
 				!strncmp(LongName, "graphics/", 9) ? ns_graphics :
 				!strncmp(LongName, "sounds/", 7) ? ns_sounds :
 				!strncmp(LongName, "music/", 6) ? ns_music :
+				!strncmp(LongName, "after_iwad/", 11) ? ns_global :
 				!strchr(LongName, '/') ? ns_global :
 				ns_hidden;
 
