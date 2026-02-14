@@ -2235,6 +2235,21 @@ void TryRunTics()
 			lowestSequence = ClientStates[client].CurrentSequence;
 	}
 
+	// Test player prediction code in singleplayer by pretending there is another player
+	// that is running exactly x ticks behind us, emulating having a specific amount of ping
+	if (cl_debugprediction > 0
+		&& !netgame && !demoplayback) // would probably function, but there's no reason to
+	{
+		if (lowestSequence > cl_debugprediction)
+		{
+			lowestSequence -= cl_debugprediction;
+		}
+		else
+		{
+			lowestSequence = 0;
+		}
+	}
+
 	// If the lowest confirmed tic matches the server gametic or greater, allow the client
 	// to run some of them.
 	const int availableTics = (lowestSequence - gametic / TicDup) + 1;
@@ -2247,18 +2262,6 @@ void TryRunTics()
 		CalculateNetStabilityBuffer(availableTics - totalTics);
 		if (totalTics < availableTics - StabilityBuffer)
 			++runTics;
-	}
-
-	// Test player prediction code in singleplayer
-	// by running the gametic behind the ClientTic
-	if (!netgame && !demoplayback && cl_debugprediction > 0)
-	{
-		int debugTarget = ClientTic - cl_debugprediction;
-		int debugOffset = gametic - debugTarget;
-		if (debugOffset > 0)
-		{
-			runTics = max<int>(runTics - debugOffset, 0);
-		}
 	}
 
 	const int worldTimer = primaryLevel->LocalWorldTimer;
