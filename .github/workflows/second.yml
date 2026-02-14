@@ -3,16 +3,16 @@ name: Testing
 on:
   workflow_run:
     workflows: ["Continuous Integration"]
-    # branches: [context]
-    # types:
-    #   - completed
+    branches: [trunk]
+    types:
+      - completed
 
 jobs:
   this-is-another-test:
     runs-on: ubuntu-latest
     if: always()
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: B
         run: |
-          echo b
+          echo it worked
