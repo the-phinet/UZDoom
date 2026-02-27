@@ -17,6 +17,10 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          sparse-checkout: |
+            README.md
 
       - id: tag
         uses: proudust/gh-describe@v2
