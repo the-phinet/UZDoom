@@ -11,7 +11,11 @@ jobs:
   upload_nightly:
     name: Upload Nightly
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_sha == github.event.workflow_run.repository.default_branch_sha
+      }}
     permissions:
       contents: write
       actions: read
