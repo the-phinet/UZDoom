@@ -21,6 +21,10 @@
 #include "tarray.h"
 #include "zstring.h"
 
+#ifdef HAS_UPDATER
+class UpdateButtonBar;
+#endif
+
 class TabWidget;
 class LauncherBanner;
 class LauncherButtonbar;
@@ -53,6 +57,9 @@ private:
 	LauncherBanner* Banner = nullptr;
 	TabWidget* Pages = nullptr;
 	LauncherButtonbar* Buttonbar = nullptr;
+#ifdef HAS_UPDATER
+	UpdateButtonBar* UpdateBar = nullptr;
+#endif
 
 	PlayGamePage* PlayGame = nullptr;
 	SettingsPage* Settings = nullptr;

@@ -35,6 +35,13 @@ if(NOT FORCE_NO_LTO)
 	endif()
 endif()
 
+if(WIN32)
+	option( USE_UPDATER "enable auto-updater" ON )
+endif()
+if(USE_UPDATER)
+	set( CURL_REQUIRED TRUE )
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -222,7 +229,6 @@ macro( use_fast_math )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ZD_FASTMATH_FLAG}" )
 endmacro()
 
-
 include( CheckFunctionExists )
 
 macro( gz_require_stricmp )
@@ -243,7 +249,22 @@ option( NO_OPENAL "Disable OpenAL sound support" OFF )
 
 find_package( BZip2 )
 find_package( VPX )
-find_package( CURL )
+
+if (CURL_REQUIRED)
+	find_package( CURL )
+	if( MSVC AND NOT CURL_FOUND )
+		# Use prebuilt library
+		if ( ARM64 )
+			set( CURL_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin/Windows/curl/arm64" )
+		else()
+			set( CURL_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/bin/Windows/curl/x64" )
+		endif()
+		set( CURL_INCLUDE_DIRS ${CURL_ROOT_PATH}/include )
+		set( CURL_LIBRARIES ${CURL_ROOT_PATH}/lib/libcurl.dll.a )
+		set( CURL_FOUND TRUE )
+	endif()
+endif()
+
 if (NOT FORCE_INTERNAL_CPPDAP)
 	find_package( cppdap CONFIG )
 endif()
