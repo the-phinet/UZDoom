@@ -31,6 +31,10 @@
 #include "settingspage.h"
 #include "version.h"
 
+#ifdef HAS_UPDATER
+#include "updatebuttonbar.h"
+#endif
+
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
 	Size screenSize = GetScreenSize();
@@ -53,6 +57,10 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	Banner = new LauncherBanner(this, info.prideColors, info.prideMix);
 	Pages = new TabWidget(this);
 	Buttonbar = new LauncherButtonbar(this);
+#ifdef HAS_UPDATER
+	UpdateBar = new UpdateButtonBar(this);
+	UpdateBar->Hide();
+#endif
 
 	bool releasenotes = info.isNewRelease && info.notifyNewRelease;
 
@@ -78,8 +86,19 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 
 	Pages->SetCurrentIndex(0);
 	Pages->GetCurrentWidget()->SetFocus();
+
+#ifdef HAS_UPDATER
+	UpdateBar->CheckForUpdate(false);
+#endif
 }
 
+#ifndef HAS_UPDATER
+void LauncherWindow::OnWindowClose()
+{
+	Close();
+}
+
+#endif
 void LauncherWindow::UpdatePlayButton()
 {
 	Buttonbar->UpdateLanguage();
@@ -135,6 +154,9 @@ void LauncherWindow::UpdateLanguage()
 	}
 	Buttonbar->UpdateLanguage();
 
+#ifdef HAS_UPDATER
+	UpdateBar->UpdateLanguage();
+#endif
 	OnGeometryChanged();
 }
 
@@ -150,6 +172,15 @@ void LauncherWindow::OnGeometryChanged()
 
 	Banner->SetFrameGeometry(0.0, top, GetWidth(), Banner->GetPreferredHeight());
 	top += Banner->GetPreferredHeight();
+
+#ifdef HAS_UPDATER
+	if(!UpdateBar->IsHidden())
+	{
+		double updateBarHeight = UpdateBar->GetPreferredHeight();
+		UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
+		top += updateBarHeight;
+	}
+#endif
 
 	bottom -= Buttonbar->GetPreferredHeight();
 	Buttonbar->SetFrameGeometry(0.0, bottom, GetWidth(), Buttonbar->GetPreferredHeight());

@@ -344,21 +344,8 @@ message("Building for target architecture: ${TARGET_ARCHITECTURE}")
 
 # CURL
 
-if( MSVC AND NOT CURL_FOUND )
-	# Use prebuilt library
-	if ( ARM64 )
-		set( CURL_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../bin/Windows/curl/arm64" )
-	else()
-		set( CURL_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../bin/Windows/curl/x64" )
-	endif()
-	set( CURL_INCLUDE_DIR ${CURL_ROOT_PATH}/include )
-	set( CURL_LIBRARIES ${CURL_ROOT_PATH}/lib/libcurl.dll.a )
-	set( CURL_FOUND TRUE )
-endif()
-
-
 if( CURL_FOUND )
-	include_directories( SYSTEM "${CURL_INCLUDE_DIR}" )
+	include_directories( SYSTEM "${CURL_INCLUDE_DIRS}" )
 	set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} ${CURL_LIBRARIES} )
 endif()
 
@@ -805,6 +792,16 @@ endif()
 
 set (FASTMATH_SOURCES ${FASTMATH_SOURCES})
 
+if (DEFINED USE_UPDATER AND USE_UPDATER)
+	set (UPDATER_SOURCES
+		widgets/updatebuttonbar.cpp
+	)
+
+	add_compile_definitions("HAS_UPDATER")
+else()
+	set (UPDATER_SOURCES "")
+endif()
+
 set (PCH_SOURCES
 	am_map.cpp
 	playsim/bots/b_bot.cpp
@@ -1004,6 +1001,7 @@ set (PCH_SOURCES
 	widgets/settingspage.cpp
 	widgets/themedata.cpp
 	widgets/widgetresourcedata.cpp
+	${UPDATER_SOURCES}
 
 	common/audio/sound/i_sound.cpp
 	common/audio/sound/oalsound.cpp
@@ -1344,7 +1342,7 @@ if( UNIX )
 	endif()
 endif()
 
-target_link_libraries( zdoom ${PROJECT_LIBRARIES} lzma ${ZMUSIC_LIBRARIES} absl::base absl::flat_hash_map absl::strings absl::hash)
+target_link_libraries( zdoom ${PROJECT_LIBRARIES} lzma ${ZMUSIC_LIBRARIES} absl::base absl::flat_hash_map absl::strings absl::hash )
 include_directories(
 	BEFORE
 	.
