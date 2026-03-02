@@ -24,6 +24,7 @@
 class TabWidget;
 class LauncherBanner;
 class LauncherButtonbar;
+class UpdateButtonBar;
 class PlayGamePage;
 class SettingsPage;
 class NetworkPage;
@@ -53,6 +54,7 @@ private:
 	LauncherBanner* Banner = nullptr;
 	TabWidget* Pages = nullptr;
 	LauncherButtonbar* Buttonbar = nullptr;
+	UpdateButtonBar* UpdateBar = nullptr;
 
 	PlayGamePage* PlayGame = nullptr;
 	SettingsPage* Settings = nullptr;

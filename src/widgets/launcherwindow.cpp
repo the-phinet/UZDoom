@@ -24,12 +24,14 @@
 #include "i_interface.h"
 #include "launcherbanner.h"
 #include "launcherbuttonbar.h"
+#include "updatebuttonbar.h"
 #include "launcherwindow.h"
 #include "networkpage.h"
 #include "playgamepage.h"
 #include "releasepage.h"
 #include "settingspage.h"
 #include "version.h"
+#include "update.h"
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
@@ -53,6 +55,7 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	Banner = new LauncherBanner(this, info.prideColors, info.prideMix);
 	Pages = new TabWidget(this);
 	Buttonbar = new LauncherButtonbar(this);
+	UpdateBar = new UpdateButtonBar(this);
 
 	bool releasenotes = info.isNewRelease && info.notifyNewRelease;
 
@@ -77,7 +80,19 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	UpdateLanguage();
 
 	Pages->SetCurrentIndex(0);
-	Pages->GetCurrentWidget()->SetFocus();
+	Pages->GetCurrentWidget()->SetFocus();	
+
+	if (GetReleaseData())
+	{
+		if (UpdateAvailable())
+		{
+			UpdateBar->Show();
+		}
+		else
+		{
+			UpdateBar->Hide();
+		}
+	}
 }
 
 void LauncherWindow::UpdatePlayButton()
@@ -134,6 +149,7 @@ void LauncherWindow::UpdateLanguage()
 		Release->UpdateLanguage();
 	}
 	Buttonbar->UpdateLanguage();
+	UpdateBar->UpdateLanguage();
 
 	OnGeometryChanged();
 }
@@ -150,6 +166,10 @@ void LauncherWindow::OnGeometryChanged()
 
 	Banner->SetFrameGeometry(0.0, top, GetWidth(), Banner->GetPreferredHeight());
 	top += Banner->GetPreferredHeight();
+
+	double updateBarHeight = UpdateBar->GetPreferredHeight();
+	UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
+	top += updateBarHeight;
 
 	bottom -= Buttonbar->GetPreferredHeight();
 	Buttonbar->SetFrameGeometry(0.0, bottom, GetWidth(), Buttonbar->GetPreferredHeight());

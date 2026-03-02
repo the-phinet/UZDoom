@@ -454,6 +454,7 @@ install(DIRECTORY docs/
 option( DYN_OPENAL "Dynamically load OpenAL" ON )
 option( BUILD_NONFREE "Build non-free assets used by commercial games" ON )
 
+add_subdirectory( updater )
 add_subdirectory( src )
 add_subdirectory( libraries/lzma )
 add_subdirectory( tools )

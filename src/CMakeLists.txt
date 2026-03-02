@@ -1004,6 +1004,7 @@ set (PCH_SOURCES
 	widgets/settingspage.cpp
 	widgets/themedata.cpp
 	widgets/widgetresourcedata.cpp
+	widgets/updatebuttonbar.cpp
 
 	common/audio/sound/i_sound.cpp
 	common/audio/sound/oalsound.cpp
@@ -1304,7 +1305,7 @@ list( REMOVE_ITEM GAME_NONPCH_SOURCES ${PCH_SOURCES} )
 
 add_executable( zdoom WIN32 MACOSX_BUNDLE ${GAME_SOURCES} )
 
-target_include_directories( zdoom PRIVATE ${CMAKE_BINARY_DIR} )
+target_include_directories( zdoom PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/updater )
 
 target_precompile_headers( zdoom PRIVATE g_pch.h )
 
@@ -1344,7 +1345,7 @@ if( UNIX )
 	endif()
 endif()
 
-target_link_libraries( zdoom ${PROJECT_LIBRARIES} lzma ${ZMUSIC_LIBRARIES} absl::base absl::flat_hash_map absl::strings absl::hash)
+target_link_libraries( zdoom ${PROJECT_LIBRARIES} updater_core lzma ${ZMUSIC_LIBRARIES} absl::base absl::flat_hash_map absl::strings absl::hash )
 include_directories(
 	BEFORE
 	.
