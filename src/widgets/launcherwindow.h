@@ -44,6 +44,8 @@ public:
 	LauncherWindow(FStartupSelectionInfo& info);
 	void UpdateLanguage();
 
+	void UpdateSize();
+
 	void Start();
 	void Exit();
 	bool IsInMultiplayer() const;
@@ -70,6 +72,8 @@ private:
 	FStartupSelectionInfo* Info = nullptr;
 
 	bool ExecResult = false;
+
+	double topHeight = 0.0f;
 
 	friend AboutPage;
 };
