@@ -28,6 +28,8 @@ class UpdateButtonBar : public Widget
 
 	double GetPreferredHeight() const;
 
+	void CheckForUpdate(bool autoupdate);
+
   private:
 	void OnGeometryChanged() override;
 	void OnUpdateButtonClicked();

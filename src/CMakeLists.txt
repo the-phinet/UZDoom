@@ -805,6 +805,16 @@ endif()
 
 set (FASTMATH_SOURCES ${FASTMATH_SOURCES})
 
+if (DEFINED USE_UPDATER AND USE_UPDATER)
+	set (UPDATER_SOURCES
+		widgets/updatebuttonbar.cpp
+	)
+	
+	add_compile_definitions("HAS_UPDATER")
+else()
+	set (UPDATER_SOURCES "")
+endif()
+
 set (PCH_SOURCES
 	am_map.cpp
 	playsim/bots/b_bot.cpp
@@ -1004,7 +1014,7 @@ set (PCH_SOURCES
 	widgets/settingspage.cpp
 	widgets/themedata.cpp
 	widgets/widgetresourcedata.cpp
-	widgets/updatebuttonbar.cpp
+	${UPDATER_SOURCES}
 
 	common/audio/sound/i_sound.cpp
 	common/audio/sound/oalsound.cpp
@@ -1305,7 +1315,7 @@ list( REMOVE_ITEM GAME_NONPCH_SOURCES ${PCH_SOURCES} )
 
 add_executable( zdoom WIN32 MACOSX_BUNDLE ${GAME_SOURCES} )
 
-target_include_directories( zdoom PRIVATE ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/updater )
+target_include_directories( zdoom PRIVATE ${CMAKE_BINARY_DIR} )
 
 target_precompile_headers( zdoom PRIVATE g_pch.h )
 
@@ -1345,7 +1355,7 @@ if( UNIX )
 	endif()
 endif()
 
-target_link_libraries( zdoom ${PROJECT_LIBRARIES} updater_core lzma ${ZMUSIC_LIBRARIES} absl::base absl::flat_hash_map absl::strings absl::hash )
+target_link_libraries( zdoom ${PROJECT_LIBRARIES} lzma ${ZMUSIC_LIBRARIES} absl::base absl::flat_hash_map absl::strings absl::hash )
 include_directories(
 	BEFORE
 	.

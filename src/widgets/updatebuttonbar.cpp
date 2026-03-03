@@ -17,7 +17,6 @@
 #include "launcherwindow.h"
 #include "gstrings.h"
 #include <zwidget/widgets/pushbutton/pushbutton.h>
-#include "update.h"
 
 UpdateButtonBar::UpdateButtonBar(LauncherWindow *parent) : Widget(parent)
 {
@@ -44,7 +43,7 @@ void UpdateButtonBar::OnGeometryChanged()
 
 void UpdateButtonBar::OnUpdateButtonClicked()
 {
-	DoUpdate();
+	//DoUpdate();
 	GetLauncher()->Close();
 
 	return;
@@ -53,4 +52,21 @@ void UpdateButtonBar::OnUpdateButtonClicked()
 LauncherWindow* UpdateButtonBar::GetLauncher() const
 {
 	return static_cast<LauncherWindow*>(Parent());
+}
+
+void UpdateButtonBar::CheckForUpdate(bool autoupdate)
+{
+	/*
+	if (GetReleaseData())
+	{
+		if (UpdateAvailable())
+		{
+			Show();
+		}
+		else
+		{
+			Hide();
+		}
+	}
+	*/
 }

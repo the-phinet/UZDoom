@@ -24,14 +24,16 @@
 #include "i_interface.h"
 #include "launcherbanner.h"
 #include "launcherbuttonbar.h"
-#include "updatebuttonbar.h"
 #include "launcherwindow.h"
 #include "networkpage.h"
 #include "playgamepage.h"
 #include "releasepage.h"
 #include "settingspage.h"
 #include "version.h"
-#include "update.h"
+
+#ifdef HAS_UPDATER
+#include "updatebuttonbar.h"
+#endif
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
@@ -55,7 +57,10 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	Banner = new LauncherBanner(this, info.prideColors, info.prideMix);
 	Pages = new TabWidget(this);
 	Buttonbar = new LauncherButtonbar(this);
+#ifdef HAS_UPDATER
 	UpdateBar = new UpdateButtonBar(this);
+	UpdateBar->Hide();
+#endif
 
 	bool releasenotes = info.isNewRelease && info.notifyNewRelease;
 
@@ -80,19 +85,11 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	UpdateLanguage();
 
 	Pages->SetCurrentIndex(0);
-	Pages->GetCurrentWidget()->SetFocus();	
+	Pages->GetCurrentWidget()->SetFocus();
 
-	if (GetReleaseData())
-	{
-		if (UpdateAvailable())
-		{
-			UpdateBar->Show();
-		}
-		else
-		{
-			UpdateBar->Hide();
-		}
-	}
+#ifdef HAS_UPDATER
+	UpdateBar->CheckForUpdate(false);
+#endif
 }
 
 void LauncherWindow::UpdatePlayButton()
@@ -149,8 +146,10 @@ void LauncherWindow::UpdateLanguage()
 		Release->UpdateLanguage();
 	}
 	Buttonbar->UpdateLanguage();
+	
+#ifdef HAS_UPDATER
 	UpdateBar->UpdateLanguage();
-
+#endif
 	OnGeometryChanged();
 }
 
@@ -167,9 +166,14 @@ void LauncherWindow::OnGeometryChanged()
 	Banner->SetFrameGeometry(0.0, top, GetWidth(), Banner->GetPreferredHeight());
 	top += Banner->GetPreferredHeight();
 
-	double updateBarHeight = UpdateBar->GetPreferredHeight();
-	UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
-	top += updateBarHeight;
+#ifdef HAS_UPDATER
+	if(!UpdateBar->IsHidden())
+	{
+		double updateBarHeight = UpdateBar->GetPreferredHeight();
+		UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
+		top += updateBarHeight;
+	}
+#endif
 
 	bottom -= Buttonbar->GetPreferredHeight();
 	Buttonbar->SetFrameGeometry(0.0, bottom, GetWidth(), Buttonbar->GetPreferredHeight());

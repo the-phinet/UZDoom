@@ -35,6 +35,10 @@ if(NOT FORCE_NO_LTO)
 	endif()
 endif()
 
+if(WIN32)
+	option( USE_UPDATER "enable auto-updater" ON )
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -454,7 +458,6 @@ install(DIRECTORY docs/
 option( DYN_OPENAL "Dynamically load OpenAL" ON )
 option( BUILD_NONFREE "Build non-free assets used by commercial games" ON )
 
-add_subdirectory( updater )
 add_subdirectory( src )
 add_subdirectory( libraries/lzma )
 add_subdirectory( tools )
