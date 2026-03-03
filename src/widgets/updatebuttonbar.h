@@ -22,19 +22,34 @@ class PushButton;
 
 class UpdateButtonBar : public Widget
 {
-  public:
-	UpdateButtonBar(LauncherWindow *parent);
-	void UpdateLanguage();
+	public:
+		UpdateButtonBar(LauncherWindow *parent);
+		void UpdateLanguage();
 
-	double GetPreferredHeight() const;
+		double GetPreferredHeight() const;
 
-	void CheckForUpdate(bool autoupdate);
+		void CheckForUpdate(bool autoupdate);
 
-  private:
-	void OnGeometryChanged() override;
-	void OnUpdateButtonClicked();
+		int GetMargin() { return 4; }
 
-	LauncherWindow *GetLauncher() const;
+	protected:
+		void OnPaint(Canvas* canvas) override;
+		void OnMouseMove(const Point& pos) override;
+		void OnMouseLeave() override;
+		bool OnMouseDown(const Point& pos, InputKey key) override;
+		bool OnMouseUp(const Point& pos, InputKey key) override;
+		void OnUpdateButtonClicked();
 
-	PushButton *UpdateButton = nullptr;
+		LauncherWindow *GetLauncher() const;
+
+		const char * text = "";
+
+		bool close_highlighted = false;
+		bool pressed = false;
+		bool pressed_hover = false;
+		bool close_pressed = false;
+		bool close_pressed_hover = false;
+
+		std::shared_ptr<Image> arrow;
+		std::shared_ptr<Image> close;
 };

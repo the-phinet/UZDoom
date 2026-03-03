@@ -30,6 +30,7 @@
 #include "releasepage.h"
 #include "settingspage.h"
 #include "version.h"
+#include "themedata.h"
 
 #ifdef HAS_UPDATER
 #include "updatebuttonbar.h"
@@ -37,12 +38,9 @@
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
-	Size screenSize = GetScreenSize();
-	double windowWidth = 615.0;
-	double windowHeight = 700.0;
-
 	auto launcher = std::make_unique<LauncherWindow>(info);
-	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
+
+	launcher->UpdateSize();
 	launcher->Show();
 
 	DisplayWindow::RunLoop();
@@ -50,13 +48,33 @@ bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 	return launcher->ExecResult;
 }
 
+void LauncherWindow::UpdateSize()
+{
+	Size screenSize = GetScreenSize();
+
+	double windowWidth = 615.0;
+	double windowHeight = 700.0;
+
+#ifdef HAS_UPDATER
+	if(!UpdateBar->IsHidden())
+	{
+		windowHeight += UpdateBar->GetPreferredHeight() + UpdateBar->GetMargin();
+	}
+#endif
+
+	SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
+}
+
 LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window), Info(&info)
 {
 	SetWindowTitle(GAMENAME);
+	this->SetStyleColor("background-color", Theme::getHeader(COLOR_BACKGROUND));
 
 	Banner = new LauncherBanner(this, info.prideColors, info.prideMix);
 	Pages = new TabWidget(this);
+	Pages->SetStyleColor("background-color", Theme::getMain(COLOR_BACKGROUND));
 	Buttonbar = new LauncherButtonbar(this);
+	Buttonbar->SetStyleColor("background-color", Theme::getMain(COLOR_BACKGROUND));
 #ifdef HAS_UPDATER
 	UpdateBar = new UpdateButtonBar(this);
 	UpdateBar->Hide();
@@ -178,7 +196,7 @@ void LauncherWindow::OnGeometryChanged()
 	{
 		double updateBarHeight = UpdateBar->GetPreferredHeight();
 		UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
-		top += updateBarHeight;
+		top += updateBarHeight + UpdateBar->GetMargin();
 	}
 #endif
 
