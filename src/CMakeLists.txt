@@ -353,7 +353,6 @@ if( MSVC AND NOT CURL_FOUND )
 	endif()
 	set( CURL_INCLUDE_DIR ${CURL_ROOT_PATH}/include )
 	set( CURL_LIBRARIES ${CURL_ROOT_PATH}/lib/libcurl.dll.a )
-	# TODO libcurl arm
 	set( CURL_FOUND TRUE )
 endif()
 
