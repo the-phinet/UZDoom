@@ -17,6 +17,95 @@
 #include "launcherwindow.h"
 #include "gstrings.h"
 #include <zwidget/widgets/pushbutton/pushbutton.h>
+#include <zwidget/widgets/textlabel/textlabel.h>
+
+class ChoicePopup : public Widget
+{
+	std::vector<std::unique_ptr<Widget>> cleanup;
+	ChoicePopup(Widget * parent, const std::string &title, const std::vector<std::string> &text, const std::vector<std::tuple<std::string, int, std::function<void(ChoicePopup&)>>> &actions)
+		: Widget(parent->Window(), WidgetType::Window)
+	{
+		Size screenSize = GetScreenSize();
+
+		double windowWidth = 500.0;
+		double windowHeight = text.size() > 0 ? 90.0 + (20 * text.size()): 80.0;
+
+		SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
+
+		SetWindowTitle(title);
+
+		if(text.size() > 0)
+		{
+			int top = 5;
+
+			for(int i = 0; i < text.size(); i++)
+			{
+				TextLabel* text_widget = new TextLabel(this);
+
+				text_widget->SetText(text[i]);
+
+				text_widget->SetFrameGeometry(0, top, windowWidth, 20);
+				text_widget->SetTextAlignment(TextLabelAlignment::Center);
+
+				cleanup.push_back(std::unique_ptr<Widget>{text_widget});
+
+				top += 20;
+			}
+		}
+
+		int left = 0;
+		int count = 0;
+
+		for(auto &act : actions)
+		{
+			count++;
+
+			PushButton * btn = new PushButton(this);
+
+			btn->SetText(std::get<0>(act));
+
+			int len = 90 + std::get<1>(act) * 30;
+
+			if(count == actions.size())
+			{
+				btn->SetFrameGeometry(GetWidth() - (len + 5), GetHeight() - 35, len, 30);
+			}
+			else
+			{
+				btn->SetFrameGeometry(left + 5, GetHeight() - 35, len, 30);
+			}
+
+			btn->OnClick = [this, act](){std::get<2>(act)(*this);};
+
+			cleanup.push_back(std::unique_ptr<Widget>{btn});
+
+			left += len + 5;
+		}
+
+		Show();
+		//SetModalCapture(); // doesn't work for windows, but popups don't have window decorations, why???
+	}
+
+	void OnClose() override
+	{
+		currentPopup = nullptr;
+	}
+
+	static std::unique_ptr<ChoicePopup> currentPopup;
+public:
+	static void Open(Widget * parent, const std::string &title, const std::vector<std::string> &text, const std::vector<std::tuple<std::string, int, std::function<void(ChoicePopup&)>>> &actions)
+	{
+		if(currentPopup)
+		{
+			currentPopup->Close();
+		}
+
+		currentPopup = std::unique_ptr<ChoicePopup>(new ChoicePopup(parent, title, text, actions));
+	}
+};
+
+std::unique_ptr<ChoicePopup> ChoicePopup::currentPopup;
+
 constexpr int bar_height = 30;
 constexpr int close_margin = 6;
 constexpr int arrow_margin = 0;
@@ -116,6 +205,20 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 			if(pressed)
 			{
 				//TODO
+
+				std::vector<std::string> updateInfo;
+
+				updateInfo.push_back("5.0.1");
+
+				ChoicePopup::Open(this, "Update", updateInfo,
+				{
+					{"View Release Notes", 4, [](auto &self){
+						//self.Close();
+					}},
+					{"Update", 0, [](auto &self){
+						self.Close();
+					}}
+				});
 			}
 
 			SetStyleColor("background-color", GetStyleColor("bg-highlight-color"));
@@ -125,8 +228,22 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 			if(close_pressed)
 			{
 				//TODO
-				Hide();
-				//GetLauncher()->UpdateSize();
+
+				ChoicePopup::Open(this, "Dismiss Update?", {},
+				{
+					{"Dismiss", 0, [this](auto &self){
+						this->Hide();
+						self.Close();
+					}},
+					{"Skip Update", 1, [this](auto &self){
+						this->Hide();
+						self.Close();
+					}},
+					{"Disable Update Checker", 3, [this](auto &self){
+						this->Hide();
+						self.Close();
+					}}
+				});
 			}
 
 			SetStyleColor("background-color", GetStyleColor("bg-default-color"));
