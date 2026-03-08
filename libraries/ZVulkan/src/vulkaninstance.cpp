@@ -112,9 +112,9 @@ void VulkanInstance::CreateInstance()
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 		createInfo.pApplicationInfo = &appInfo;
-		createInfo.enabledExtensionCount = (uint32_t)EnabledExtensions.size();
 		createInfo.enabledLayerCount = (uint32_t)enabledValidationLayersCStr.size();
 		createInfo.ppEnabledLayerNames = enabledValidationLayersCStr.data();
+		createInfo.enabledExtensionCount = (uint32_t)enabledExtensionsCStr.size();
 		createInfo.ppEnabledExtensionNames = enabledExtensionsCStr.data();
 
 		if (hasPortabilitySubset)
