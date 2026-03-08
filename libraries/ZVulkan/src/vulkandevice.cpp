@@ -77,6 +77,11 @@ void VulkanDevice::CreateDevice()
 		queueCreateInfos.push_back(queueCreateInfo);
 	}
 
+	if (SupportsExtension("VK_KHR_portability_subset"))
+	{
+		EnabledDeviceExtensions.insert("VK_KHR_portability_subset");
+	}
+
 	std::vector<const char*> extensionNames;
 	extensionNames.reserve(EnabledDeviceExtensions.size());
 	for (const auto& name : EnabledDeviceExtensions)
