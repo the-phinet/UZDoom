@@ -74,9 +74,15 @@ void VulkanInstance::CreateInstance()
 	}
 
 	// Enable optional instance extensions we are interested in
+	bool hasPortabilitySubset = false;
 	for (const auto& ext : AvailableExtensions)
 	{
-		if (OptionalExtensions.find(ext.extensionName) != OptionalExtensions.end())
+		if (strcmp(ext.extensionName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0)
+		{
+			hasPortabilitySubset = true;
+			EnabledExtensions.insert(ext.extensionName);
+		}
+		else if (OptionalExtensions.find(ext.extensionName) != OptionalExtensions.end())
 		{
 			EnabledExtensions.insert(ext.extensionName);
 		}
@@ -111,14 +117,10 @@ void VulkanInstance::CreateInstance()
 		createInfo.ppEnabledLayerNames = enabledValidationLayersCStr.data();
 		createInfo.ppEnabledExtensionNames = enabledExtensionsCStr.data();
 
-#ifdef __APPLE__
-		for (const char* extName : enabledExtensionsCStr) {
-			if (strcmp(extName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0) {
-				createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-				break;
-			}
+		if (hasPortabilitySubset)
+		{
+			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 		}
-#endif
 
 		result = vkCreateInstance(&createInfo, nullptr, &Instance);
 		if (result >= VK_SUCCESS)
