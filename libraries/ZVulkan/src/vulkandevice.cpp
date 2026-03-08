@@ -82,6 +82,10 @@ void VulkanDevice::CreateDevice()
 	for (const auto& name : EnabledDeviceExtensions)
 		extensionNames.push_back(name.c_str());
 
+#ifdef __APPLE__
+	extensionNames.push_back("VK_KHR_portability_subset");
+#endif
+
 	VkDeviceCreateInfo deviceCreateInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 	deviceCreateInfo.queueCreateInfoCount = (uint32_t)queueCreateInfos.size();
 	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();

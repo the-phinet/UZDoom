@@ -77,12 +77,7 @@ void VulkanInstance::CreateInstance()
 	bool hasPortabilitySubset = false;
 	for (const auto& ext : AvailableExtensions)
 	{
-		if (strcmp(ext.extensionName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0)
-		{
-			hasPortabilitySubset = true;
-			EnabledExtensions.insert(ext.extensionName);
-		}
-		else if (OptionalExtensions.find(ext.extensionName) != OptionalExtensions.end())
+		if (OptionalExtensions.find(ext.extensionName) != OptionalExtensions.end())
 		{
 			EnabledExtensions.insert(ext.extensionName);
 		}
@@ -110,17 +105,14 @@ void VulkanInstance::CreateInstance()
 
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 		createInfo.pApplicationInfo = &appInfo;
 		createInfo.enabledLayerCount = (uint32_t)enabledValidationLayersCStr.size();
 		createInfo.ppEnabledLayerNames = enabledValidationLayersCStr.data();
 		createInfo.enabledExtensionCount = (uint32_t)enabledExtensionsCStr.size();
 		createInfo.ppEnabledExtensionNames = enabledExtensionsCStr.data();
-
-		if (hasPortabilitySubset)
-		{
-			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-		}
+#ifdef __APPLE__
+		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 
 		result = vkCreateInstance(&createInfo, nullptr, &Instance);
 		if (result >= VK_SUCCESS)
