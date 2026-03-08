@@ -104,11 +104,21 @@ void VulkanInstance::CreateInstance()
 
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 		createInfo.pApplicationInfo = &appInfo;
 		createInfo.enabledExtensionCount = (uint32_t)EnabledExtensions.size();
 		createInfo.enabledLayerCount = (uint32_t)enabledValidationLayersCStr.size();
 		createInfo.ppEnabledLayerNames = enabledValidationLayersCStr.data();
 		createInfo.ppEnabledExtensionNames = enabledExtensionsCStr.data();
+
+#ifdef __APPLE__
+		for (const char* extName : enabledExtensionsCStr) {
+			if (strcmp(extName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0) {
+				createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+				break;
+			}
+		}
+#endif
 
 		result = vkCreateInstance(&createInfo, nullptr, &Instance);
 		if (result >= VK_SUCCESS)
