@@ -1800,6 +1800,7 @@ VulkanDeviceBuilder& VulkanDeviceBuilder::Surface(std::shared_ptr<VulkanSurface>
 	if (surface)
 	{
 		RequireExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+		OptionalExtension("VK_KHR_portability_subset");
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 		OptionalExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
 #endif
