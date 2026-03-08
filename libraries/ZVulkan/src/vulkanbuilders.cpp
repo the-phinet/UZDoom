@@ -1801,7 +1801,8 @@ VulkanDeviceBuilder& VulkanDeviceBuilder::Surface(std::shared_ptr<VulkanSurface>
 	{
 		RequireExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 #ifdef __APPLE__
-		RequireExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+		OptionalExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+		OptionalExtension("VK_KHR_portability_subset");
 #endif
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 		OptionalExtension(VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);

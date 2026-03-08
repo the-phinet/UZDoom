@@ -79,6 +79,7 @@ void VulkanInstance::CreateInstance()
 	{
 		if (OptionalExtensions.find(ext.extensionName) != OptionalExtensions.end())
 		{
+			printf("x %s\n", ext.extensionName);
 			EnabledExtensions.insert(ext.extensionName);
 		}
 	}
