@@ -57,6 +57,23 @@ void VulkanInstance::CreateInstance()
 	AvailableExtensions = GetExtensions();
 	EnabledExtensions = RequiredExtensions;
 
+	bool hasPortability = false;
+	for (const auto& ext : AvailableExtensions)
+	{
+		if (strcmp(ext.extensionName, VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) == 0)
+		{
+			hasPortability = true;
+			break;
+		}
+	}
+
+	printf("hasPortability: %s\n", hasPortability? "true": "false");
+
+	if (hasPortability)
+	{
+		EnabledExtensions.insert(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+	}
+
 	std::string debugLayer = "VK_LAYER_KHRONOS_validation";
 	bool debugLayerFound = false;
 	if (WantDebugLayer)
@@ -111,9 +128,10 @@ void VulkanInstance::CreateInstance()
 		createInfo.ppEnabledLayerNames = enabledValidationLayersCStr.data();
 		createInfo.enabledExtensionCount = (uint32_t)enabledExtensionsCStr.size();
 		createInfo.ppEnabledExtensionNames = enabledExtensionsCStr.data();
-#ifdef __APPLE__
-		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-#endif
+		if (hasPortability)
+		{
+			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+		}
 
 		result = vkCreateInstance(&createInfo, nullptr, &Instance);
 		if (result >= VK_SUCCESS)
