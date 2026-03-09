@@ -1709,6 +1709,10 @@ VulkanInstanceBuilder& VulkanInstanceBuilder::RequireSurfaceExtensions(bool enab
 	{
 		RequireExtension(VK_KHR_SURFACE_EXTENSION_NAME);
 
+#ifdef __APPLE__
+		OptionalExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+		OptionalExtension("VK_KHR_portability_subset");
+#endif
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 		RequireExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
