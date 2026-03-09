@@ -394,6 +394,7 @@ DFrameBuffer *SDLVideo::CreateFrameBuffer ()
 			builder.DebugLayer(vk_debug);
 			for (unsigned int i = 0; i < count; i++)
 				builder.RequireExtension(names[i]);
+			builder.RequireExtension("VK_KHR_portability_enumeration");
 			auto instance = builder.Create();
 
 			VkSurfaceKHR surfacehandle = nullptr;
