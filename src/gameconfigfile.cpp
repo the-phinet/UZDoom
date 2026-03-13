@@ -168,6 +168,7 @@ FGameConfigFile::FGameConfigFile ()
 	FString pathname;
 
 	OkayToWrite = false;	// Do not allow saving of the config before DoGlobalSetup()
+	QueueWrite = false;
 	bModSetup = false;
 	bGameSetup = false;
 	bKeySetup = false;
@@ -701,6 +702,12 @@ void FGameConfigFile::DoGlobalSetup ()
 	}
 
 	OkayToWrite = true;
+
+	if(QueueWrite)
+	{
+		M_SaveDefaults(NULL);
+		QueueWrite = false;
+	}
 }
 
 void FGameConfigFile::DoGameSetup(FString section)
