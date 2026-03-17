@@ -34,6 +34,7 @@
 #include <cstdlib>
 #include <limits>
 #include <type_traits>
+#include "version.h"
 
 #include "m_round.h"
 
@@ -140,4 +141,64 @@ static inline void PrefetchL3(const void* Address)
 #if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
 	_mm_prefetch(static_cast<const char*>(Address), _MM_HINT_T1);
 #endif
+}
+
+class FString;
+
+struct VersionInfo
+{
+	uint16_t major;
+	uint16_t minor;
+	uint32_t revision;
+
+	constexpr VersionInfo() = default;
+	constexpr VersionInfo(uint16_t _major, uint16_t _minor, uint32_t _revision = 0)
+		: major(_major), minor(_minor), revision(_revision)
+	{
+	}
+	explicit VersionInfo(const char *);
+
+	constexpr bool operator <=(const VersionInfo& o) const
+	{
+		return o.major > this->major || (o.major == this->major && o.minor > this->minor) || (o.major == this->major && o.minor == this->minor && o.revision >= this->revision);
+	}
+	constexpr bool operator >=(const VersionInfo& o) const
+	{
+		return o.major < this->major || (o.major == this->major && o.minor < this->minor) || (o.major == this->major && o.minor == this->minor && o.revision <= this->revision);
+	}
+	constexpr bool operator > (const VersionInfo& o) const
+	{
+		return o.major < this->major || (o.major == this->major && o.minor < this->minor) || (o.major == this->major && o.minor == this->minor && o.revision < this->revision);
+	}
+	constexpr bool operator < (const VersionInfo& o) const
+	{
+		return o.major > this->major || (o.major == this->major && o.minor > this->minor) || (o.major == this->major && o.minor == this->minor && o.revision > this->revision);
+	}
+	constexpr bool operator == (const VersionInfo& o) const
+	{
+		return (o.major == this->major && o.minor == this->minor && o.revision == this->revision);
+	}
+	constexpr bool operator != (const VersionInfo& o) const
+	{
+		return (o.major != this->major || o.minor != this->minor || o.revision != this->revision);
+	}
+
+	void operator=(const char* string);
+	explicit operator FString();
+};
+
+// Cannot be a constructor because Lemon would puke on it.
+constexpr VersionInfo MakeVersion(unsigned int ma, unsigned int mi, unsigned int re = 0)
+{
+	return{ (uint16_t)ma, (uint16_t)mi, (uint32_t)re };
+}
+
+consteval VersionInfo GetCurrentVersion()
+{
+	return MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION);
+}
+
+consteval VersionInfo GetCurrentEngineVersion()
+{
+	return MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION);
 }

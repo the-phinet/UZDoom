@@ -65,7 +65,7 @@ void LauncherWindow::UpdateSize()
 	SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
 }
 
-LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window), Info(&info)
+LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window, RenderAPI::Unspecified, false), Info(&info)
 {
 	SetWindowTitle(GAMENAME);
 	this->SetStyleColor("background-color", Theme::getHeader(COLOR_BACKGROUND));
@@ -106,7 +106,7 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	Pages->GetCurrentWidget()->SetFocus();
 
 #ifdef HAS_UPDATER
-	UpdateBar->CheckForUpdate(false);
+	UpdateBar->CheckForUpdate();
 #endif
 }
 
