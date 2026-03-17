@@ -57,7 +57,7 @@
 
 // CODE --------------------------------------------------------------------
 
-void VersionInfo::operator=(const char *string)
+VersionInfo::VersionInfo(const char *string)
 {
 	char *endp;
 	major = (int16_t)clamp<unsigned long long>(strtoull(string, &endp, 10), 0, USHRT_MAX);
@@ -80,6 +80,20 @@ void VersionInfo::operator=(const char *string)
 		minor = revision = 0;
 	}
 	else major = USHRT_MAX;
+}
+
+
+void VersionInfo::operator=(const char *string)
+{
+	(*this) = VersionInfo(string);
+}
+
+
+VersionInfo::operator FString()
+{
+	FString tmp;
+	tmp.Format("%u.%u.%u", major, minor, revision);
+	return tmp;
 }
 
 //==========================================================================

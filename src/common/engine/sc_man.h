@@ -31,38 +31,6 @@
 #include "name.h"
 #include "basics.h"
 
-struct VersionInfo
-{
-	uint16_t major;
-	uint16_t minor;
-	uint32_t revision;
-
-	constexpr bool operator <=(const VersionInfo& o) const
-	{
-		return o.major > this->major || (o.major == this->major && o.minor > this->minor) || (o.major == this->major && o.minor == this->minor && o.revision >= this->revision);
-	}
-	constexpr bool operator >=(const VersionInfo& o) const
-	{
-		return o.major < this->major || (o.major == this->major && o.minor < this->minor) || (o.major == this->major && o.minor == this->minor && o.revision <= this->revision);
-	}
-	constexpr bool operator > (const VersionInfo& o) const
-	{
-		return o.major < this->major || (o.major == this->major && o.minor < this->minor) || (o.major == this->major && o.minor == this->minor && o.revision < this->revision);
-	}
-	constexpr bool operator < (const VersionInfo& o) const
-	{
-		return o.major > this->major || (o.major == this->major && o.minor > this->minor) || (o.major == this->major && o.minor == this->minor && o.revision > this->revision);
-	}
-	void operator=(const char* string);
-};
-
-// Cannot be a constructor because Lemon would puke on it.
-constexpr VersionInfo MakeVersion(unsigned int ma, unsigned int mi, unsigned int re = 0)
-{
-	return{ (uint16_t)ma, (uint16_t)mi, (uint32_t)re };
-}
-
-
 class FScanner
 {
 public:

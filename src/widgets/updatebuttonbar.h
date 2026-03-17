@@ -16,9 +16,168 @@
 #pragma once
 
 #include <zwidget/core/widget.h>
+#include <optional>
+#include "basics.h"
 
 class LauncherWindow;
 class PushButton;
+
+
+struct date_t
+{
+	static constexpr bool isLeapYear(int year)
+	{
+		return ((year % 4) == 0) && (((year % 100) != 0) || ((year % 400) == 0));
+	}
+
+	static constexpr int dayCountYear(int year)
+	{
+		return isLeapYear(year) ? 366 : 365;
+	}
+
+	static constexpr int dayCount(int year, int month)
+	{
+		if(month == 2)
+		{
+			return isLeapYear(year) ? 29 : 28;
+		}
+		else
+		{
+			return (month > 7) ? 30 + (month % 2) : 31 - (month % 2);
+		}
+	}
+
+	constexpr int dayCount() const
+	{
+		return dayCount(year, month);
+	}
+
+	int day; // 1-31
+	int month; // 1-12
+	int year;
+
+	constexpr date_t& operator+=(int days)
+	{
+		day--; // 0-based
+		day += days;
+		while(day >= dayCount())
+		{
+			day -= dayCount();
+			month++;
+			if(month > 12)
+			{
+				month = 1;
+				year++;
+			}
+		}
+		day++; // 1-based
+
+		return *this;
+	}
+
+	constexpr date_t operator+(int days) const
+	{
+		date_t tmp = *this;
+		tmp += days;
+		return tmp;
+	}
+
+	constexpr date_t& operator-=(int days)
+	{
+		day--; // 0-based
+		day -= days;
+
+		while(day < 0)
+		{
+			month--;
+			if(month < 1)
+			{
+				month = 12;
+				year--;
+			}
+			day += dayCount();
+		}
+		day++; // 1-based
+
+		return *this;
+	}
+
+	constexpr date_t operator-(int days) const
+	{
+		date_t tmp = *this;
+		tmp -= days;
+		return tmp;
+	}
+
+	//difference in days
+	constexpr int operator-(date_t other) const
+	{
+		date_t tmp = *this;
+		tmp.day--; // 0-based
+		other.day--; // 0-based
+		while(tmp.year != other.year)
+		{
+			if(tmp.year > other.year)
+			{
+				other.day += dayCountYear(other.year);
+				other.year++;
+			}
+			else
+			{
+				tmp.day += dayCountYear(tmp.year);
+				tmp.year++;
+			}
+		}
+
+		while(tmp.month != other.month)
+		{
+			if(tmp.month > other.month)
+			{
+				other.month += dayCount(other.year, other.month);
+				other.month++;
+			}
+			else
+			{
+				tmp.month += dayCount(tmp.year, tmp.month);
+				tmp.month++;
+			}
+		}
+
+		return tmp.day - other.day;
+	}
+
+	constexpr std::strong_ordering operator<=>(const date_t &other) const
+	{
+		if(other.year != year)
+		{
+			return year <=> other.year;
+		}
+		else if(other.month != month)
+		{
+			return month <=> other.month;
+		}
+		else
+		{
+			return day <=> other.day;
+		}
+	}
+
+	explicit operator FString() const
+	{
+		FString tmp;
+		tmp.Format("%d-%d-%d", year, month, day);
+		return tmp;
+	}
+};
+
+struct update_info_t
+{
+	VersionInfo version;
+
+	bool cached = false;
+
+	std::vector<std::string> release_notes;
+};
 
 class UpdateButtonBar : public Widget
 {
@@ -28,7 +187,7 @@ class UpdateButtonBar : public Widget
 
 		double GetPreferredHeight() const;
 
-		void CheckForUpdate(bool autoupdate);
+		void CheckForUpdate();
 
 		int GetMargin() { return 4; }
 
@@ -42,7 +201,7 @@ class UpdateButtonBar : public Widget
 
 		LauncherWindow *GetLauncher() const;
 
-		const char * text = "";
+		FString text;
 
 		bool close_highlighted = false;
 		bool pressed = false;
@@ -52,4 +211,9 @@ class UpdateButtonBar : public Widget
 
 		std::shared_ptr<Image> arrow;
 		std::shared_ptr<Image> close;
+
+		std::optional<update_info_t> currentUpdate;
+
+		friend void OpenDismissUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate);
+		friend void OpenUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate);
 };
