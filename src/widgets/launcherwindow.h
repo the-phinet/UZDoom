@@ -55,6 +55,7 @@ public:
 private:
 	void OnClose() override;
 	void OnGeometryChanged() override;
+	void OnWindowClose() override;
 
 	LauncherBanner* Banner = nullptr;
 	TabWidget* Pages = nullptr;
