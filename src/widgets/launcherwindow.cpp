@@ -110,6 +110,13 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 #endif
 }
 
+#ifndef HAS_UPDATER
+void LauncherWindow::OnWindowClose()
+{
+	Close();
+}
+
+#endif
 void LauncherWindow::UpdatePlayButton()
 {
 	Buttonbar->UpdateLanguage();
