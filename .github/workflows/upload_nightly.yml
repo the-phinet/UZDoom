@@ -72,4 +72,4 @@ jobs:
 
             **Version:** `${{ steps.tag.outputs.describe }}`
             **Message:** ${{ github.event.workflow_run.head_commit.message || github.event.head_commit.message }}
-            **Workflow:** ${{ github.event.workflow_run.html_url }}
+            **Workflow:** [Logs](${{ github.event.workflow_run.html_url }}) [Artifacts](https://nightly.link/?url=${{ github.event.workflow_run.html_url }})
