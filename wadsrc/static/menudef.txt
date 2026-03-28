@@ -3076,6 +3076,7 @@ OptionMenu AccessibilityOptions protected
 	Tooltip "$ACCMNU_TOOLTIP_EXAMPLE"
 	Option "$ACCMNU_TOOLTIP_SCALE", "m_tooltip_small", "OffOn"
 	Tooltip "$ACCMNU_TOOLTIP_EXAMPLE"
+	Submenu "$HUDMNU_FONTOPTIONS",			"FontOptions"
 
 	StaticText ""
 	StaticText "$ACCMNU_LIGHT"
@@ -3088,10 +3089,6 @@ OptionMenu AccessibilityOptions protected
 	Slider "$ACCMNU_DOUBLECLICK_THRESHOLD", "cl_doubleclickthreshold", 100, 600, 25, 0
 	Tooltip "$ACCMNU_TOOLTIP_DOUBLECLICK_THRESHOLD"
 	Slider "$DSPLYMNU_QUAKEINTENSITY",         r_quakeintensity,       0.0, 1.0, 0.05, 0, "", 0, Gray, 100, "$VALFORMAT_PERCENT"
-
-	StaticText ""
-	Submenu "$HUDMNU_FONTOPTIONS",			"FontOptions"
-	
 
 	StaticText ""
 	SafeCommand "$OPTMNU_DEFAULTS", "acc_reset2defaults"
