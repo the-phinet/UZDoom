@@ -688,7 +688,8 @@ void SetFontChoice_Console(const char *newFont)
 
 void SetFontChoice_BigText(const char *newFont)
 {
-	//
+	//main menu needs to be rebuilt if this changes
+
 }
 
 void SetNewSmallFontOverride(const char* newFont)
@@ -1158,12 +1159,18 @@ FGameTexture *FFont::GetChar (int code, int translation, int *const width) const
 
 int FFont::GetCharWidth (int code) const
 {
-	code = GetCharCode(code, true);
+	//dynamic (ttf) fonts in uzdoom do not use the Chars array, instead unicode codepoints are already tracked
+	//by some of the dependencies.
 	if (IsValidDynamicFont())
 	{
 		return DynamicFontAtlas->GetGlyphs().GetGlyphByCodepoint(code).width  * InvSupersampleFactor;
 	}
-	if (code >= 0) return Chars[code - FirstChar].XMove;
+	else
+	{
+		code = GetCharCode(code, true);
+		if (code >= 0)
+			return Chars[code - FirstChar].XMove;
+	}
 	return SpaceWidth;
 }
 
