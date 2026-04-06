@@ -164,6 +164,10 @@ FGameTexture * BuildTextTexture(FFont *font, const char *string, int textcolor)
 //
 //==========================================================================
 
+// fwd declare
+void DrawDynamicFontText(F2DDrawer *drawer, FFont *originalFont, FFont *substitutedFont, int normalcolor, double x,
+                         double y, std::u32string utf32String, DrawParms &parms);
+
 void DrawChar(F2DDrawer *drawer, FFont* font, int normalcolor, double x, double y, int character, int tag_first, ...)
 {
 	if (font == NULL)
@@ -175,7 +179,28 @@ void DrawChar(F2DDrawer *drawer, FFont* font, int normalcolor, double x, double 
 	FGameTexture* pic;
 	int dummy;
 
-	if (NULL != (pic = font->GetChar(character, normalcolor, &dummy)))
+	if (font->IsValidDynamicFont())
+	{
+		pic = font->GetDynamicFontAtlasTexture();
+		DrawParms parms;
+		Va_List   tags;
+		va_start(tags.list, tag_first);
+		bool res = ParseDrawTextureTags(drawer, pic, x, y, tag_first, tags, &parms, DrawTexture_Normal);
+		va_end(tags.list);
+		if (!res)
+		{
+			return;
+		}
+		bool     palettetrans = (normalcolor == CR_NATIVEPAL && parms.TranslationId != NO_TRANSLATION);
+		PalEntry color        = 0xffffffff;
+		if (!palettetrans)
+			parms.TranslationId = font->GetColorTranslation((EColorRange)normalcolor, &color);
+		parms.color = PalEntry((color.a * parms.color.a) / 255, (color.r * parms.color.r) / 255,
+		                       (color.g * parms.color.g) / 255, (color.b * parms.color.b) / 255);
+		std::u32string u32str(1, character);
+		DrawDynamicFontText(drawer, font, font, normalcolor, x, y, u32str, parms);
+	}
+	else if (NULL != (pic = font->GetChar(character, normalcolor, &dummy)))
 	{
 		DrawParms parms;
 		Va_List tags;
@@ -204,8 +229,24 @@ void DrawChar(F2DDrawer *drawer,  FFont *font, int normalcolor, double x, double
 
 	FGameTexture *pic;
 	int dummy;
-
-	if (NULL != (pic = font->GetChar(character, normalcolor, &dummy)))
+	if (font->IsValidDynamicFont())
+	{
+		pic = font->GetDynamicFontAtlasTexture();
+		DrawParms parms;
+		uint32_t  tag = ListGetInt(args);
+		bool      res = ParseDrawTextureTags(drawer, pic, x, y, tag, args, &parms, DrawTexture_Normal);
+		if (!res)
+			return;
+		bool     palettetrans = (normalcolor == CR_NATIVEPAL && parms.TranslationId != NO_TRANSLATION);
+		PalEntry color        = 0xffffffff;
+		if (!palettetrans)
+			parms.TranslationId = font->GetColorTranslation((EColorRange)normalcolor, &color);
+		parms.color = PalEntry((color.a * parms.color.a) / 255, (color.r * parms.color.r) / 255,
+		                       (color.g * parms.color.g) / 255, (color.b * parms.color.b) / 255);
+		std::u32string u32str(1, character);
+		DrawDynamicFontText(drawer, font, font, normalcolor, x, y, u32str, parms);
+	}
+	else if (NULL != (pic = font->GetChar(character, normalcolor, &dummy)))
 	{
 		DrawParms parms;
 		uint32_t tag = ListGetInt(args);
