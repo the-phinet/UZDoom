@@ -40,7 +40,7 @@ private:
 	std::vector<std::unique_ptr<Widget>> cleanup;
 	bool allowCloseButton;
 	ChoicePopup(Widget * parent, const std::string &title, const std::vector<std::string> &text, const ActionListType &actions, double windowWidth, bool allowClose)
-		: Widget(parent->Window(), WidgetType::Window, RenderAPI::Unspecified, false)
+		: Widget(parent->Window(), WidgetType::Utility, RenderAPI::Unspecified, false)
 	{
 		allowCloseButton = allowClose;
 
