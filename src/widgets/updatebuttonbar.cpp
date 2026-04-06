@@ -460,9 +460,15 @@ static date_t getDate()
 #if defined(_MSC_VER) || defined(MINGW_HAS_SECURE_API)
 	//use microsoft's botched localtime_s
 	localtime_s(&curTime, &t);
-#else
+#elif defined(__unix__) || defined(__APPLE__) || defined(_POSIX_VERSION) || __cplusplus >= 202302L
+	localtime_r(&t, &curTime);
+#elif defined(__STDC_LIB_EXT1__)
 	//use the actual standard localtime_s
 	localtime_s(&t, &curTime);
+#else
+	struct tm* tm_ptr = localtime(&t);
+	if (tm_ptr) curTime = *tm_ptr;
+	else curTime = {};
 #endif
 	return {curTime.tm_mday, curTime.tm_mon + 1, curTime.tm_year + 1900};
 }

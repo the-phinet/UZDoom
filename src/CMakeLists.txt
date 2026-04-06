@@ -344,21 +344,8 @@ message("Building for target architecture: ${TARGET_ARCHITECTURE}")
 
 # CURL
 
-if( MSVC AND NOT CURL_FOUND )
-	# Use prebuilt library
-	if ( ARM64 )
-		set( CURL_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../bin/Windows/curl/arm64" )
-	else()
-		set( CURL_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../bin/Windows/curl/x64" )
-	endif()
-	set( CURL_INCLUDE_DIR ${CURL_ROOT_PATH}/include )
-	set( CURL_LIBRARIES ${CURL_ROOT_PATH}/lib/libcurl.dll.a )
-	set( CURL_FOUND TRUE )
-endif()
-
-
 if( CURL_FOUND )
-	include_directories( SYSTEM "${CURL_INCLUDE_DIR}" )
+	include_directories( SYSTEM "${CURL_INCLUDE_DIRS}" )
 	set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} ${CURL_LIBRARIES} )
 endif()
 
