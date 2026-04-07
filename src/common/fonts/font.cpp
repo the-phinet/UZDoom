@@ -1344,7 +1344,7 @@ int FFont::StringWidthUTF32(const std::u32string_view string) const
 		float totalWidth = 0.0f;
 		for (auto &s : drawStrings)
 		{
-			totalWidth += Trex::TextShaper::Measure(s.TrexGlyphs).width * (float)InvSupersampleFactor;
+			totalWidth += Trex::TextShaper::Measure(s.TrexGlyphs).xAdvance * (float)InvSupersampleFactor;
 		}
 		return std::ceil(totalWidth);
 	}
