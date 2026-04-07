@@ -60,6 +60,7 @@ CVAR(String, fontoverride_Fallback, "HACK-BOL", CVAR_ARCHIVE);
 CVAR(String, fontoverride_FallbackJP, "IBMPLEXJ", CVAR_ARCHIVE);
 CVAR(String, fontoverride_FallbackKR, "IBMPLEXK", CVAR_ARCHIVE);
 CVAR(String, fontoverride_FallbackCYR, "HACK-BOL", CVAR_ARCHIVE);
+CVAR(String, fontoverride_FallbackSC, "ZCOOLQin", CVAR_ARCHIVE);
 
 void SetFontChoice_SmallText(const char *newFont);
 CUSTOM_CVAR(String, fontchoice_smalltext, "FO_DEFAULT", CVAR_ARCHIVE)
@@ -105,6 +106,11 @@ CVAR(String, fontchoice_smalltextCYR, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_bigtextCYR, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_titleCYR, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_descriptionCYR, "FO_DEFAULT", CVAR_ARCHIVE);
+
+CVAR(String, fontchoice_smalltextSC, "FO_DEFAULT", CVAR_ARCHIVE);
+CVAR(String, fontchoice_bigtextSC, "FO_DEFAULT", CVAR_ARCHIVE);
+CVAR(String, fontchoice_titleSC, "FO_DEFAULT", CVAR_ARCHIVE);
+CVAR(String, fontchoice_descriptionSC, "FO_DEFAULT", CVAR_ARCHIVE);
 
 //actually overriding the font directly will become a last resort option
 //if you are having mod compatibility issues.
@@ -663,6 +669,11 @@ FFont *FindDynamicFallbackFontForLanguage(const char *lang)
 	{
 		return V_GetFont(*fontoverride_FallbackCYR);
 	}
+	else if (language.CompareNoCase("zh-Hans") == 0)
+	{
+		return V_GetFont(*fontoverride_FallbackSC);
+	}
+
 	return V_GetFont(*fontoverride_Fallback);
 }
 
@@ -773,6 +784,10 @@ FFont *FFont::GetSmallTextFont(FFont* fallbackIfNoUserChoice)
 	{
 		userFont = V_GetFont(*fontchoice_smalltextCYR);
 	}
+	else if (lang.CompareNoCase("zh-Hans") == 0)
+	{
+		userFont = V_GetFont(*fontchoice_smalltextSC);
+	}
 
 	if (userFont)
 	{
@@ -798,6 +813,10 @@ FFont *FFont::GetTitleFont(FFont *fallbackIfNoUserChoice)
 	{
 		userFont = V_GetFont(*fontchoice_smalltextCYR);
 	}
+	else if (lang.CompareNoCase("zh-Hans") == 0)
+	{
+		userFont = V_GetFont(*fontchoice_smalltextSC);
+	}
 
 	if (userFont)
 	{
@@ -822,6 +841,10 @@ FFont *FFont::GetDescriptionFont(FFont *fallbackIfNoUserChoice)
 	else if (lang.CompareNoCase("ru") == 0 || lang.CompareNoCase("sr") == 0)
 	{
 		userFont = V_GetFont(*fontchoice_smalltextCYR);
+	}
+	else if (lang.CompareNoCase("zh-Hans") == 0)
+	{
+		userFont = V_GetFont(*fontchoice_smalltextSC);
 	}
 
 	if (userFont)
@@ -857,6 +880,10 @@ FFont *FFont::GetBigTextFont(FFont *fallbackIfNoUserChoice)
 	else if (lang.CompareNoCase("ru") == 0 || lang.CompareNoCase("sr") == 0)
 	{
 		userFont = V_GetFont(*fontchoice_bigtextCYR);
+	}
+	else if (lang.CompareNoCase("zh-Hans") == 0)
+	{
+		userFont = V_GetFont(*fontchoice_smalltextSC);
 	}
 	if (userFont)
 	{
