@@ -21,7 +21,7 @@
 **
 */
 
-#include <math.h>
+#include <cmath>
 #include <miniz.h>
 
 #ifndef _WIN32
