@@ -16,19 +16,6 @@ if( COMMAND cmake_policy )
 	endif()
 endif()
 
-if (LIBVPX_VCPKG)
-	list(APPEND VCPKG_MANIFEST_FEATURES "vcpkg-libvpx")
-endif()
-
-if (OPENAL_SOFT_VCPKG)
-	list(APPEND VCPKG_MANIFEST_FEATURES "vcpkg-openal-soft")
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR (NOT CMAKE_SYSTEM_NAME AND CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows"))
-	# Force static triplet on Windows
-	set(VCPKG_TARGET_TRIPLET "x64-windows-static")
-endif()
-
 project(UZDoom)
 
 # make all targets use LTO - want to do this early in the cmake to ensure it applies to any targets
@@ -44,18 +31,6 @@ if(NOT FORCE_NO_LTO)
 	else()
 		message(STATUS "Not using LTO because unsupported: ${ipo_error}")
 	endif()
-endif()
-
-if (WIN32 AND VCPKG_TOOLCHAIN)
-	option(LIBVPX_VCPKG "Use libvpx from vcpkg" OFF)
-endif()
-
-if (VCPKG_TOOLCHAIN)
-	option(OPENAL_SOFT_VCPKG "Use OpenAL from vcpkg" OFF)
-endif()
-
-if (NOT VCPKG_TOOLCHAIN)
-	set(VCPKG_MANIFEST_FEATURES)
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
