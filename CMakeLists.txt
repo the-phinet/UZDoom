@@ -269,9 +269,6 @@ find_package( VPX )
 if (NOT FORCE_INTERNAL_CPPDAP)
 	find_package( cppdap CONFIG )
 endif()
-if (NOT FORCE_INTERNAL_ZMUSIC)
-	find_package( ZMusic )
-endif()
 
 include( TargetArch )
 
@@ -396,7 +393,6 @@ set( CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${REL_C_F
 set( CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEB_C_FLAGS} -D_DEBUG" )
 
 option(FORCE_INTERNAL_BZIP2 "Use internal bzip2")
-option(FORCE_INTERNAL_ZMUSIC "Use internal zmusic" ON)
 option(FORCE_INTERNAL_ASMJIT "Use internal asmjit" ON)
 option(FORCE_INTERNAL_CPPDAP "Use internal cppdap" ON)
 
@@ -470,18 +466,11 @@ else()
 endif()
 
 # ZMUSIC
-if( ZMUSIC_FOUND AND NOT FORCE_INTERNAL_ZMUSIC )
-	message( STATUS "Using system zmusic library, includes found at ${ZMUSIC_INCLUDE_DIR}" )
-	set( ZMUSIC_SYSTEM_INSTALL TRUE )
-else()
-	message( STATUS "Using internal zmusic library" )
-	set( BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE )
-	add_subdirectory( libraries/ZMusic )
-	set( ZMUSIC_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libraries/zmusic" )
-	set( ZMUSIC_INCLUDE_DIR ${ZMUSIC_ROOT_PATH}/include )
-	set( ZMUSIC_LIBRARIES zmusic )
-	set( ZMUSIC_FOUND TRUE )
-endif()
+set( BUILD_SHARED_LIBS OFF CACHE INTERNAL "" FORCE )
+add_subdirectory( libraries/ZMusic )
+set( ZMUSIC_ROOT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/libraries/zmusic" )
+set( ZMUSIC_INCLUDE_DIR ${ZMUSIC_ROOT_PATH}/include )
+set( ZMUSIC_LIBRARIES zmusic )
 
 set( LZMA_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libraries/lzma/C" )
 
