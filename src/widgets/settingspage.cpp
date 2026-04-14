@@ -54,6 +54,8 @@ SettingsPage::SettingsPage(LauncherWindow* launcher, const FStartupSelectionInfo
 	BrightmapsCheckbox = new CheckboxLabel(this);
 	WidescreenCheckbox = new CheckboxLabel(this);
 	SupportWadsCheckbox = new CheckboxLabel(this);
+	DynLightsCheckbox = new CheckboxLabel(this);
+	ShadowmapCheckbox = new CheckboxLabel(this);
 
 	FullscreenCheckbox->SetChecked(info.DefaultFullscreen);
 	VsyncCheckbox->SetChecked(info.DefaultVsync);
@@ -64,6 +66,9 @@ SettingsPage::SettingsPage(LauncherWindow* launcher, const FStartupSelectionInfo
 	BrightmapsCheckbox->SetChecked(info.DefaultStartFlags & 4);
 	WidescreenCheckbox->SetChecked(info.DefaultStartFlags & 8);
 	SupportWadsCheckbox->SetChecked(info.DefaultStartFlags & 16);
+
+	DynLightsCheckbox->SetChecked(info.DefaultDynLights);
+	ShadowmapCheckbox->SetChecked(info.DefaultShadowmaps);
 
 #ifdef RENDER_BACKENDS
 	BackendLabel = new TextLabel(this);
@@ -192,6 +197,9 @@ void SettingsPage::SetValues(FStartupSelectionInfo& info) const
 	if (SupportWadsCheckbox->GetChecked()) flags |= 16;
 	info.DefaultStartFlags = flags;
 
+	info.DefaultDynLights = DynLightsCheckbox->GetChecked();
+	info.DefaultShadowmaps = ShadowmapCheckbox->GetChecked();
+
 	int flBehaviour = FILELOAD_OPTS[LoadList->GetSelectedItem()].flag;
 	if (flBehaviour != -1) info.DefaultFileLoadBehaviour = flBehaviour;
 
@@ -251,6 +259,8 @@ void SettingsPage::UpdateLanguage()
 	BrightmapsCheckbox->SetText(GStrings.GetString("PICKER_BRIGHTMAPS"));
 	WidescreenCheckbox->SetText(GStrings.GetString("PICKER_WIDESCREEN"));
 	SupportWadsCheckbox->SetText(GStrings.GetString("PICKER_SUPPORTWADS"));
+	DynLightsCheckbox->SetText(GStrings.GetString("GLLIGHTMNU_LIGHTSENABLED"));
+	ShadowmapCheckbox->SetText(GStrings.GetString("GLLIGHTMNU_LIGHTSHADOWMAP"));
 	{
 		int opts = sizeof(FILELOAD_OPTS) / sizeof(FILELOAD_OPTS[0]);
 		for (int i = 0; i < opts; i++)
@@ -382,6 +392,10 @@ void SettingsPage::OnGeometryChanged()
 			y += WidescreenCheckbox->GetPreferredHeight();
 		}
 	}
+	DynLightsCheckbox->SetFrameGeometry(w - panelWidth, y, panelWidth, DynLightsCheckbox->GetPreferredHeight());
+	y += DynLightsCheckbox->GetPreferredHeight();
+	ShadowmapCheckbox->SetFrameGeometry(w - panelWidth, y, panelWidth, ShadowmapCheckbox->GetPreferredHeight());
+	y += ShadowmapCheckbox->GetPreferredHeight();
 
 	const double bottomPanelTop = max<double>(y, max<double>(optionsBottom, backendsBottom)) + 10.0;
 	y = bottomPanelTop;

@@ -233,7 +233,7 @@ void FThinkerCollection::RunClientSideThinkers(FLevelLocals* Level)
 	ClientSideThinkCycles.Clock();
 
 	bool dolights;
-	if ((gl_lights && vid_rendermode == 4) || (r_dynlights && vid_rendermode != 4))
+	if (r_dynlights)
 	{
 		dolights = true;// Level->lights || (Level->flags3 & LEVEL3_LIGHTCREATED);
 	}

@@ -54,6 +54,8 @@ private:
 	CheckboxLabel* BrightmapsCheckbox = nullptr;
 	CheckboxLabel* WidescreenCheckbox = nullptr;
 	CheckboxLabel* SupportWadsCheckbox = nullptr;
+	CheckboxLabel* DynLightsCheckbox = nullptr;
+	CheckboxLabel* ShadowmapCheckbox = nullptr;
 #ifdef RENDER_BACKENDS
 	TextLabel* BackendLabel = nullptr;
 	CheckboxLabel* VulkanCheckbox = nullptr;

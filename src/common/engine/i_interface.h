@@ -105,6 +105,8 @@ struct FStartupSelectionInfo
 	bool DefaultFullscreen = true;
 	bool DefaultVsync = false;
 	int DefaultFileLoadBehaviour = 0;
+	bool DefaultDynLights = true;
+	bool DefaultShadowmaps = false;
 
 	// Net game info
 	int DefaultNetIWAD = 0;

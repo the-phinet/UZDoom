@@ -81,6 +81,8 @@ EXTERN_CVAR(Bool, ui_generic)
 EXTERN_CVAR(Int, vid_preferbackend)
 EXTERN_CVAR(Bool, vid_fullscreen)
 EXTERN_CVAR(Bool, vid_vsync)
+EXTERN_CVAR(Bool, r_dynlights)
+EXTERN_CVAR(Bool, gl_light_shadowmap)
 
 #ifdef HAS_UPDATER
 EXTERN_CVAR(Int, updater_update_interval)
@@ -106,6 +108,8 @@ FStartupSelectionInfo::FStartupSelectionInfo(const TArray<WadStuff>& wads, FArgs
 	DefaultBackend = vid_preferbackend;
 	DefaultFullscreen = vid_fullscreen;
 	DefaultVsync = vid_vsync;
+	DefaultDynLights = r_dynlights;
+	DefaultShadowmaps = gl_light_shadowmap;
 
 	if (defaultiwad[0] != '\0')
 	{
@@ -185,6 +189,8 @@ int FStartupSelectionInfo::SaveInfo()
 	language = DefaultLanguage.GetChars();
 	vid_fullscreen = DefaultFullscreen;
 	vid_vsync = DefaultVsync;
+	r_dynlights = DefaultDynLights;
+	gl_light_shadowmap = DefaultShadowmaps;
 	if (DefaultBackend != vid_preferbackend)
 		vid_preferbackend = DefaultBackend;
 
