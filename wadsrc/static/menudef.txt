@@ -1707,7 +1707,7 @@ OptionMenu "HapticsOptions" protected
 {
 	Title		"$HAPMNU_TITLE"
 
-	ScaleSlider	"$JOYMNU_HAPTICS",			"haptics_strength",		0, 10, 1, "$OPTVAL_OFF"
+	ScaleSlider	"$JOYMNU_HAPTICS",			"haptics_strength",		0, 10, 1
 	Option 		"$HAPMNU_COMPAT",			"haptics_compat",		"HapticsCompatTypes"
 	StaticText	""
 	StaticText	"$HAPMNU_OPTIONS"

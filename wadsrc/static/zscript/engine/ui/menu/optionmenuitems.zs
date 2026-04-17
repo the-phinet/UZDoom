@@ -1007,6 +1007,7 @@ class OptionMenuSliderBase : OptionMenuItem
 class OptionMenuItemSlider : OptionMenuSliderBase
 {
 	CVar mCVar;
+	double scale;
 
 	OptionMenuItemSlider Init(
 		String label,
@@ -1022,6 +1023,7 @@ class OptionMenuItemSlider : OptionMenuSliderBase
 	{
 		Super.Init(label, min, max, step, showval, command, graycheck, graycheckVal, graycheckMode);
 		mCVar =CVar.FindCVar(command);
+		scale = 10 ** mShowValue;
 		return self;
 	}
 
@@ -1029,7 +1031,7 @@ class OptionMenuItemSlider : OptionMenuSliderBase
 	{
 		if (mCVar != null)
 		{
-			return mCVar.GetFloat();
+			return round(mCVar.GetFloat()*scale)/scale;
 		}
 		else
 		{
@@ -1041,7 +1043,7 @@ class OptionMenuItemSlider : OptionMenuSliderBase
 	{
 		if (mCVar != null)
 		{
-			mCVar.SetFloat(val);
+			mCVar.SetFloat(round(val*scale)/scale);
 		}
 	}
 }
@@ -1365,14 +1367,15 @@ class OptionMenuItemScaleSlider : OptionMenuItemSlider
 		double min,
 		double max,
 		double step,
-		String zero,
+		String zero = "$OPTVAL_OFF",
 		String negone = "",
 		CVar graycheck = null,
 		int graycheckVal = 0,
-		name graycheckMode = 'Gray'
+		name graycheckMode = 'Gray',
+		int showval = 0
 	)
 	{
-		Super.Init(label, command, min, max, step, 0, graycheck, graycheckVal, graycheckMode);
+		Super.Init(label, command, min, max, step, showval, graycheck, graycheckVal, graycheckMode);
 		mCVar =CVar.FindCVar(command);
 		TextZero = zero;
 		TextNEgOne = negone;
@@ -1385,10 +1388,13 @@ class OptionMenuItemScaleSlider : OptionMenuItemSlider
 	{
 		drawLabel(indent, y, selected? OptionMenuSettings.mFontColorSelection : OptionMenuSettings.mFontColor);
 
-		int Selection = int(GetSliderValue());
-		if ((Selection == 0 || Selection == -1) && mClickVal <= 0)
+		double Selection = GetSliderValue();
+		bool is_min = Selection <= mMin || Selection <= 0;
+		bool is_sub = Selection <= -1;
+
+		if (is_min || is_sub && mClickVal <= 0)
 		{
-			String text = Selection == 0? TextZero : Selection == -1? TextNegOne  : "";
+			String text = is_min? TextZero : is_sub? TextNegOne  : "";
 			drawValue(indent, y, OptionMenuSettings.mFontColorValue, text, isGrayed());
 		}
 		else
