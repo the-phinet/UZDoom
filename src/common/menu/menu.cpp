@@ -61,7 +61,11 @@ CVAR(Bool, m_cleanscale, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 // Option Search
 CVAR(Bool, os_isanyof, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 // Tooltip
-CVAR(Bool, m_tooltip_capwidth, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CUSTOM_CVAR(Float, m_tooltip_capratio, 4.0/3.0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+{
+	if (self < 0)
+		self = 0;
+}
 CVAR(Bool, m_tooltip_small, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CUSTOM_CVAR(Int, m_tooltip_lines, 3, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 {

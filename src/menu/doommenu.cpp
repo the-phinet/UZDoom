@@ -72,7 +72,7 @@ EXTERN_CVAR(Int, m_tooltip_lines)
 EXTERN_CVAR(Float, m_tooltip_speed)
 EXTERN_CVAR(Float, m_tooltip_delay)
 EXTERN_CVAR(Float, m_tooltip_alpha)
-EXTERN_CVAR(Bool, m_tooltip_capwidth)
+EXTERN_CVAR(Float, m_tooltip_capratio)
 EXTERN_CVAR(Bool, m_tooltip_small)
 EXTERN_CVAR(Int, r_extralight)
 EXTERN_CVAR(Float, r_visibility)
@@ -644,7 +644,7 @@ CCMD(acc_reset2defaults)
 	m_tooltip_speed->ResetToDefault();
 	m_tooltip_delay->ResetToDefault();
 	m_tooltip_alpha->ResetToDefault();
-	m_tooltip_capwidth->ResetToDefault();
+	m_tooltip_capratio->ResetToDefault();
 	m_tooltip_small->ResetToDefault();
 	r_extralight->ResetToDefault();
 	r_visibility->ResetToDefault();
