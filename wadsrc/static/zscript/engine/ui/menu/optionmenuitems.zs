@@ -502,6 +502,17 @@ class OptionMenuItemOption : OptionMenuItemOptionBase
 			}
 		}
 	}
+
+	override bool MenuEvent (int mkey, bool fromcontroller)
+	{
+		if (mkey == Menu.MKEY_Clear && mCVar != null)
+		{
+			mCVar.ResetToDefault();
+			Menu.MenuSound("menu/change");
+			return true;
+		}
+		return Super.MenuEvent(mkey, fromcontroller);
+	}
 }
 
 //=============================================================================
