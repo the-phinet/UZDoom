@@ -1364,6 +1364,18 @@ class OptionMenuItemColorPicker : OptionMenuItem
 	{
 		return !isGrayed();
 	}
+
+	override bool MenuEvent (int mkey, bool fromcontroller)
+	{
+		if (mkey == Menu.MKEY_Clear)
+		{
+			SetValue(CPF_RESET, 0);
+			Menu.MenuSound("menu/change");
+			return true;
+		}
+
+		return Super.MenuEvent(mkey, fromcontroller);
+	}
 }
 
 //=============================================================================
