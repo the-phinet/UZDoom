@@ -210,8 +210,14 @@ bool SDL2DisplayWindow::GetKeyState(InputKey key)
 	const Uint8* state = SDL_GetKeyboardState(&numkeys);
 	if (!state) return false;
 
-	SDL_Scancode index = InputKeyToScancode(key);
-	return (index < numkeys) ? state[index] != 0 : false;
+	auto test = [numkeys, state](InputKey key) {
+		SDL_Scancode index = InputKeyToScancode(key);
+		return (index < numkeys) ? state[index] != 0 : false;
+	};
+
+	if (key == InputKey::Ctrl) return test(key) || test(InputKey::LControl) || test(InputKey::RControl);
+	if (key == InputKey::Shift) return test(key) || test(InputKey::LShift) || test(InputKey::RShift);
+	return test(key);
 }
 
 Rect SDL2DisplayWindow::GetWindowFrame() const
