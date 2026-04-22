@@ -469,7 +469,7 @@ void DrawDynamicFontText(F2DDrawer *drawer, FFont* originalFont, FFont* substitu
 			const double             cx           = (cursorx + (shrinkScale * scalex) * (g.xOffset + g.info.bearingX));
 			const double             heightAdjust = (1.0 / s.Font->GetInvSupersampleScale());
 			double             cy =
-				(cursory + (scaley * shrinkScale) * (baseFontHeight * (heightAdjust) + g.yOffset - g.info.bearingY));
+				(cursory + (scaley * shrinkScale) * (baseFontHeight * (heightAdjust) - g.yOffset - g.info.bearingY));
 
 			//classic doom fonts don't really have descenders or ascenders. As a result, let's nudge the
 			//vertical coords up by the descender to better match the intent of how they were placed.
