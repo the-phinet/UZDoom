@@ -743,12 +743,12 @@ FFont *FFont::GetDynamicSubstitutionForStaticFont(FFont *const fontToSub)
 	if (fontToSub != SymbolsFont)
 	{
 		FFont *foundDynamicRemap = nullptr;
-		FName subbedFontName = fontToSub->GetName();
-		FString subbedFontNameString = subbedFontName.GetChars();
+		const FName subbedFontName = fontToSub->GetName();
+		const FString subbedFontNameString = subbedFontName.GetChars();
 
-		FString langIDString = GStrings.GetActiveLangID().name.GetChars();
-		FString cvarName     = "fontchoice_" + subbedFontNameString + "_" + langIDString;
-		if (FStringCVar *cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
+		const FString langIDString = GStrings.GetActiveLangID().name.GetChars();
+		const FString cvarName     = "fontchoice_" + subbedFontNameString + "_" + langIDString;
+		if (FStringCVar *const cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
 		{
 			foundDynamicRemap = V_GetFont(*cv);
 		}
@@ -761,9 +761,9 @@ FFont *FFont::GetDynamicSubstitutionForStaticFont(FFont *const fontToSub)
 		{
 			//call MenuDelegate.PickFont() in script
 			//TODO: safety?
-			PClass     *pCls = menuDelegate->GetClass();
-			VMFunction *func = PClass::FindFunction(pCls->TypeName, "PickFont");
-			void       *ret  = CallVM<void *>(func, menuDelegate, (void *)fontToSub);
+			const PClass     *const pCls = menuDelegate->GetClass();
+			VMFunction *const func = PClass::FindFunction(pCls->TypeName, "PickFont");
+			void       *const ret  = CallVM<void *>(func, menuDelegate, (void *)fontToSub);
 			FFont* foundFont = static_cast<FFont *>(ret);
 			if (foundFont->IsValidDynamicFont())
 			{
@@ -778,13 +778,13 @@ FFont *FFont::GetDynamicSubstitutionForStaticFont(FFont *const fontToSub)
 	return nullptr;
 }
 
-FFont *FFont::GetSmallTextFont(FFont* fallbackIfNoUserChoice)
+FFont *FFont::GetSmallTextFont(FFont* const fallbackIfNoUserChoice)
 {
 	FFont  *userFont = nullptr;
-	FString lang     = GStrings.GetActiveLanguage();
+	const FString lang     = GStrings.GetActiveLanguage();
 
-	FString langIDString = GStrings.GetActiveLangID().name.GetChars();
-	FString cvarName     = "fontchoice_smalltext_" + langIDString;
+	const FString langIDString = GStrings.GetActiveLangID().name.GetChars();
+	const FString cvarName     = "fontchoice_smalltext_" + langIDString;
 	if (FStringCVar* cv = dynamic_cast<FStringCVar*>(FindCVar(cvarName.GetChars(), nullptr)))
 	{
 		userFont = V_GetFont(*cv);
@@ -825,14 +825,14 @@ FFont *FFont::GetSmallTextFont(FFont* fallbackIfNoUserChoice)
 	return fallbackIfNoUserChoice;
 }
 
-FFont *FFont::GetTitleFont(FFont *fallbackIfNoUserChoice)
+FFont *FFont::GetTitleFont(FFont *const fallbackIfNoUserChoice)
 {
 	FFont *userFont = nullptr;
-	FString lang = GStrings.GetActiveLanguage();
+	const FString lang = GStrings.GetActiveLanguage();
 
-	FString langIDString = GStrings.GetActiveLangID().name.GetChars();
-	FString cvarName     = "fontchoice_title_" + langIDString;
-	if (FStringCVar *cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
+	const FString langIDString = GStrings.GetActiveLangID().name.GetChars();
+	const FString cvarName     = "fontchoice_title_" + langIDString;
+	if (FStringCVar *const cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
 	{
 		userFont = V_GetFont(*cv);
 	}
@@ -872,14 +872,14 @@ FFont *FFont::GetTitleFont(FFont *fallbackIfNoUserChoice)
 	return fallbackIfNoUserChoice;
 }
 
-FFont *FFont::GetDescriptionFont(FFont *fallbackIfNoUserChoice)
+FFont *FFont::GetDescriptionFont(FFont *const fallbackIfNoUserChoice)
 {
 	FFont *userFont = nullptr;
-	FString lang     = GStrings.GetActiveLanguage();
+	const FString lang     = GStrings.GetActiveLanguage();
 
-	FString langIDString = GStrings.GetActiveLangID().name.GetChars();
-	FString cvarName     = "fontchoice_description_" + langIDString;
-	if (FStringCVar *cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
+	const FString langIDString = GStrings.GetActiveLangID().name.GetChars();
+	const FString cvarName     = "fontchoice_description_" + langIDString;
+	if (FStringCVar *const cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
 	{
 		userFont = V_GetFont(*cv);
 	}
@@ -919,9 +919,9 @@ FFont *FFont::GetDescriptionFont(FFont *fallbackIfNoUserChoice)
 	return fallbackIfNoUserChoice;
 }
 
-FFont *FFont::GetConsoleFont(FFont *fallbackIfNoUserChoice)
+FFont *FFont::GetConsoleFont(FFont *const fallbackIfNoUserChoice)
 {
-	FFont *userFont = V_GetFont(*fontchoice_console);
+	FFont *const userFont = V_GetFont(*fontchoice_console);
 	if (userFont)
 	{
 		return userFont;
@@ -929,14 +929,14 @@ FFont *FFont::GetConsoleFont(FFont *fallbackIfNoUserChoice)
 	return fallbackIfNoUserChoice;
 }
 
-FFont *FFont::GetBigTextFont(FFont *fallbackIfNoUserChoice)
+FFont *FFont::GetBigTextFont(FFont *const fallbackIfNoUserChoice)
 {
 	FFont  *userFont = nullptr;
-	FString lang     = GStrings.GetActiveLanguage();
+	const FString lang     = GStrings.GetActiveLanguage();
 
-	FString langIDString = GStrings.GetActiveLangID().name.GetChars();
-	FString cvarName     = "fontchoice_bigtext_" + langIDString;
-	if (FStringCVar *cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
+	const FString langIDString = GStrings.GetActiveLangID().name.GetChars();
+	const FString cvarName     = "fontchoice_bigtext_" + langIDString;
+	if (FStringCVar *const cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
 	{
 		userFont = V_GetFont(*cv);
 	}
