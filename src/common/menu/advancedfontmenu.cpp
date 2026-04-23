@@ -58,24 +58,17 @@ DEFINE_ACTION_FUNCTION(DAdvancedFontMenuRemapChoiceMenu, FillAdvancedFontMenuRem
 
 	if (desc->IsKindOf(RUNTIME_CLASS(DOptionMenuDescriptor)))
 	{
-		//FFont::UpdateAdvFontMappingTables();
 		FFont::MakeFontChoiceCVARs();
-		FString fontNameBeingRemapped = fontBeingRemapped;
-		FString langTriplet           = GStrings.GetActiveLangID().name.GetChars();
+		const FString fontNameBeingRemapped = fontBeingRemapped;
+		const FString langTriplet           = GStrings.GetActiveLangID().name.GetChars();
 
 		std::vector<const FFont*> dynamicFonts;
-		const FFont *currentFont = FFont::GetFontListHead();
-		if (currentFont && currentFont->IsValidDynamicFont())
+		for (const FFont *currentFont = FFont::GetFontListHead(); currentFont; currentFont = currentFont->GetNextFont())
 		{
-			dynamicFonts.push_back(currentFont);
-		}
-		while (const FFont* nextFont = currentFont->GetNextFont())
-		{
-			if (nextFont->IsValidDynamicFont())
+			if (currentFont->IsValidDynamicFont())
 			{
-				dynamicFonts.push_back(nextFont);
+				dynamicFonts.push_back(currentFont);
 			}
-			currentFont = nextFont;
 		}
 
 		//add a default option
