@@ -2236,6 +2236,9 @@ OptionMenu FontOptions protected
 	Option "$FONTMNU_NEWSMALLFONT_OVERRIDE_CYR",		"fontoverride_NewSmallFontCYR", "DynamicFontOptionsCYR"
 	Tooltip "$FONTMNU_NEWSMALLFONT_OVERRIDE_TOOLTIP"
 	StaticText ""
+	Submenu "$FONTMNU_ADVANCEDMENU",	 "AdvancedFontOptions"
+	Tooltip "Directly remap original fonts to counterparts. Used for mod compatibility. Options take effect regardless of language."
+	StaticText ""
 	StaticText "$FONTMNU_FALLBACKS"
 	Option "$FONTMNU_FALLBACK",			"fontoverride_Fallback", "DynamicFontFallbackOptions"
 	Option "$FONTMNU_FALLBACK_JP",			"fontoverride_FallbackJP", "DynamicFontFallbackOptionsJP"
@@ -2318,6 +2321,22 @@ OptionValue  FontSuperSampleOptions
 	2, "2x"
 	3, "3x"
 	4, "4x"
+}
+
+OptionMenu AdvancedFontOptions protected
+{
+	Title "$HUDMNU_FONTOPTIONS"
+	//filled in dynamically
+	Class "AdvancedFontMenu"
+}
+
+OptionMenu AdvancedFontOptionsRemapChoiceMenu protected
+{
+	Title "REMAP FONT TO..."
+	//dynamically lists out all the fonts that could be used as a remap,
+	//and runs a command to set them
+	//this command updates the global remappings, and then sets a cvar that saves them as a list
+	Class "AdvancedFontMenuRemapChoiceMenu"
 }
 
 //-------------------------------------------------------------------------------------------
