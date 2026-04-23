@@ -729,19 +729,12 @@ void SetFontChoice_BigText(const char *newFont)
 void FFont::UpdateAdvFontMappingTables()
 {
 	RemappableFonts.clear();
-
-	const FFont *CurrentFont = FFont::GetFontListHead();
-	if (CurrentFont->CanBeSubstitutedWithDynamic())
+	for (const FFont *currentFont = FFont::GetFontListHead(); currentFont; currentFont = currentFont->GetNextFont())
 	{
-		RemappableFonts.push_back(CurrentFont);
-	}
-	while (const FFont *NextFont = CurrentFont->GetNextFont())
-	{
-		if (NextFont->CanBeSubstitutedWithDynamic())
+		if (currentFont->CanBeSubstitutedWithDynamic())
 		{
-			RemappableFonts.push_back(NextFont);
+			RemappableFonts.push_back(currentFont);
 		}
-		CurrentFont = NextFont;
 	}
 }
 
