@@ -116,31 +116,6 @@ CVAR(String, fontchoice_bigtextSC, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_titleSC, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_descriptionSC, "FO_DEFAULT", CVAR_ARCHIVE);
 
-//actually overriding the font directly will become a last resort option
-//if you are having mod compatibility issues.
-void SetNewSmallFontOverride(const char *newFont);
-CUSTOM_CVAR(String, fontoverride_NewSmallFont, "FO_DEFAULT", CVAR_ARCHIVE)
-{
-	SetNewSmallFontOverride(self);
-}
-
-void SetNewSmallFontOverrideJP(const char *newFont);
-CUSTOM_CVAR(String, fontoverride_NewSmallFontJP, "FO_DEFAULT", CVAR_ARCHIVE)
-{
-	SetNewSmallFontOverrideJP(self);
-}
-
-void SetNewSmallFontOverrideKR(const char *newFont);
-CUSTOM_CVAR(String, fontoverride_NewSmallFontKR, "FO_DEFAULT", CVAR_ARCHIVE)
-{
-	SetNewSmallFontOverrideKR(self);
-}
-
-void SetNewSmallFontOverrideCYR(const char *newFont);
-CUSTOM_CVAR(String, fontoverride_NewSmallFontCYR, "FO_DEFAULT", CVAR_ARCHIVE)
-{
-	SetNewSmallFontOverrideCYR(self);
-}
 CVAR(String, fontchoice_smalltextTH, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_bigtextTH, "FO_DEFAULT", CVAR_ARCHIVE);
 CVAR(String, fontchoice_titleTH, "FO_DEFAULT", CVAR_ARCHIVE);
@@ -749,70 +724,6 @@ void SetFontChoice_BigText(const char *newFont)
 {
 	//main menu needs to be rebuilt if this changes
 
-}
-
-void SetNewSmallFontOverride(const char* newFont)
-{
-	if (strcmp(newFont, "FO_DEFAULT") == 0)
-	{
-		NewSmallFont = V_GetFont("NewSmallFont");
-	}
-	else
-	{
-		NewSmallFont = V_GetFont(newFont);
-		if (!NewSmallFont)
-		{
-			NewSmallFont = FindDynamicFallbackFontForLanguage("en");
-		}
-	}
-}
-
-void SetNewSmallFontOverrideJP(const char *newFont)
-{
-	if (strcmp(newFont, "FO_DEFAULT") == 0)
-	{
-		NewSmallFont = V_GetFont("NewSmallFont");
-	}
-	else
-	{
-		NewSmallFont = V_GetFont(newFont);
-		if (!NewSmallFont)
-		{
-			NewSmallFont = FindDynamicFallbackFontForLanguage("jp");
-		}
-	}	
-}
-
-void SetNewSmallFontOverrideKR(const char *newFont)
-{
-	if (strcmp(newFont, "FO_DEFAULT") == 0)
-	{
-		NewSmallFont = V_GetFont("NewSmallFont");
-	}
-	else
-	{
-		NewSmallFont = V_GetFont(newFont);
-		if (!NewSmallFont)
-		{
-			NewSmallFont = FindDynamicFallbackFontForLanguage("ko");
-		}
-	}
-}
-
-void SetNewSmallFontOverrideCYR(const char *newFont)
-{
-	if (strcmp(newFont, "FO_DEFAULT") == 0)
-	{
-		NewSmallFont = V_GetFont("NewSmallFont");
-	}
-	else
-	{
-		NewSmallFont = V_GetFont(newFont);
-		if (!NewSmallFont)
-		{
-			NewSmallFont = FindDynamicFallbackFontForLanguage("ru");
-		}
-	}
 }
 
 void FFont::UpdateAdvFontMappingTables()
