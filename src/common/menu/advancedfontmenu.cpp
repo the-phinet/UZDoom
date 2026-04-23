@@ -33,11 +33,11 @@ DEFINE_ACTION_FUNCTION(DAdvancedFontMenu, FillAdvancedFontMenu)
 	if (desc->IsKindOf(RUNTIME_CLASS(DOptionMenuDescriptor)))
 	{
 		FFont::MakeFontChoiceCVARs();
-		for (int i = 0; i < FFont::GetRemappableFonts().size(); ++i)
+		auto &fonts = FFont::GetRemappableFonts();
+		for (auto f : fonts)
 		{
-			const FFont* const f   = FFont::GetRemappableFonts()[i];
-			FString              fontNameString = f->GetName().GetChars();
-			FString              cmd            = "editfontmapping " + fontNameString;
+			const FString              fontNameString = f->GetName().GetChars();
+			const FString              cmd            = "editfontmapping " + fontNameString;
 			DMenuItemBase *const opt          = CreateOptionMenuItemCommand(f->GetName().GetChars(), cmd);
 
 			desc->mItems.Push(opt);
@@ -81,16 +81,18 @@ DEFINE_ACTION_FUNCTION(DAdvancedFontMenuRemapChoiceMenu, FillAdvancedFontMenuRem
 		//add a default option
 		{
 			FString              srcFontName = fontNameBeingRemapped;
-			DMenuItemBase *const opt = CreateOptionMenuItemCommand("DEFAULT", FStringf("fontchoice_%s_%s FO-DEFAULT", srcFontName, langTriplet));
+			DMenuItemBase *const opt         = CreateOptionMenuItemCommand(
+                "DEFAULT", FStringf("fontchoice_%s_%s FO-DEFAULT", srcFontName.GetChars(), langTriplet.GetChars()));
 			desc->mItems.Push(opt);
 		}
 		
 		for (auto &f : dynamicFonts)
 		{
-			FString srcFontName = fontNameBeingRemapped;
-			FString              tgtFontName = f->GetName().GetChars();
+			const FString srcFontName = fontNameBeingRemapped;
+			const FString              tgtFontName = f->GetName().GetChars();
 			
-			FString              cmd         = FStringf("fontchoice_%s_%s %s", srcFontName, langTriplet, tgtFontName);
+			const FString cmd =
+				FStringf("fontchoice_%s_%s %s", srcFontName.GetChars(), langTriplet.GetChars(), tgtFontName.GetChars());
 			DMenuItemBase *const opt          = CreateOptionMenuItemCommand(f->GetName().GetChars(), cmd);
 			desc->mItems.Push(opt);
 		}
