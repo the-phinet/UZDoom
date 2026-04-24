@@ -972,9 +972,9 @@ enum ELineTraceFlags
 }
 
 const DEFMELEERANGE = 64;
-const SAWRANGE = (64.+(1./65536.));	// use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
+const SAWRANGE = DEFMELEERANGE + double.equal_epsilon; // use meleerange + 1 so the puff doesn't skip the flash (i.e. plays all states)
 const MISSILERANGE = (32*64);
-const PLAYERMISSILERANGE = 8192;	// [RH] New MISSILERANGE for players
+const PLAYERMISSILERANGE = 8192; // [RH] New MISSILERANGE for players
 
 enum ESightFlags
 {
