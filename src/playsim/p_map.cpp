@@ -4828,7 +4828,7 @@ AActor *P_LineAttack(AActor *t1, DAngle angle, double distance,
 				puffpos = DVector3(pos, trace.HitPos.Z - trace.HitVector.Z * 4);
 				puff = P_SpawnPuff(t1, pufftype, puffpos, trace.SrcAngleFromTarget,
 					trace.SrcAngleFromTarget - DAngle::fromDeg(90), 0, puffFlags);
-				puff->radius = 1/65536.;
+				puff->radius = EQUAL_EPSILON;
 
 				if (nointeract)
 				{
@@ -6706,7 +6706,7 @@ int P_PushUp(AActor *thing, FChangePosition *cpos)
 		}
 		double oldz = intersect->Z();
 		P_AdjustFloorCeil(intersect, cpos);
-		intersect->SetZ(thing->Top() + 1/65536.);
+		intersect->SetZ(thing->Top() + EQUAL_EPSILON);
 		if (P_PushUp(intersect, cpos))
 		{ // Move blocked
 			P_DoCrunch(intersect, cpos);

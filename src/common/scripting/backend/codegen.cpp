@@ -4299,7 +4299,7 @@ FxExpression *FxCompareEq::Resolve(FCompileContext& ctx)
 		{
 			double v1 = static_cast<FxConstant *>(left)->GetValue().GetFloat();
 			double v2 = static_cast<FxConstant *>(right)->GetValue().GetFloat();
-			v = Operator == TK_Eq? v1 == v2 : Operator == TK_Neq? v1 != v2 : fabs(v1-v2) < VM_EPSILON;
+			v = Operator == TK_Eq? v1 == v2 : Operator == TK_Neq? v1 != v2 : fabs(v1-v2) < EQUAL_EPSILON;
 		}
 		else
 		{

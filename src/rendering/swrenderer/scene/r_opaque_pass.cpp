@@ -239,7 +239,7 @@ namespace swrenderer
 				tempsec->floorplane = sec->floorplane;
 				tempsec->ceilingplane = s->floorplane;
 				tempsec->ceilingplane.FlipVert();
-				tempsec->ceilingplane.ChangeHeight(-1 / 65536.);
+				tempsec->ceilingplane.ChangeHeight(-EQUAL_EPSILON);
 				tempsec->Colormap = s->Colormap;
 			}
 
@@ -251,12 +251,12 @@ namespace swrenderer
 
 				tempsec->ceilingplane = s->floorplane;
 				tempsec->ceilingplane.FlipVert();
-				tempsec->ceilingplane.ChangeHeight(-1 / 65536.);
+				tempsec->ceilingplane.ChangeHeight(-EQUAL_EPSILON);
 				if (s->GetTexture(sector_t::ceiling) == skyflatnum)
 				{
 					tempsec->floorplane = tempsec->ceilingplane;
 					tempsec->floorplane.FlipVert();
-					tempsec->floorplane.ChangeHeight(+1 / 65536.);
+					tempsec->floorplane.ChangeHeight(EQUAL_EPSILON);
 					tempsec->SetTexture(sector_t::ceiling, tempsec->GetTexture(sector_t::floor), false);
 					tempsec->planes[sector_t::ceiling].xform = tempsec->planes[sector_t::floor].xform;
 				}
@@ -288,7 +288,7 @@ namespace swrenderer
 				tempsec->ceilingplane = s->ceilingplane;
 				tempsec->floorplane = s->ceilingplane;
 				tempsec->floorplane.FlipVert();
-				tempsec->floorplane.ChangeHeight(+1 / 65536.);
+				tempsec->floorplane.ChangeHeight(EQUAL_EPSILON);
 				tempsec->Colormap = s->Colormap;
 
 				tempsec->SetTexture(sector_t::ceiling, diffTex ? sec->GetTexture(sector_t::ceiling) : s->GetTexture(sector_t::ceiling), false);
@@ -776,14 +776,14 @@ namespace swrenderer
 						position = sector_t::ceiling;
 					}
 
-					tempsec.ceilingplane.ChangeHeight(-1 / 65536.);
+					tempsec.ceilingplane.ChangeHeight(-EQUAL_EPSILON);
 					if (cameraLight->FixedLightLevel() < 0 && sub->sector->e->XFloor.lightlist.Size())
 					{
 						lightlist_t *light = P_GetPlaneLight(sub->sector, &tempsec.ceilingplane, false);
 						basecolormap = GetColorTable(light->extra_colormap);
 						ceilinglightlevel = *light->p_lightlevel;
 					}
-					tempsec.ceilingplane.ChangeHeight(1 / 65536.);
+					tempsec.ceilingplane.ChangeHeight(EQUAL_EPSILON);
 
 					VisiblePlane *ceilingplane3d = Thread->PlaneList->FindPlane(
 						tempsec.ceilingplane,

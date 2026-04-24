@@ -310,8 +310,8 @@ public:
 		ScaleY = TexelHeight / h;
 
 		// compensate for roundoff errors
-		if (int(ScaleX * w) != TexelWidth) ScaleX += (1 / 65536.);
-		if (int(ScaleY * h) != TexelHeight) ScaleY += (1 / 65536.);
+		if (int(ScaleX * w) != TexelWidth) ScaleX += EQUAL_EPSILON;
+		if (int(ScaleY * h) != TexelHeight) ScaleY += EQUAL_EPSILON;
 
 	}
 	void SetBase(FTexture* Tex)

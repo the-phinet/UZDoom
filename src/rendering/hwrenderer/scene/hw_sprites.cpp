@@ -1182,7 +1182,7 @@ void HWSprite::Process(HWDrawInfo *di, AActor* thing, sector_t * sector, area_t 
 		depth = (float)((x + r2 * tempang2.Cos() - vp.Pos.X) * vp.TanCos
 						+ (y + r2 * tempang2.Sin() - vp.Pos.Y) * vp.TanSin);
 	}
-	if (isSpriteShadow) depth += 1.f/65536.f; // always sort shadows behind the sprite.
+	if (isSpriteShadow) depth += EQUAL_EPSILON; // always sort shadows behind the sprite.
 
 	if (gl_spriteclip == -1 && (thing->renderflags & RF_SPRITETYPEMASK) == RF_FACESPRITE) // perform anamorphosis
 	{

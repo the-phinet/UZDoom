@@ -59,8 +59,7 @@ inline double g_sqrt(double v) { return sqrt(v); }
 inline double g_atan2(double v, double w) { return atan2(v, w); }
 #endif
 
-
-#define EQUAL_EPSILON (1/65536.)
+constexpr float EQUAL_EPSILON = 1/65536.;
 
 template<class vec_t> struct TVector3;
 template<class vec_t> struct TRotator;
@@ -1495,8 +1494,8 @@ typedef TAngle<double>		DAngle;
 
 constexpr DAngle nullAngle = DAngle::fromDeg(0.);
 constexpr FAngle nullFAngle = FAngle::fromDeg(0.);
-constexpr DAngle minAngle = DAngle::fromDeg(1. / 65536.);
-constexpr FAngle minFAngle = FAngle::fromDeg(1. / 65536.);
+constexpr DAngle minAngle = DAngle::fromDeg(EQUAL_EPSILON);
+constexpr FAngle minFAngle = FAngle::fromDeg(EQUAL_EPSILON);
 
 constexpr DAngle DAngle1 = DAngle::fromDeg(1);
 constexpr DAngle DAngle15 = DAngle::fromDeg(15);

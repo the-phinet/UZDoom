@@ -1051,7 +1051,7 @@ void JitCompiler::EmitEQF_R()
 			auto absMask = cc.newDoubleConst(asmjit::kConstScopeLocal, reinterpret_cast<const double&>(absMaskInt));
 			auto absMaskXmm = newTempXmmPd();
 
-			auto epsilon = cc.newDoubleConst(asmjit::kConstScopeLocal, VM_EPSILON);
+			auto epsilon = cc.newDoubleConst(asmjit::kConstScopeLocal, EQUAL_EPSILON);
 			auto epsilonXmm = newTempXmmSd();
 
 			cc.movsd(tmp, regF[B]);
@@ -1093,7 +1093,7 @@ void JitCompiler::EmitEQF_K()
 			auto absMask = cc.newDoubleConst(kConstScopeLocal, reinterpret_cast<const double&>(absMaskInt));
 			auto absMaskXmm = newTempXmmPd();
 
-			auto epsilon = cc.newDoubleConst(kConstScopeLocal, VM_EPSILON);
+			auto epsilon = cc.newDoubleConst(kConstScopeLocal, EQUAL_EPSILON);
 			auto epsilonXmm = newTempXmmSd();
 
 			cc.mov(konstTmp, asmjit::imm_ptr(&konstf[C]));

@@ -391,7 +391,7 @@ bool FLevelLocals::ChangePortal(line_t *ln, int thisid, int destid)
 inline int P_GetLineSide(const DVector2 &pos, const linebase_t *line)
 {
 	double v = (pos.Y - line->v1->fY()) * line->Delta().X + (line->v1->fX() - pos.X) * line->Delta().Y;
-	return v < -1. / 65536. ? -1 : v > 1. / 65536 ? 1 : 0;
+	return v < -EQUAL_EPSILON ? -1 : v > EQUAL_EPSILON ? 1 : 0;
 }
 
 bool P_ClipLineToPortal(linebase_t* line, linebase_t* portal, DVector2 view, bool partial, bool samebehind)

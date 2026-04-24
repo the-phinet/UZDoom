@@ -1310,7 +1310,7 @@ static int PatchThing (int thingy, int flags)
 			}
 			else if (stricmp (Line1, "Scale") == 0)
 			{
-				info->Scale.Y = info->Scale.X = clamp((float)atof (Line2), 1.f/65536, 256.f);
+				info->Scale.Y = info->Scale.X = clamp((float)atof (Line2), EQUAL_EPSILON, 256.f);
 			}
 			else if (stricmp (Line1, "Decal") == 0)
 			{

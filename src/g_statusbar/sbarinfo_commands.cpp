@@ -2792,14 +2792,14 @@ class CommandDrawBar : public SBarInfoCommand
 				// [BL] Since we used a percentage (in order to get the most fluid animation)
 				//      we need to establish a cut off point so the last pixel won't hang as the animation slows
 				if(pixel == -1 && statusBar->Images[foreground])
-					pixel = std::max(1 / 65536., 1./statusBar->Images[foreground]->GetDisplayWidth());
+					pixel = std::max(EQUAL_EPSILON, 1.f/statusBar->Images[foreground]->GetDisplayWidth());
 
 				if(fabs(drawValue - value) < pixel)
 					drawValue = value;
 				else if (value < drawValue)
-					drawValue -= clamp<double>((drawValue - value) / 4, 1 / 65536., interpolationSpeed / 100.);
+					drawValue -= clamp<double>((drawValue - value) / 4, EQUAL_EPSILON, interpolationSpeed / 100.);
 				else if (drawValue < value)
-					drawValue += clamp<double>((value - drawValue) / 4, 1 / 65536., interpolationSpeed / 100.);
+					drawValue += clamp<double>((value - drawValue) / 4, EQUAL_EPSILON, interpolationSpeed / 100.);
 			}
 			else
 				drawValue = value;

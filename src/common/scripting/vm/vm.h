@@ -57,8 +57,6 @@ typedef signed short		VM_SHALF;
 typedef unsigned int		VM_UWORD;
 typedef signed int			VM_SWORD;
 
-#define VM_EPSILON			(1/65536.0)
-
 // Register types for VMParam
 enum
 {
