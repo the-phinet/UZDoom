@@ -46,6 +46,7 @@
 #include "s_music.h"
 #include "s_sound.h"
 #include "savegamemanager.h"
+#include "textureid.h"
 #include "texturemanager.h"
 #include "v_draw.h"
 #include "v_text.h"
@@ -895,19 +896,27 @@ CCMD(countitemsnum) // [SP] # of counted items
 
 //-----------------------------------------------------------------------------
 //
-//
+// changesky [1/2/m] [texture_name]
 //
 //-----------------------------------------------------------------------------
 CCMD(changesky)
 {
-	const char *sky1name = "";
+	if (!primaryLevel) return;
+
 	if (argv.argc() < 2)
 	{
-		auto sky = (primaryLevel && primaryLevel->skytexture1.isValid())
-			? TexMan.GetGameTexture(primaryLevel->skytexture1)
-			: nullptr;
-		if (sky) sky1name = sky->GetName().GetChars();
-		Printf("Current sky: %s\n", sky1name);
+		auto read = [](FTextureID id, const char *text) {
+			const char *name = "";
+			auto sky = id.isValid()? TexMan.GetGameTexture(id): nullptr;
+			if (sky) name = sky->GetName().GetChars();
+			Printf("%s: %s\n", text, name);
+		};
+
+		bool two = primaryLevel->flags & LEVEL_DOUBLESKY;
+		read(primaryLevel->skytexture1, two? "Sky Texture 1": "Sky Texture");
+		if (two) read(primaryLevel->skytexture2, "Sky Texture 2");
+		read(primaryLevel->skymisttexture, "Sky Mist");
+
 		return;
 	}
 
@@ -917,18 +926,28 @@ CCMD(changesky)
 		return;
 	}
 
-	// This only alters the primary level's sky setting. For testing out a sky that is sufficient.
-	sky1name = argv[1];
-	if (sky1name[0] != 0)
+	FTextureID *id = &primaryLevel->skytexture1;
+	const char *skyname = argv[argv.argc()-1];
+	const char *skyslot = (argv.argc() > 2)? argv[1]: "1";
+	switch (skyslot[0])
 	{
-		FTextureID newsky = TexMan.GetTextureID(sky1name, ETextureType::Wall, FTextureManager::TEXMAN_Overridable | FTextureManager::TEXMAN_ReturnFirst);
+		case '1': id = &primaryLevel->skytexture1; break;
+		case '2': id = &primaryLevel->skytexture2; break;
+		case 'm': id = &primaryLevel->skymisttexture; break;
+		default: return;
+	}
+
+	// This only alters the primary level's sky setting. For testing out a sky that is sufficient.
+	if (skyname[0] != 0)
+	{
+		FTextureID newsky = TexMan.GetTextureID(skyname, ETextureType::Wall, FTextureManager::TEXMAN_Overridable | FTextureManager::TEXMAN_ReturnFirst);
 		if (newsky.Exists())
 		{
-			primaryLevel->skytexture1 = newsky;
+			*id = newsky;
 		}
 		else
 		{
-			Printf("changesky: Texture '%s' not found\n", sky1name);
+			Printf("changesky: Texture '%s' not found\n", skyname);
 		}
 	}
 	InitSkyMap (primaryLevel);
