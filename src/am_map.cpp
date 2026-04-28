@@ -1447,7 +1447,7 @@ void DAutomap::NewUIScale()
 	}
 
 	double sc = min<double>(StatusBar->SBarScale.X, StatusBar->SBarScale.Y);
-	line_thickness_scaled = xs_CRoundToInt(sc);
+	line_thickness_scaled = RoundHalfEven(sc);
 
 	if (line_thickness_scaled <= 0)
 	{
