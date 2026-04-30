@@ -1190,39 +1190,6 @@ CCMD(secret)
 	}
 }
 
-CCMD(roundtestn)
-{
-	int iterations = 0;
-	if (argv.argc() > 1)
-	{
-		iterations = std::stoi(argv[1]);
-	}
-	if (iterations <= 0)
-	{
-		Printf("Number of iterations is required\n");
-		return;
-	}
-	for (int i = 0; i < iterations; i++)
-	{
-		double d = double(i)/iterations;
-		double r = std::pow(2, 16) * M_Random.RandomFloat();
-#define p(n, f) printf("%c", n); f(d); f(r);
-		printf("%8f %12f ", d, r);
-		p('u', RoundUp);
-		p('d', RoundDown);
-		p('z', RoundToZero);
-		p('f', RoundFromZero);
-		p('U', RoundHalfUp);
-		p('D', RoundHalfDown);
-		p('E', RoundHalfEven);
-		p('Z', RoundHalfToZero);
-		p('F', RoundHalfFromZero);
-		printf("\n");
-#undef  p
-	}
-	Printf("ok\n");
-}
-
 CCMD(roundtest)
 {
 	if (argv.argc() < 2) return;
