@@ -931,7 +931,7 @@ void V_InitFonts()
 	
 	{
 		auto fontcvar = FindCVar("fontOverride_NewSmallFont", nullptr);
-		NewSmallFont = V_GetFont(fontcvar->GetHumanString());
+		NewSmallFont = V_GetFont(fontcvar? fontcvar->GetHumanString(): nullptr);
 		if (!NewSmallFont)
 		{
 			NewSmallFont = newSmallFontPreOverride;
