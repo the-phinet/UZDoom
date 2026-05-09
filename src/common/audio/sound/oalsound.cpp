@@ -40,11 +40,11 @@ FModule OpenALModule{"OpenAL"};
 
 #ifdef __linux
 // SteamDeck exposes a broken JACK device, which takes precedence over the
-// working pulseaudio backend. This raises the priority of pulseaudio, which
-// is the modern linux way of doing audio. The AppImage ships the drivers,
-// so this should work on all systems
+// working pulseaudio backend. JACK is likely to not be wanted, so disabling
+// it by default shouldn't cause any issues. If someone wants to use JACK,
+// they can change `snd_aldriver` to reflect that (or set ALSOFT_DRIVERS)
 // https://github.com/kcat/openal-soft/blob/993b8c8/alsoftrc.sample#L46-L53
-#define DEFAULT_DRIVER "pulse,"
+#define DEFAULT_DRIVER "-jack,"
 #else
 #define DEFAULT_DRIVER ""
 #endif
