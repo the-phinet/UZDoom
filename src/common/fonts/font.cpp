@@ -740,7 +740,13 @@ void FFont::UpdateAdvFontMappingTables()
 
 FFont *FFont::GetDynamicSubstitutionForStaticFont(FFont *const fontToSub)
 {
-	if (fontToSub != SymbolsFont)
+	if (fontToSub == SymbolsFont //symbols font needs to be preserved so sliders work
+		|| (fontToSub->Type == EFontType::Unknown) //probably being used to draw an image to the hud
+		|| (fontToSub->LastChar - fontToSub->FirstChar == 0)) //single glyph probably being used to draw an image to the hud
+	{
+		return nullptr;
+	}
+	else
 	{
 		FFont *foundDynamicRemap = nullptr;
 		const FName subbedFontName = fontToSub->GetName();
