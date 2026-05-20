@@ -971,11 +971,11 @@ void FGameConfigFile::ArchiveGlobalData ()
 
 	SetSection ("GlobalSettings", true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
+	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, CVAR_CONFIG_ONLY);
 
 	SetSection ("GlobalSettings.Unknown", true);
 	ClearCurrentSection ();
-	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_AUTO);
+	C_ArchiveCVars (this, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_AUTO, CVAR_CONFIG_ONLY);
 }
 
 FString FGameConfigFile::GetConfigPath (bool tryProg)

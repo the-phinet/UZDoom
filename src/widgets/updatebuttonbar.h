@@ -22,7 +22,6 @@
 class LauncherWindow;
 class PushButton;
 
-
 struct date_t
 {
 	static constexpr bool isLeapYear(int year)
@@ -177,6 +176,8 @@ struct update_info_t
 	bool cached = false;
 
 	std::vector<std::string> release_notes;
+
+	std::string download_url;
 };
 
 class UpdateButtonBar : public Widget
@@ -201,6 +202,8 @@ class UpdateButtonBar : public Widget
 
 		LauncherWindow *GetLauncher() const;
 
+		update_info_t GetUpdateInfo(bool &ok);
+
 		FString text;
 
 		bool close_highlighted = false;
@@ -216,4 +219,8 @@ class UpdateButtonBar : public Widget
 
 		friend void OpenDismissUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate);
 		friend void OpenUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate);
+	public:
+		std::string GetDownloadURL() { return currentUpdate->download_url; }
+	private:
+		void OpenUpdateMenu(bool isAutoUpdate);
 };
