@@ -269,7 +269,7 @@ private:
 	friend FBaseCVar *FindCVarSub (const char *var_name, int namelen);
 	friend void UnlatchCVars (void);
 	friend void DestroyCVarsFlagged (uint32_t flags);
-	friend void C_ArchiveCVars (FConfigFile *f, uint32_t filter);
+	friend void C_ArchiveCVars (FConfigFile *f, uint32_t filter, uint32_t allow);
 	friend void C_SetCVarsToDefaults (void);
 	friend void FilterCompactCVars (TArray<FBaseCVar *> &cvars, uint32_t filter);
 	friend void C_DeinitConsole();
@@ -313,7 +313,7 @@ void UnlatchCVars (void);
 void DestroyCVarsFlagged (uint32_t flags);
 
 // archive cvars to FILE f
-void C_ArchiveCVars (FConfigFile *f, uint32_t filter);
+void C_ArchiveCVars (FConfigFile *f, uint32_t filter, uint32_t allow = 0);
 
 // initialize cvars to default values after they are created
 void C_SetCVarsToDefaults (void);

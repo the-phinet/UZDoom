@@ -377,6 +377,10 @@ public:
 	void Split(TArray<FString>& tokens, const FString &delimiter, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
 	void Split(TArray<FString>& tokens, const char *delimiter, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
 
+
+	TArray<FString> SplitNewLines(int minWrapLen = -1, int maxLineLen = -1, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
+	void SplitNewLines(TArray<FString>& tokens, int minWrapLen = -1, int maxLineLen = -1, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
+
 protected:
 	const FStringData *Data() const { return (FStringData *)Chars - 1; }
 	FStringData *Data() { return (FStringData *)Chars - 1; }
