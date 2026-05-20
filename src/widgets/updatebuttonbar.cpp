@@ -13,40 +13,135 @@
 **
 */
 
+//ugh something is including windows.h, probably curl? disable parts of it to minimize conflicts
+#ifndef NOMINMAX
+	#define NOMINMAX // mingw already defines NOMINMAX??????
+#endif
+
+#define WIN32_LEAN_AND_MEAN
+
+// The #defines here *MUST* match serializer.cpp, or we will get countless strange errors.
+#define RAPIDJSON_48BITPOINTER_OPTIMIZATION 0	// disable this insanity which is bound to make the code break over time.
+#define RAPIDJSON_HAS_CXX11_RVALUE_REFS 1
+#define RAPIDJSON_HAS_CXX11_RANGE_FOR 1
+#define RAPIDJSON_PARSE_DEFAULT_FLAGS kParseFullPrecisionFlag
+
+#include <miniz.h>
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/document.h"
+
 #include "updatebuttonbar.h"
 #include "launcherwindow.h"
 #include "gstrings.h"
 #include "c_cvars.h"
 #include "m_misc.h"
+#include "i_net.h"
+#include "engineerrors.h"
+#include "widgets/themedata.h"
 #include <zwidget/widgets/pushbutton/pushbutton.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <ctime>
+#include <curl/curl.h>
+#include <algorithm>
+#include <format>
+#include <thread>
+#include <mutex>
 
-CVAR(String, cached_update, "", CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOSET);
-CVAR(String, skipped_update, "", CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOSET);
-CVAR(String, last_update_check, "", CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOSET);
-CVAR(Int, update_interval, 7, CVAR_ARCHIVE | CVAR_GLOBALCONFIG); // by default, check once per week
-CVAR(Bool, auto_updates, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-CVAR(Bool, check_updates, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
-CVAR(Bool, check_updates_initialized, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOSET)
+CVAR(String, updater_cached_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(String, updater_skipped_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(String, updater_last_update_check, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(Bool, updater_check_updates_initialized, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(Int, updater_update_interval, 7, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG); // by default, check once per week
+CVAR(Bool, updater_auto_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
+CVAR(Bool, updater_check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
+CVAR(Bool, updater_debug_always_update, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(Bool, updater_debug_throttle_download, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 
-update_info_t GetUpdateInfo();
+class PopupBase;
 
-class ChoicePopup : public Widget
+std::unique_ptr<PopupBase> currentPopup;
+
+class PopupBase : public Widget
+{ // TODO move popups to their own header/file so that more things can use them, and change it so that multiple popups can open and stack, instead of just overwriting one another
+public:
+	using ActionListType = std::vector<std::tuple<std::string, int, std::function<void(PopupBase&)>>>;
+	virtual ~PopupBase() = default;
+
+protected:
+	std::vector<std::unique_ptr<Widget>> cleanup;
+	bool allowCloseButton;
+
+	using Widget::Widget;
+
+	double windowHeight;
+	double windowWidth;
+
+	virtual void OnClose() override
+	{
+		ReleaseModalCapture(true);
+		currentPopup = nullptr;
+	}
+
+	virtual void OnWindowClose() override
+	{
+		if(allowCloseButton) Close();
+	}
+
+public:
+	static ActionListType ConcatActions(const ActionListType &a, const ActionListType &b)
+	{
+		ActionListType tmp;
+		tmp.insert(tmp.end(), a.begin(), a.end());
+		tmp.insert(tmp.end(), b.begin(), b.end());
+		return tmp;
+	}
+	static std::vector<std::string> ConcatText(const std::vector<std::string> &a, const std::vector<std::string> &b)
+	{
+		std::vector<std::string> tmp;
+		tmp.insert(tmp.end(), a.begin(), a.end());
+		tmp.insert(tmp.end(), b.begin(), b.end());
+		return tmp;
+	}
+};
+
+
+template<class Derived>
+class ChoicePopup : public PopupBase
 {
 public:
 	using ActionListType = std::vector<std::tuple<std::string, int, std::function<void(ChoicePopup&)>>>;
-private:
-	std::vector<std::unique_ptr<Widget>> cleanup;
-	bool allowCloseButton;
-	ChoicePopup(Widget * parent, const std::string &title, const std::vector<std::string> &text, const ActionListType &actions, double windowWidth, bool allowClose)
-		: Widget(parent->Window(), WidgetType::Utility, RenderAPI::Unspecified, false)
+
+protected:
+	int GetExtraHeight() { return 0; }
+
+	void AddExtraElements(int top) {}
+
+	std::vector<TextLabel *> text;
+public:
+	ChoicePopup(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, bool allowClose)
+		: PopupBase(parent->Window(), WidgetType::Utility, RenderAPI::Unspecified, false)
 	{
 		allowCloseButton = allowClose;
 
 		Size screenSize = GetScreenSize();
 
-		double windowHeight = text.size() > 0 ? 90.0 + (20 * text.size()): 80.0;
+		int extraHeight = static_cast<Derived*>(this)->GetExtraHeight();
+
+		windowWidth = _windowWidth;
+
+		windowHeight = text.size() > 0 ? 90.0 + (20 * text.size()): 80.0;
+
+		if(actions.size() == 0)
+		{
+			windowHeight -= 40;
+		}
+
+		if(extraHeight > 0)
+		{
+			windowHeight += extraHeight + 10;
+		}
 
 		SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
 
@@ -66,9 +161,16 @@ private:
 				text_widget->SetTextAlignment(TextLabelAlignment::Center);
 
 				cleanup.push_back(std::unique_ptr<Widget>{text_widget});
+				this->text.push_back(text_widget);
 
 				top += 20;
 			}
+
+			static_cast<Derived*>(this)->AddExtraElements(top + 5);
+		}
+		else
+		{
+			static_cast<Derived*>(this)->AddExtraElements(5);
 		}
 
 		int left = 0;
@@ -107,34 +209,99 @@ private:
 		ActivateWindow();
 		SetModalCapture(true);
 	}
-
-	void OnClose() override
-	{
-		ReleaseModalCapture(true);
-		currentPopup = nullptr;
-	}
-
-	static std::unique_ptr<ChoicePopup> currentPopup;
+private:
+	static std::unique_ptr<PopupBase> currentPopup;
 
 	friend class LauncherWindow;
-public:
-	static void Open(Widget * parent, const std::string &title, const std::vector<std::string> &text, const ActionListType &actions, double windowWidth = 500.0, bool allowClose = true)
-	{
-		if(currentPopup)
-		{
-			currentPopup->Close();
-		}
-
-		currentPopup = std::unique_ptr<ChoicePopup>(new ChoicePopup(parent, title, text, actions, windowWidth, allowClose));
-	}
-
-	void OnWindowClose()
-	{
-		if(allowCloseButton) Close();
-	}
 };
 
-std::unique_ptr<ChoicePopup> ChoicePopup::currentPopup;
+class BasicPopup : public ChoicePopup<BasicPopup>
+{
+public:
+	using ChoicePopup::ChoicePopup;
+};
+
+template<class T = BasicPopup>
+T& OpenPopup(Widget * parent, const std::string &title, const std::vector<std::string> &text = {}, const PopupBase::ActionListType &actions = {}, double windowWidth = 500.0, bool allowClose = true)
+{
+	if(currentPopup)
+	{
+		currentPopup->Close();
+	}
+
+	currentPopup = std::unique_ptr<PopupBase>(new T(parent, title, text, actions, windowWidth, allowClose));
+
+	return *static_cast<T*>(currentPopup.get());
+}
+
+template<typename T>
+class ProgressPopup : public ChoicePopup<T>
+{
+private:
+	Widget * updateBar;
+	double updateBarX;
+	double updateBarY;
+	double updateBarWidth;
+	double updateBarHeight;
+protected:
+
+	double updateBarPercentage;
+
+	template<class>
+	friend void OpenPopup(Widget *, const std::string &, const std::vector<std::string> &, const PopupBase::ActionListType &, double, bool);
+
+	int GetExtraHeight()
+	{
+		return 30;
+	}
+
+	void AddExtraElements(int top)
+	{
+		double updateBarBackgroundHeight = 30;
+		double updateBarBackgroundWidth = Widget::GetWidth() - 10;
+
+		updateBarX = 6;
+		updateBarY = top + 1;
+		updateBarWidth = updateBarBackgroundWidth - 2;
+		updateBarHeight = updateBarBackgroundHeight - 2;
+		updateBarPercentage = 0.75;
+
+		//border
+		Widget * updateBarBackground = new Widget(this);
+
+		updateBarBackground->SetStyleColor("background-color", Theme::getMain(0.9f));
+		updateBarBackground->SetFrameGeometry(5, top, updateBarBackgroundWidth, updateBarBackgroundHeight);
+
+		PopupBase::cleanup.push_back(std::unique_ptr<Widget>{updateBarBackground});
+
+		//background
+		updateBarBackground = new Widget(this);
+
+		updateBarBackground->SetStyleColor("background-color", Colorf(0.0f, 0.3f, 0.5f, 1.0f));
+		updateBarBackground->SetFrameGeometry(updateBarX, updateBarY, updateBarWidth, updateBarHeight);
+
+		PopupBase::cleanup.push_back(std::unique_ptr<Widget>{updateBarBackground});
+
+		//bar
+		updateBar = new Widget(this);
+
+		updateBar->SetStyleColor("background-color", Colorf(0.2f, 0.5f, 0.75f, 1.0f));
+		RefreshBar();
+
+		PopupBase::cleanup.push_back(std::unique_ptr<Widget>{updateBar});
+
+		top += 30;
+	}
+
+	void RefreshBar()
+	{
+		updateBar->SetFrameGeometry(updateBarX, updateBarY, updateBarWidth * updateBarPercentage, updateBarHeight);
+	}
+public:
+
+	friend class ChoicePopup<T>;
+	using ChoicePopup<T>::ChoicePopup;
+};
 
 constexpr int bar_height = 30;
 constexpr int close_margin = 6;
@@ -142,7 +309,7 @@ constexpr int arrow_margin = 0;
 
 void LauncherWindow::OnWindowClose()
 { // don't close launcher window if popup is being shown
-	if(!ChoicePopup::currentPopup) Close();
+	if(!currentPopup) Close();
 }
 
 UpdateButtonBar::UpdateButtonBar(LauncherWindow *parent) : Widget(parent)
@@ -159,11 +326,40 @@ UpdateButtonBar::UpdateButtonBar(LauncherWindow *parent) : Widget(parent)
 	close = Image::LoadResource("ui/close.png");
 }
 
+static FString UpdateToString(VersionInfo update)
+{
+	FString str = "";
+
+	switch(CURRENT_UPDATE_CHANNEL)
+	{
+	case UpdateChannel::STABLE:
+		str.Format("%u.%u.%u", update.major, update.minor, update.revision); // TODO: localize
+		break;
+	case UpdateChannel::PREVIEW:
+		str.Format("%u.%u.%u-pre-%u", update.major, update.minor, update.revision, update.distance); // TODO: localize
+		break;
+	case UpdateChannel::TESTING:
+		str.Format("%u.%u.%u-pre-%u (experimental)", update.major, update.minor, update.revision, update.distance); // TODO: localize
+		break;
+	case UpdateChannel::RELEASE_CANDIDATE:
+		if(update.distance != 0 && update.distance != RC_REVISION_NOTRC)
+		{
+			str.Format("%u.%u.%u-rc%u", update.major, update.minor, update.revision, update.distance); // TODO: localize
+		}
+		else
+		{
+			str.Format("%u.%u.%u", update.major, update.minor, update.revision); // TODO: localize
+		}
+		break;
+	}
+	return str;
+}
+
 void UpdateButtonBar::UpdateLanguage()
 {
 	if(currentUpdate.has_value())
 	{
-		text.Format("New Update Available: %u.%u.%u", currentUpdate->version.major, currentUpdate->version.minor, currentUpdate->version.revision); // TODO: localize
+		text = "New Update Available: " + UpdateToString(currentUpdate->version);
 	}
 }
 
@@ -229,73 +425,97 @@ bool UpdateButtonBar::OnMouseDown(const Point& pos, InputKey key)
 	return false;
 }
 
-void OpenUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate);
-
-void OpenDismissUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate)
-{
-	ChoicePopup::ActionListType actions = { // TODO: localize
-		{"Dismiss", 0, [oldSelf = self, isAutoUpdate](auto &self){
-			oldSelf->Hide();
+void OpenDismissUpdateMenu(UpdateButtonBar * buttonBar, bool isAutoUpdate)
+{ // TODO move to method of UpdateButtonBar
+	PopupBase::ActionListType actions = { // TODO: localize
+		{"Dismiss", 0, [=](auto &self){
+			buttonBar->Hide();
 			self.Close();
 		}},
-		{"Skip Update", 1, [oldSelf = self](auto &self){
-			skipped_update = FString(oldSelf->currentUpdate->version);
+		{"Skip Update", 1, [=, this](auto &self){ // TODO: localize
+			updater_skipped_update = FString(currentUpdate->version);
 			M_SaveDefaults(NULL); // save settings
-			oldSelf->Hide();
+			buttonBar->Hide();
 			self.Close();
 		}},
-		{"Disable Update Checker", 3, [oldSelf = self](auto &self){
-			check_updates = false;
+		{"Disable Update Checker", 3, [=, this](auto &self){ // TODO: localize
+			updater_check_updates = false;
 			M_SaveDefaults(NULL); // save settings
-			oldSelf->Hide();
+			buttonBar->Hide();
 			self.Close();
 		}}
 	};
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Back", 0, [oldSelf = self](auto &self){
-			OpenUpdateMenu(oldSelf, true);
+		actions.push_back({"Back", 0, [=](auto &self){
+			buttonBar->OpenUpdateMenu(true);
 		}});
 	}
 
-	ChoicePopup::Open(self, "Dismiss Update?", {}, actions, 550.0, !isAutoUpdate); // TODO: localize
+	OpenPopup(buttonBar, "Dismiss Update?", {}, actions, 550.0, !isAutoUpdate); // TODO: localize
 }
 
-void OpenUpdateMenu(UpdateButtonBar * self, bool isAutoUpdate)
+void OpenFailedUpdateMenu(UpdateButtonBar * buttonBar, const std::string &err, bool checker)
+{ // TODO move to method of UpdateButtonBar
+	PopupBase::ActionListType actions = { // TODO: localize
+		{"Dismiss", 0, [=](auto &self){
+			buttonBar->Hide();
+			self.Close();
+		}},
+		{"Disable Update Checker", 3, [=, this](auto &self){ // TODO: localize
+			updater_check_updates = false;
+			M_SaveDefaults(NULL); // save settings
+			buttonBar->Hide();
+			self.Close();
+		}}
+	};
+
+	OpenPopup(buttonBar, checker ? "Checking for Update Failed" : "Update Failed", {checker ? "Checking for Update Failed" : "Update Failed", err}, actions, 550.0, false); // TODO: localize
+}
+static void StartUpdate(UpdateButtonBar * buttonBar);
+
+void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 {
-	ChoicePopup::ActionListType actions = { // TODO: localize
-		{"View Release Notes", 4, [isAutoUpdate, oldSelf = self](auto &self){
-			ChoicePopup::Open(oldSelf, "Release Notes", oldSelf->currentUpdate->release_notes, // TODO: localize
+	PopupBase::ActionListType actions = { // TODO: localize
+		{"View Release Notes", 4, [this, isAutoUpdate](auto &self){
+			OpenPopup(this, "Release Notes", this->currentUpdate->release_notes, // TODO: localize
 			{
-				{"Back", 0, [isAutoUpdate, oldSelf](auto &self){
-					OpenUpdateMenu(oldSelf, isAutoUpdate);
+				{"Back", 0, [this, isAutoUpdate](auto &self){
+					this->OpenUpdateMenu(isAutoUpdate);
 				}}
 			});
 		}},
-		{"Update", 0, [](auto &self){
-			//TODO
-			self.Close();
+		{"Update", 0, [this](auto &currentPopup){
+			auto temp = this;
+			currentPopup.Close();
+			StartUpdate(temp);
 		}}
 	};
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Dismiss", 0, [oldSelf = self](auto &self){
-			OpenDismissUpdateMenu(oldSelf, true);
+		actions.push_back({"Dismiss", 0, [this](auto &self){
+			OpenDismissUpdateMenu(this, true);
 		}});
 	}
 
-	if(self->currentUpdate->cached)
+	if(currentUpdate->cached)
 	{
-		self->currentUpdate = GetUpdateInfo(); // we only have the cached update number right now, grab full update info
+		bool ok = false;
+		currentUpdate = GetUpdateInfo(ok); // we only have the cached update number right now, grab full update info
+		if(!ok || !currentUpdate.has_value()) return;
+		updater_cached_update = FString(currentUpdate->version);
+		updater_last_update_check = std::to_string(getCurrentDate()).c_str();
+		M_SaveDefaults(NULL); // save settings
+		UpdateLanguage();
 	}
 
 	std::vector<std::string> updateInfo;
 
-	updateInfo.push_back((GAMENAME + (" " + FString(self->currentUpdate->version))).GetChars());
+	updateInfo.push_back((GAMENAME + (" " + UpdateToString(currentUpdate->version))).GetChars());
 
-	ChoicePopup::Open(self, isAutoUpdate ? "New Update Available" : "Update", updateInfo, actions, 500.0, !isAutoUpdate); // TODO: localize
+	OpenPopup(this, isAutoUpdate ? "New Update Available" : "Update", updateInfo, actions, 500.0, !isAutoUpdate); // TODO: localize
 }
 
 bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
@@ -310,7 +530,7 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 		{
 			if(pressed)
 			{
-				OpenUpdateMenu(this, false);
+				OpenUpdateMenu(false);
 			}
 
 			SetStyleColor("background-color", GetStyleColor("bg-highlight-color"));
@@ -321,20 +541,20 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 			{
 				//TODO
 
-				ChoicePopup::Open(this, "Dismiss Update?", {}, // TODO: localize
+				OpenPopup(this, "Dismiss Update?", {}, // TODO: localize
 				{
 					{"Dismiss", 0, [this](auto &self){
 						this->Hide();
 						self.Close();
 					}},
-					{"Skip Update", 1, [this](auto &self){
-						skipped_update = FString(currentUpdate->version);
+					{"Skip Update", 1, [this](auto &self){ // TODO: localize
+						updater_skipped_update = FString(currentUpdate->version);
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
 						self.Close();
 					}},
-					{"Disable Update Checker", 3, [this](auto &self){
-						check_updates = false;
+					{"Disable Update Checker", 3, [this](auto &self){ // TODO: localize
+						updater_check_updates = false;
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
 						self.Close();
@@ -365,10 +585,7 @@ double UpdateButtonBar::GetPreferredHeight() const
 
 void UpdateButtonBar::OnUpdateButtonClicked()
 {
-	//DoUpdate();
-	GetLauncher()->Close();
-
-	return;
+	OpenUpdateMenu(false);
 }
 
 LauncherWindow* UpdateButtonBar::GetLauncher() const
@@ -380,25 +597,25 @@ static void OpenUpdateIntervalChoice(Widget * parent);
 
 static void OpenUpdateInitChoice(Widget * parent)
 {
-	ChoicePopup::Open(parent, "Update Checker", {"Would you like to automatically check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
+	OpenPopup(parent, "Update Checker", {"Would you like to automatically check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
 			"Yes, and prompt to install updates", 5, [](auto &self)
 			{
-				auto_updates = true;
-				OpenUpdateIntervalChoice(self.Parent());
+				updater_auto_updates = true;
+				OpenUpdateIntervalChoice();
 			}
 		},{
 			"Yes", 5, [](auto &self)
 			{
-				auto_updates = false;
-				OpenUpdateIntervalChoice(self.Parent());
+				updater_auto_updates = false;
+				OpenUpdateIntervalChoice();
 			}
 		},{
 			"No", 0, [](auto &self)
 			{
-				check_updates = false;
-				check_updates_initialized = true;
+				updater_check_updates = false;
+				updater_check_updates_initialized = true;
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -410,43 +627,43 @@ static date_t getDate();
 
 static void OpenUpdateIntervalChoice(Widget * parent)
 {
-	ChoicePopup::Open(parent, "Update Checker", {"How often would you like to check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
+	OpenPopup(parent, "Update Checker", {"How often would you like to check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
 			"Every other day", 2, [](auto &self)
 			{
-				check_updates = true;
-				update_interval = 2;
-				check_updates_initialized = true;
-				last_update_check = FString(getDate());
+				updater_check_updates = true;
+				updater_update_interval = 2;
+				updater_check_updates_initialized = true;
+				updater_last_update_check = FString(date_t::getCurrentDate());
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
 		},{
 			"Every week", 1, [](auto &self)
 			{
-				check_updates = true;
-				update_interval = 7;
-				check_updates_initialized = true;
-				last_update_check = FString(getDate() - 5); // first check always in 2 days
+				updater_check_updates = true;
+				updater_update_interval = 7;
+				updater_check_updates_initialized = true;
+				updater_last_update_check = FString(date_t::getCurrentDate() - 5); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
 		},{
 			"Every month", 1, [](auto &self)
 			{
-				check_updates = true;
-				update_interval = 30;
-				check_updates_initialized = true;
-				last_update_check = FString(getDate() - 28); // first check always in 2 days
+				updater_check_updates = true;
+				updater_update_interval = 30;
+				updater_check_updates_initialized = true;
+				updater_last_update_check = FString(date_t::getCurrentDate() - 28); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
 		},{
 			"Back", 0, [](auto &self)
 			{
-				auto_updates = false;
-				OpenUpdateInitChoice(self.Parent());
+				updater_auto_updates = false;
+				OpenUpdateInitChoice();
 			}
 		}
 	}, 550.0, false);
@@ -479,9 +696,9 @@ static date_t parseDate(FString str, date_t fallback) // parse "day-month-year" 
 
 	if(sections.size() != 3 || !sections[0].IsInt()|| !sections[1].IsInt()|| !sections[2].IsInt()) return fallback; // invalid string
 
-	int year = sections[0].ToLong();
-	int month = sections[1].ToLong();
-	int day = sections[2].ToLong();
+	int year = (int)sections[0].ToLong();
+	int month = (int)sections[1].ToLong();
+	int day = (int)sections[2].ToLong();
 
 	// don't validate year
 	if(month < 1 || month > 12 || day < 1 || day >= (date_t::dayCount(year, month))) return fallback; // invalid date
@@ -489,10 +706,583 @@ static date_t parseDate(FString str, date_t fallback) // parse "day-month-year" 
 	return {day, month, year};
 }
 
-update_info_t GetUpdateInfo()
+
+bool curl_initialized = false;
+bool curl_initialized_ok = false;
+
+static bool InitCurl(UpdateButtonBar * buttonBar)
 {
-	//DO CHECK
-	return update_info_t{{5, 0, 1}, false, {"test", "lol", "test"}};
+	if(curl_initialized) return curl_initialized_ok;
+	if(!IsNetworkStartedLean()) StartNetworkLean();
+
+	if(!curl_initialized)
+	{
+		CURLcode ret;
+
+		curl_initialized = true;
+		curl_initialized_ok = ((ret = curl_global_init(CURL_GLOBAL_DEFAULT)) == CURLE_OK);
+
+		if(!curl_initialized_ok)
+		{
+			OpenFailedUpdateMenu(buttonBar, "curl_global_init failed: "+std::string(curl_easy_strerror(ret)), true);
+		}
+	}
+
+	return curl_initialized_ok;
+}
+
+
+static size_t callAcceptData(void *buf, size_t sz, size_t num, void *self);
+static size_t callAcceptHeader(void *buf, size_t sz, size_t num, void *self);
+static int callUpdateProgress(void * self, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+
+class CurlEasy
+{
+	friend size_t callAcceptData(void *buf, size_t sz, size_t num, void *self);
+	friend size_t callAcceptHeader(void *buf, size_t sz, size_t num, void *self);
+	friend int callUpdateProgress(void * self, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+
+	CURL * curl;
+
+	std::atomic<bool> cancelled = false;
+
+	virtual void UpdateProgress(curl_off_t dltotal, curl_off_t dlnow) {}; //, curl_off_t ultotal, curl_off_t ulnow) {};
+	virtual void AcceptHeader(TArrayView<std::byte> data) {};
+	virtual void AcceptData(TArrayView<std::byte> data) = 0;
+	virtual void OnError(const char * err) {};
+
+protected:
+
+	void CancelDownload()
+	{
+		cancelled = true;
+	}
+
+	CurlEasy(const char * userAgent, bool useProgress, bool readHeader)
+	{
+		curl = curl_easy_init();
+
+		if(!curl) I_Error("curl_easy_init failed");
+
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callAcceptData);
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+
+		if(readHeader)
+		{
+			curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, callAcceptHeader);
+			curl_easy_setopt(curl, CURLOPT_HEADERDATA, this);
+		}
+
+		if(useProgress)
+		{
+			curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, callUpdateProgress);
+			curl_easy_setopt(curl, CURLOPT_XFERINFODATA, this);
+			curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+		}
+
+		curl_easy_setopt(curl,CURLOPT_USERAGENT, userAgent);
+
+		curl_easy_setopt(curl, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA); // use native SSL CA
+
+		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // allow redirects
+
+		if(updater_debug_throttle_download)
+		{
+			curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, 1000000L); // set max speed of ~1mb/s for testing
+		}
+	}
+
+	bool Perform(const std::string &url, const std::string &acceptEncoding, bool * cancelled = nullptr)
+	{
+		if(!curl) return false;
+
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, acceptEncoding.c_str());
+
+		if(CURLcode ret = curl_easy_perform(curl); ret != CURLE_OK)
+		{
+			if(cancelled) (*cancelled) = this->cancelled;
+			OnError(curl_easy_strerror(ret));
+			return false;
+		}
+		if(cancelled) (*cancelled) = this->cancelled;
+		return true;
+	}
+public:
+
+	virtual ~CurlEasy()
+	{
+		Close();
+	}
+
+	bool IsOpen()
+	{
+		return curl != nullptr;
+	}
+
+	void Close()
+	{
+		if(curl)
+		{
+			curl_easy_cleanup(curl);
+			curl = nullptr;
+		}
+	}
+};
+
+static size_t callAcceptData(void *buf, size_t sz, size_t num, void *self)
+{
+	assert(sz == 1); // according to curl docs, size is always 1, but doesn't hurt validating it with an assert
+	((CurlEasy*)self)->AcceptData({(std::byte*)buf, (unsigned)num});
+	return num;
+}
+
+static size_t callAcceptHeader(void *buf, size_t sz, size_t num, void *self)
+{
+	assert(sz == 1); // according to curl docs, size is always 1, but doesn't hurt validating it with an assert
+	((CurlEasy*)self)->AcceptHeader({(std::byte*)buf, (unsigned)num});
+	return num;
+}
+
+static int callUpdateProgress(void * self, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+{
+	((CurlEasy*)self)->UpdateProgress(dltotal, dlnow); //, ultotal, ulnow);
+	return ((CurlEasy*)self)->cancelled;
+}
+
+const char * getMainURL(UpdateChannel channel)
+{
+	switch(channel)
+	{
+	case UpdateChannel::STABLE:
+		return UPDATER_URL_STABLE;
+	case UpdateChannel::PREVIEW:
+		return UPDATER_URL_PREVIEW;
+	case UpdateChannel::TESTING:
+		return UPDATER_URL_TESTING;
+	case UpdateChannel::RELEASE_CANDIDATE:
+		return UPDATER_URL_ALL;
+	default:
+		I_Error("Unknown Update Channel");
+	}
+}
+
+const char * getBackupURL(UpdateChannel channel)
+{
+	switch(channel)
+	{
+	case UpdateChannel::STABLE:
+		return UPDATER_URL_STABLE_BACKUP;
+	case UpdateChannel::PREVIEW:
+		return UPDATER_URL_PREVIEW_BACKUP;
+	case UpdateChannel::TESTING:
+		return UPDATER_URL_TESTING_BACKUP;
+	case UpdateChannel::RELEASE_CANDIDATE:
+		return UPDATER_URL_ALL_BACKUP;
+	default:
+		I_Error("Unknown Update Channel");
+	}
+}
+
+class UpdateChecker : public CurlEasy
+{
+	std::string buffer;
+
+	virtual void AcceptData(TArrayView<std::byte> data) override
+	{
+		buffer += std::string((const char *)data.Data(), data.Size());
+	}
+
+	const char * firstErr = nullptr;
+
+	virtual void OnError(const char * err)
+	{
+		if(!firstErr) firstErr = err;
+	};
+public:
+	UpdateChecker() : CurlEasy(GAMENAME " Updater", false, false)
+	{}
+
+	std::optional<rapidjson::Document> Perform(UpdateButtonBar * buttonBar, UpdateChannel channel)
+	{
+		if(!CurlEasy::Perform(getMainURL(channel), "application/vnd.github+json"))
+		{
+			buffer = "";
+			if(!CurlEasy::Perform(getBackupURL(channel), "application/vnd.github+json"))
+			{
+				OpenFailedUpdateMenu(buttonBar, firstErr, true);
+				return std::nullopt;
+			}
+		}
+		Close();
+
+		rapidjson::Document doc;
+		rapidjson::ParseResult ok = doc.Parse(buffer.c_str(), buffer.length());
+
+		if(!ok)
+		{
+			OpenFailedUpdateMenu(buttonBar, "Invalid Update JSON", true);
+			return std::nullopt;
+		}
+
+		return doc;
+	}
+};
+
+class JsonDownloader : public CurlEasy
+{
+	std::string buffer;
+
+	virtual void AcceptData(TArrayView<std::byte> data) override
+	{
+		buffer += std::string((const char *)data.Data(), data.Size());
+	}
+
+	const char * firstErr = nullptr;
+
+	virtual void OnError(const char * err) override
+	{
+		if(!firstErr) firstErr = err;
+	};
+public:
+	JsonDownloader() : CurlEasy(GAMENAME " Updater", false, false)
+	{}
+
+	std::optional<rapidjson::Document> Perform(UpdateButtonBar * buttonBar, const std::string &url)
+	{
+		if(!CurlEasy::Perform(url, "application/json"))
+		{
+			OpenFailedUpdateMenu(buttonBar, firstErr, true);
+			return std::nullopt;
+		}
+		Close();
+
+		rapidjson::Document doc;
+		rapidjson::ParseResult ok = doc.Parse(buffer.c_str(), buffer.length());
+
+		if(!ok)
+		{
+			OpenFailedUpdateMenu(buttonBar, "Invalid Update JSON", true);
+			return std::nullopt;
+		}
+
+		return doc;
+	}
+};
+
+class ProgressDownloader : public CurlEasy, public ProgressPopup<ProgressDownloader>
+{
+	std::vector<std::byte> buffer;
+
+	static inline const std::string names[4] = {
+		"B",  // 0
+		"KB", // 1
+		"MB", // 2
+		"GB", // 3
+	};
+
+	std::string shortenByteSize(uint64_t size)
+	{
+		constexpr int maxStep = 3;
+
+		int steps = 0;
+		double remainder = 0;
+
+		while(size > 1024 && steps < maxStep)
+		{
+			remainder = (double)(size % 1024);
+			size /= 1024;
+			steps++;
+		}
+
+		return std::format("{:.3} {}", size + (remainder/1024), names[steps]);
+	}
+protected:
+
+	virtual void AcceptData(TArrayView<std::byte> data) override
+	{
+		size_t oldsize = buffer.size();
+		buffer.resize(oldsize + data.Size());
+		memcpy(buffer.data() + oldsize, data.Data(), data.Size());
+	}
+
+
+	std::mutex progress_lock;
+	uint64_t current_download = 0;
+	uint64_t total_download = 0;
+	bool close_requested = false;
+	std::mutex finished_lock;
+	bool finished = false;
+	bool success = false;
+
+	virtual void UpdateProgress(curl_off_t dltotal, curl_off_t dlnow)
+	{
+		progress_lock.lock();
+		current_download = dlnow;
+		total_download = dltotal;
+		progress_lock.unlock();
+		ProgressPopup::Update();	//FIXME is this thread-safe on SDL2?
+									// (not much of a concern for now, since on windows it just
+									// calls InvalidateRect, which _is_ thread-safe, but will need
+									// looking into once the updater is made cross-platform)
+
+		//TODO calculate average/current download speeds
+	};
+
+	virtual void OnPaint(Canvas* canvas) override
+	{
+		progress_lock.lock();
+		updateBarPercentage = std::min(1.0, std::max(0.0, ((double)current_download) / ((double)total_download)));
+		text[0]->SetText( std::format("Downloading, {} / {}", shortenByteSize(current_download), shortenByteSize(total_download)));
+		progress_lock.unlock();
+		ProgressPopup::RefreshBar();
+	}
+
+	const char * err = nullptr;
+
+	virtual void OnError(const char * err) override
+	{
+		this->err = err;
+	};
+
+public:
+	ProgressDownloader(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, bool allowClose)
+		:	CurlEasy(GAMENAME " Updater", true, false),
+		ProgressPopup(parent, title, ConcatText({"Starting Download..."}, text), actions, _windowWidth, allowClose)
+	{}
+
+	static void DownloaderThread(ProgressDownloader * self, const std::string &url)
+	{
+		if(!self->CurlEasy::Perform(url, "application/octet-stream", &self->close_requested))
+		{
+			self->finished_lock.lock();
+			self->finished = true;
+			self->success = false;
+			self->finished_lock.unlock();
+		}
+		else
+		{
+			self->finished_lock.lock();
+			self->finished = true;
+			self->success = true;
+			self->finished_lock.unlock();
+		}
+
+		self->CurlEasy::Close();
+
+		if(!self->close_requested) self->NotifyWindow();
+	}
+
+	std::unique_ptr<std::thread> downloader_thread;
+
+	UpdateButtonBar * buttonBar;
+
+	void Perform(UpdateButtonBar * buttonBar, const std::string &url)
+	{
+		this->buttonBar = buttonBar;
+		downloader_thread = std::make_unique<std::thread>(DownloaderThread, this, url);
+	}
+
+	virtual void OnWindowNotified() override
+	{
+		if(downloader_thread)
+		{
+			downloader_thread->join();
+			downloader_thread = nullptr;
+		}
+
+		if(finished && !success)
+		{
+			OpenFailedUpdateMenu(buttonBar, err, false);
+		}
+		else
+		{
+			//TODO parse/extract zip, replace updater.exe then call it to finalize update
+			//ProgressPopup::Close();
+
+			OpenPopup(buttonBar, "Updated", {"Update was successful, the launcher will now restart."}, // TODO: localize
+			{
+				{"Confirm", 0, [](auto &self){
+					//TODO launch updater.exe
+					self.Close();
+				}}
+			}, 500.0, false);
+		}
+	}
+
+
+	virtual void OnClose() override
+	{
+		if(downloader_thread)
+		{
+			CancelDownload();
+			downloader_thread->join();
+			downloader_thread = nullptr;
+
+			OpenPopup(buttonBar, "Cancelled", {"Download was cancelled"}, // TODO: localize
+			{
+				{"Back", 0, [](auto &self){
+					self.Close();
+				}}
+			});
+		}
+		else
+		{
+			ProgressPopup::OnClose();
+		}
+	}
+};
+
+static std::vector<std::string> SplitNewLines(const char * str, size_t len)
+{
+	TArray<FString> s = FString(str, len).SplitNewLines(60, 70);
+	std::vector<std::string> ret(s.size());
+
+	for(int i = 0; i < s.size(); i++)
+	{
+		ret[i] = std::string(s[i].GetChars(), s[i].Len());
+	}
+
+	return ret;
+}
+
+update_info_t UpdateButtonBar::GetUpdateInfo(bool &ok)
+{
+	if(InitCurl(this))
+	{
+		auto doc = (UpdateChecker {}).Perform(this, CURRENT_UPDATE_CHANNEL);
+
+		if(!doc.has_value())
+		{
+			goto fail;
+		}
+
+		if(!doc->IsObject())
+		{
+			goto jsonfail;
+		}
+
+		VersionInfo ver;
+
+#ifdef _WIN32
+		std::string downloadUrl;
+#else
+	#error "Updater not implemented for non-windows platforms"
+#endif
+
+		switch(CURRENT_UPDATE_CHANNEL)
+		{
+		case UpdateChannel::STABLE:
+			if(!doc->HasMember("tag_name") || !(*doc)["tag_name"].IsString())
+			{
+				goto jsonfail;
+			}
+
+			ver = VersionInfo((*doc)["tag_name"].GetString());
+			break;
+		case UpdateChannel::PREVIEW:
+		case UpdateChannel::TESTING:
+			{
+				if(!doc->HasMember("assets") || !(*doc)["assets"].IsArray())
+				{
+					goto jsonfail;
+				}
+
+				bool release_json_found = false;
+				bool download_link_found = false;
+				auto arr = ((*doc)["assets"]).GetArray();
+
+				rapidjson::Document relinfo;
+
+				for(int i = 0; i < (int)arr.Size(); i++)
+				{
+					if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+					{
+						goto jsonfail;
+					}
+					else if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
+					{
+						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
+						{
+							goto jsonfail;
+						}
+
+						auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
+
+						if(!release_info.has_value())
+						{
+							goto fail;
+						}
+
+						relinfo = std::move(*release_info);
+
+						release_json_found = true;
+					}
+					else if(s.substr(0, 14) == "Windows-UZDoom" && s.substr(s.length() - 4) == ".zip")
+					{
+						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
+						{
+							goto jsonfail;
+						}
+
+						downloadUrl = arr[i]["browser_download_url"].GetString();
+
+						download_link_found = true;
+					}
+					else
+					{
+						continue;
+					}
+
+					if(release_json_found && download_link_found)
+						break;
+				}
+
+				if(!release_json_found || !download_link_found)
+				{
+					goto jsonfail;
+				}
+				else if(!relinfo.HasMember("commit"))
+				{
+					goto jsonfail;
+				}
+				else if(!relinfo["commit"].HasMember("parent")|| !relinfo["commit"]["parent"].IsString())
+				{
+					goto jsonfail;
+				}
+				else if(!relinfo["commit"].HasMember("distance") || !relinfo["commit"]["distance"].IsString())
+				{
+					goto jsonfail;
+				}
+
+				ver = VersionInfo(relinfo["commit"]["parent"].GetString());
+				ver.distance = atoi(relinfo["commit"]["distance"].GetString());
+			}
+			break;
+		case UpdateChannel::RELEASE_CANDIDATE:
+			//TODO RC update channel, needs to scan the releases array manually
+			I_Error("RC updates not implemented");
+			break;
+		}
+
+		if(!doc->HasMember("body") || !(*doc)["body"].IsString())
+		{
+			goto jsonfail;
+		}
+
+		ok = true;
+		return update_info_t{ver, false, SplitNewLines((*doc)["body"].GetString(), (*doc)["body"].GetStringLength()), downloadUrl};
+	}
+	else
+	{
+		goto fail;
+	}
+jsonfail:
+	OpenFailedUpdateMenu(this, "Invalid Update JSON", true);
+	// fallthrough
+fail:
+	ok = false;
+	return update_info_t{{USHRT_MAX, USHRT_MAX, USHRT_MAX}, false, {}};
 }
 
 bool isVersionInvalid(VersionInfo ver)
@@ -500,21 +1290,28 @@ bool isVersionInvalid(VersionInfo ver)
 	return ver.major == USHRT_MAX || ver.minor == USHRT_MAX || ver.revision == USHRT_MAX || ver == GetCurrentVersion();
 }
 
+static void StartUpdate(UpdateButtonBar * buttonBar)
+{ // TODO move to method of UpdateButtonBar
+	OpenPopup<ProgressDownloader>(buttonBar, "Updating...").Perform(buttonBar, buttonBar->GetDownloadURL());
+}
+
 void UpdateButtonBar::CheckForUpdate()
 {
-	if(!check_updates_initialized)
+	if(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE) return; //REMOVE THIS WHEN RC UPDATES ARE IMPLEMENTED
+
+	if(!updater_check_updates_initialized)
 	{
 		OpenUpdateInitChoice(this);
 	}
 	else
 	{
-		if(cached_update->Length() > 0)
+		if(updater_cached_update->Length() > 0)
 		{
-			VersionInfo cachedVer(cached_update);
+			VersionInfo cachedVer(updater_cached_update);
 
 			if(isVersionInvalid(cachedVer))
 			{
-				cached_update = "";
+				updater_cached_update = "";
 				M_SaveDefaults(NULL); // save settings
 			}
 			else
@@ -525,12 +1322,12 @@ void UpdateButtonBar::CheckForUpdate()
 
 		VersionInfo skippedVer;
 
-		if(skipped_update->Length() > 0)
+		if(updater_skipped_update->Length() > 0)
 		{
-			VersionInfo skippedVerTmp = VersionInfo((const char *)skipped_update);
+			VersionInfo skippedVerTmp = VersionInfo((const char *)updater_skipped_update);
 			if(isVersionInvalid(skippedVerTmp))
 			{
-				skipped_update = "";
+				updater_skipped_update = "";
 				M_SaveDefaults(NULL); // save settings
 			}
 			else
@@ -539,29 +1336,48 @@ void UpdateButtonBar::CheckForUpdate()
 			}
 		}
 
-		auto curTime = getDate();
-		auto nextCheckTime = parseDate((FString)last_update_check, curTime - (update_interval + 1)) + update_interval;
+		auto curTime = date_t::getCurrentDate();
+		auto nextCheckTime = date_t::parseDate((FString)updater_last_update_check, curTime - (updater_update_interval + 1)) + updater_update_interval;
 
 		if(curTime >= nextCheckTime || currentUpdate.has_value())
 		{
 			if(!currentUpdate.has_value() || curTime >= nextCheckTime) // invalidate cache if check time is due
 			{
-				currentUpdate = GetUpdateInfo();
-				last_update_check = FString(getDate());
+				bool ok;
+
+				currentUpdate = GetUpdateInfo(ok);
+
+				if(!ok) return;
+
+				updater_last_update_check = FString(date_t::getCurrentDate());
 				if(currentUpdate.has_value())
 				{
-					cached_update = FString(currentUpdate->version);
+					updater_cached_update = FString(currentUpdate->version);
 				}
 				M_SaveDefaults(NULL); // save settings
 			}
 
 			if(currentUpdate.has_value())
 			{
-				if(currentUpdate->version > GetCurrentVersion() && (skippedVer != currentUpdate->version))
+				bool should_update;
+				if(updater_debug_always_update)
 				{
-					if(auto_updates)
+					should_update = true;
+				}
+				else if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::TESTING)
+				{
+					should_update = (currentUpdate->version != GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL));
+				}
+				else
+				{
+					should_update = (currentUpdate->version > GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL));
+				}
+
+				if(should_update && (skippedVer != currentUpdate->version))
+				{
+					if(updater_auto_updates)
 					{
-						OpenUpdateMenu(this, true);
+						OpenUpdateMenu(true);
 					}
 					else
 					{
