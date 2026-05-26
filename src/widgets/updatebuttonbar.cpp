@@ -15,7 +15,7 @@
 
 //TESTING TESTING TESTING
 
-//#define DEBUG_FORCE_UPDATE
+#define DEBUG_FORCE_UPDATE
 //#define PROGRESS_BAR_DEBUG
 
 
@@ -54,6 +54,12 @@
 #include <format>
 #include <thread>
 #include <mutex>
+#include <filesystem>
+#include "filesystem.h"
+#include "cmdlib.h"
+#ifdef _WIN32
+	#include <shellapi.h>
+#endif
 
 CVAR(String, cached_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 CVAR(String, skipped_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
@@ -62,6 +68,24 @@ CVAR(Bool, check_updates_initialized, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | C
 CVAR(Int, update_interval, 7, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG); // by default, check once per week
 CVAR(Bool, auto_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
 CVAR(Bool, check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
+
+static std::vector<std::string> SplitNewLines(const char * str, size_t len)
+{
+	TArray<FString> s = FString(str, len).SplitNewLines(60, 70);
+	std::vector<std::string> ret(s.size());
+
+	for(int i = 0; i < s.size(); i++)
+	{
+		ret[i] = std::string(s[i].GetChars(), s[i].Len());
+	}
+
+	return ret;
+}
+
+static std::vector<std::string> SplitNewLines(std::string str)
+{
+	return SplitNewLines(str.c_str(), str.length());
+}
 
 class PopupBase;
 
@@ -337,10 +361,10 @@ static FString UpdateToString(VersionInfo update)
 	switch(CURRENT_UPDATE_CHANNEL)
 	{
 	case UpdateChannel::STABLE:
-		str.Format("%u.%u.%u", update.major, update.minor, update.revision); // TODO: localize
+		str.Format("%u.%u.%u", update.major, update.minor, update.revision);
 		break;
 	case UpdateChannel::PREVIEW:
-		str.Format("%u.%u.%u-pre-%u", update.major, update.minor, update.revision, update.distance); // TODO: localize
+		str.Format("%u.%u.%u-pre-%u", update.major, update.minor, update.revision, update.distance);
 		break;
 	case UpdateChannel::TESTING:
 		str.Format("%u.%u.%u-pre-%u (experimental)", update.major, update.minor, update.revision, update.distance); // TODO: localize
@@ -348,11 +372,11 @@ static FString UpdateToString(VersionInfo update)
 	case UpdateChannel::RELEASE_CANDIDATE:
 		if(update.distance != 0 && update.distance != RC_REVISION_NOTRC)
 		{
-			str.Format("%u.%u.%u-rc%u", update.major, update.minor, update.revision, update.distance); // TODO: localize
+			str.Format("%u.%u.%u-rc%u", update.major, update.minor, update.revision, update.distance);
 		}
 		else
 		{
-			str.Format("%u.%u.%u", update.major, update.minor, update.revision); // TODO: localize
+			str.Format("%u.%u.%u", update.major, update.minor, update.revision);
 		}
 		break;
 	}
@@ -363,7 +387,7 @@ void UpdateButtonBar::UpdateLanguage()
 {
 	if(currentUpdate.has_value())
 	{
-		text = "New Update Available: " + UpdateToString(currentUpdate->version);
+		text = "New Update Available: " + UpdateToString(currentUpdate->version); // TODO: localize
 	}
 }
 
@@ -431,18 +455,18 @@ bool UpdateButtonBar::OnMouseDown(const Point& pos, InputKey key)
 
 void OpenDismissUpdateMenu(UpdateButtonBar * buttonBar, bool isAutoUpdate)
 { // TODO move to method of UpdateButtonBar
-	PopupBase::ActionListType actions = { // TODO: localize
-		{"Dismiss", 0, [=](auto &self){
+	PopupBase::ActionListType actions = {
+		{"Dismiss", 0, [=](auto &self){ // TODO: localize
 			buttonBar->Hide();
 			self.Close();
 		}},
-		{"Skip Update", 1, [=](auto &self){
+		{"Skip Update", 1, [=](auto &self){ // TODO: localize
 			skipped_update = FString(buttonBar->currentUpdate->version);
 			M_SaveDefaults(NULL); // save settings
 			buttonBar->Hide();
 			self.Close();
 		}},
-		{"Disable Update Checker", 3, [=](auto &self){
+		{"Disable Update Checker", 3, [=](auto &self){ // TODO: localize
 			check_updates = false;
 			M_SaveDefaults(NULL); // save settings
 			buttonBar->Hide();
@@ -452,7 +476,7 @@ void OpenDismissUpdateMenu(UpdateButtonBar * buttonBar, bool isAutoUpdate)
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Back", 0, [=](auto &self){
+		actions.push_back({"Back", 0, [=](auto &self){ // TODO: localize
 			buttonBar->OpenUpdateMenu(true);
 		}});
 	}
@@ -462,12 +486,12 @@ void OpenDismissUpdateMenu(UpdateButtonBar * buttonBar, bool isAutoUpdate)
 
 void OpenFailedUpdateMenu(UpdateButtonBar * buttonBar, const std::string &err, bool checker)
 { // TODO move to method of UpdateButtonBar
-	PopupBase::ActionListType actions = { // TODO: localize
-		{"Dismiss", 0, [=](auto &self){
+	PopupBase::ActionListType actions = {
+		{"Dismiss", 0, [=](auto &self){ // TODO: localize
 			buttonBar->Hide();
 			self.Close();
 		}},
-		{"Disable Update Checker", 3, [=](auto &self){
+		{"Disable Update Checker", 3, [=](auto &self){ // TODO: localize
 			check_updates = false;
 			M_SaveDefaults(NULL); // save settings
 			buttonBar->Hide();
@@ -475,22 +499,22 @@ void OpenFailedUpdateMenu(UpdateButtonBar * buttonBar, const std::string &err, b
 		}}
 	};
 
-	OpenPopup(buttonBar, checker ? "Checking for Update Failed" : "Update Failed", {checker ? "Checking for Update Failed" : "Update Failed", err}, actions, 550.0, false); // TODO: localize
+	OpenPopup(buttonBar, checker ? "Checking for Update Failed" : "Update Failed", SplitNewLines((checker ? "Checking for Update Failed\n" : "Update Failed\n") + err), actions, 550.0, false); // TODO: localize
 }
 static void StartUpdate(UpdateButtonBar * buttonBar);
 
 void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 {
-	PopupBase::ActionListType actions = { // TODO: localize
+	PopupBase::ActionListType actions = {
 		{"View Release Notes", 4, [this, isAutoUpdate](auto &self){
 			OpenPopup(this, "Release Notes", this->currentUpdate->release_notes, // TODO: localize
 			{
-				{"Back", 0, [this, isAutoUpdate](auto &self){
+				{"Back", 0, [this, isAutoUpdate](auto &self){ // TODO: localize
 					this->OpenUpdateMenu(isAutoUpdate);
 				}}
 			});
 		}},
-		{"Update", 0, [this](auto &currentPopup){
+		{"Update", 0, [this](auto &currentPopup){ // TODO: localize
 			auto temp = this;
 			currentPopup.Close();
 			StartUpdate(temp);
@@ -499,7 +523,7 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Dismiss", 0, [this](auto &self){
+		actions.push_back({"Dismiss", 0, [this](auto &self){ // TODO: localize
 			OpenDismissUpdateMenu(this, true);
 		}});
 	}
@@ -544,17 +568,17 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 
 				OpenPopup(this, "Dismiss Update?", {}, // TODO: localize
 				{
-					{"Dismiss", 0, [this](auto &self){
+					{"Dismiss", 0, [this](auto &self){ // TODO: localize
 						this->Hide();
 						self.Close();
 					}},
-					{"Skip Update", 1, [this](auto &self){
+					{"Skip Update", 1, [this](auto &self){ // TODO: localize
 						skipped_update = FString(currentUpdate->version);
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
 						self.Close();
 					}},
-					{"Disable Update Checker", 3, [this](auto &self){
+					{"Disable Update Checker", 3, [this](auto &self){ // TODO: localize
 						check_updates = false;
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
@@ -601,19 +625,19 @@ static void OpenUpdateInitChoice(Widget * parent)
 	OpenPopup(parent, "Update Checker", {"Would you like to automatically check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
-			"Yes, and auto-install them", 4, [](auto &self)
+			"Yes, and auto-install them", 4, [](auto &self) // TODO: localize
 			{
 				auto_updates = true;
 				OpenUpdateIntervalChoice(self.Parent());
 			}
 		},{
-			"Yes, and manually install them", 5, [](auto &self)
+			"Yes, and manually install them", 5, [](auto &self) // TODO: localize
 			{
 				auto_updates = false;
 				OpenUpdateIntervalChoice(self.Parent());
 			}
 		},{
-			"No", 0, [](auto &self)
+			"No", 0, [](auto &self) // TODO: localize
 			{
 				check_updates = false;
 				check_updates_initialized = true;
@@ -631,7 +655,7 @@ static void OpenUpdateIntervalChoice(Widget * parent)
 	OpenPopup(parent, "Update Checker", {"How often would you like to check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
-			"Every other day", 2, [](auto &self)
+			"Every other day", 2, [](auto &self) // TODO: localize
 			{
 				check_updates = true;
 				update_interval = 2;
@@ -641,7 +665,7 @@ static void OpenUpdateIntervalChoice(Widget * parent)
 				self.Close();
 			}
 		},{
-			"Every week", 1, [](auto &self)
+			"Every week", 1, [](auto &self) // TODO: localize
 			{
 				check_updates = true;
 				update_interval = 7;
@@ -651,7 +675,7 @@ static void OpenUpdateIntervalChoice(Widget * parent)
 				self.Close();
 			}
 		},{
-			"Every month", 1, [](auto &self)
+			"Every month", 1, [](auto &self) // TODO: localize
 			{
 				check_updates = true;
 				update_interval = 30;
@@ -661,7 +685,7 @@ static void OpenUpdateIntervalChoice(Widget * parent)
 				self.Close();
 			}
 		},{
-			"Back", 0, [](auto &self)
+			"Back", 0, [](auto &self) // TODO: localize
 			{
 				auto_updates = false;
 				OpenUpdateInitChoice(self.Parent());
@@ -921,7 +945,7 @@ public:
 
 		if(!ok)
 		{
-			OpenFailedUpdateMenu(buttonBar, "Invalid Update JSON", true);
+			OpenFailedUpdateMenu(buttonBar, "Invalid Update JSON", true); // TODO: localize
 			return std::nullopt;
 		}
 
@@ -962,13 +986,15 @@ public:
 
 		if(!ok)
 		{
-			OpenFailedUpdateMenu(buttonBar, "Invalid Update JSON", true);
+			OpenFailedUpdateMenu(buttonBar, "Invalid Update JSON", true); // TODO: localize
 			return std::nullopt;
 		}
 
 		return doc;
 	}
 };
+
+void CloseWidgetResources();
 
 class ProgressDownloader : public CurlEasy, public ProgressPopup<ProgressDownloader>
 {
@@ -1033,7 +1059,7 @@ protected:
 	{
 		progress_lock.lock();
 		updateBarPercentage = std::min(1.0, std::max(0.0, ((double)current_download) / ((double)total_download)));
-		text[0]->SetText( std::format("Downloading, {} / {}", shortenByteSize(current_download), shortenByteSize(total_download)));
+		text[0]->SetText( std::format("Downloading, {} / {}", shortenByteSize(current_download), shortenByteSize(total_download))); // TODO: localize
 		progress_lock.unlock();
 		ProgressPopup::RefreshBar();
 	}
@@ -1048,7 +1074,7 @@ protected:
 public:
 	ProgressDownloader(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, bool allowClose)
 		:	CurlEasy(GAMENAME " Updater", true, false),
-		ProgressPopup(parent, title, ConcatText({"Starting Download..."}, text), actions, _windowWidth, allowClose)
+		ProgressPopup(parent, title, ConcatText({"Starting Download..."}, text), actions, _windowWidth, allowClose) // TODO: localize
 	{}
 
 	static void DownloaderThread(ProgressDownloader * self, const std::string &url)
@@ -1097,16 +1123,193 @@ public:
 		}
 		else
 		{
-			//TODO parse/extract zip, replace updater.exe then call it to finalize update
-			//ProgressPopup::Close();
+			std::unique_ptr<FResourceFile> zip (FResourceFile::OpenResourceFileMemory(buttonBar->GetDownloadURL().c_str(), (void*)buffer.data(), buffer.size(), true));
 
-			OpenPopup(buttonBar, "Updated", {"Update was successful, the launcher will now restart."}, // TODO: localize
+			if(!zip)
 			{
-				{"Confirm", 0, [](auto &self){
-					//TODO launch updater.exe
-					self.Close();
-				}}
-			}, 500.0, false);
+				OpenPopup(buttonBar, "Failed to open zip file", {"Update was cancelled"}, // TODO: localize
+				{
+					{"Back", 0, [](auto &self){
+						self.Close();
+					}}
+				});
+			}
+			else
+			{
+				#ifdef _WIN32	// this is technically 'portable' code since it only uses the stdlib, but what it does only makes sense on windows,
+								// hence the ifdef - linux would need to either use the appimage updater library that i forgot the name of,
+								// or just nothing, as it would otherwise be handled by an external package manager (ex. apt/pacman/flatpak/etc)
+								// and on macOS i genuinely have no idea what would be needed for an auto-updater
+
+				std::string progdir(::progdir.GetChars());
+
+				try
+				{
+					if(std::filesystem::exists(progdir + "update"))
+					{
+						if(std::filesystem::is_directory(progdir + "update"))
+						{
+							/*
+							for(const auto &entry : std::filesystem::directory_iterator(progdir + "update"))
+							{
+								OpenFailedUpdateMenu(buttonBar, "'"+progdir + "update' is not empty", false); // TODO: localize
+								return;
+							}
+							*/
+
+							std::filesystem::remove_all(progdir + "update");
+							std::filesystem::create_directory(progdir + "update");
+						}
+						else
+						{
+							OpenFailedUpdateMenu(buttonBar, "'"+progdir + "update' is not a directory", false); // TODO: localize
+							return;
+						}
+					}
+					else
+					{
+						std::filesystem::create_directory(progdir + "update");
+					}
+
+					if(std::filesystem::exists(progdir + "update_backup"))
+					{
+						if(std::filesystem::is_directory(progdir + "update_backup"))
+						{
+							/*
+							for(const auto &entry : std::filesystem::directory_iterator(progdir + "update_backup"))
+							{
+								OpenFailedUpdateMenu(buttonBar, "'"+progdir + "update_backup' is not empty", false); // TODO: localize
+								return;
+							}
+							*/
+
+							std::filesystem::remove_all(progdir + "update_backup");
+							std::filesystem::create_directory(progdir + "update_backup");
+						}
+						else
+						{
+							OpenFailedUpdateMenu(buttonBar, "'"+progdir + "update_backup' is not a directory", false); // TODO: localize
+							return;
+						}
+					}
+					else
+					{
+						std::filesystem::create_directory(progdir + "update_backup");
+					}
+
+				}
+				catch(std::exception &e)
+				{
+					OpenFailedUpdateMenu(buttonBar, e.what(), false);
+					return;
+				}
+
+				uint32_t n = zip->EntryCountU();
+
+				try
+				{
+					//extract zip contents into `$PROGDIR/update/`, copy existing files with same name into `$PROGDIR/update_backup/`
+					for(uint32_t i = 0; i < n; i++)
+					{
+						std::string path = zip->getName(i);
+
+						bool isupdaterexe = (path == "updater.exe");
+
+						std::filesystem::path p (path);
+
+						if(p.has_parent_path() && !isupdaterexe)
+						{
+							std::filesystem::create_directories(progdir + "update/" + p.parent_path().string());
+						}
+
+						if(std::filesystem::exists(progdir + path))
+						{ // make backup of file, so that a failed update can be reverted
+							if(p.has_parent_path())
+							{
+								std::filesystem::create_directories(progdir + "update_backup/" + p.parent_path().string());
+							}
+							std::filesystem::copy(progdir + path, progdir + "update_backup/" + path);
+						}
+
+						std::string newpath = isupdaterexe ? (progdir + path) : (progdir + "update/" + path); // updater.exe is replaced directly, doesn't go into the update subfolder
+
+						FILE * f = fopen(newpath.c_str(), "wb");
+						if(!f)
+						{
+							std::string err = strerror(errno);
+							try
+							{
+								std::filesystem::remove_all(progdir + "update");
+								std::filesystem::remove_all(progdir + "update_backup");
+							}
+							catch(...) {} // try to remove created files, but if it fails, only show the main error, not the one from the removal
+
+							OpenFailedUpdateMenu(buttonBar, "Failed to extract zip, error: '" + err + "' while writing file '"+newpath+"'", false); // TODO: localize
+							return;
+						}
+						else
+						{
+							FileSys::FileData data = zip->Read(i);
+
+							if(fwrite(data.data(), 1, data.size(), f) != data.size())
+							{
+								std::string err = strerror(errno);
+								fclose(f);
+								try
+								{
+									std::filesystem::remove_all(progdir + "update");
+									std::filesystem::remove_all(progdir + "update_backup");
+								}
+								catch(...) {} // try to remove created files, but if it fails, only show the main error, not the one from the removal
+
+								OpenFailedUpdateMenu(buttonBar, "Failed to extract zip, error: '" + err + "' while writing file '"+newpath+"'", false); // TODO: localize
+								return;
+							}
+							fclose(f);
+						}
+
+					}
+
+				}
+				catch(std::exception &e)
+				{
+					try
+					{
+						std::filesystem::remove_all(progdir + "update");
+						std::filesystem::remove_all(progdir + "update_backup");
+					}
+					catch(...) {} // try to remove created files, but if it fails, only show the main error, not the one from the removal
+
+					OpenFailedUpdateMenu(buttonBar, e.what(), false);
+					return;
+				}
+
+				OpenPopup(buttonBar, "Updated", {"Update was successful, the launcher will now restart."}, // TODO: localize
+				{
+					{"Confirm", 0, [progdir](auto &self){
+						CloseWidgetResources();
+
+						// this code leaks memory but it terminates so it's fiiiiiiiiiiiiine
+						int argc;
+						LPWSTR * argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+						std::string updater_filename = (progdir + "updater.exe");
+
+						int numchars = MultiByteToWideChar(CP_UTF8, 0, updater_filename.c_str(), updater_filename.length(), NULL, 0);
+
+						WCHAR * updater_filename_w = new WCHAR[numchars + 1];
+						MultiByteToWideChar(CP_UTF8, 0, updater_filename.c_str(), updater_filename.length(), updater_filename_w, numchars);
+						updater_filename_w[numchars] = 0;
+
+						argv[0] = updater_filename_w;
+						_wexecv(updater_filename_w, argv);
+					}}
+				}, 500.0, false);
+				#else
+					#error "Updater not implemented for non-windows platforms"
+				#endif
+
+			}
 		}
 	}
 
@@ -1133,19 +1336,6 @@ public:
 	}
 };
 
-static std::vector<std::string> SplitNewLines(const char * str, size_t len)
-{
-	TArray<FString> s = FString(str, len).SplitNewLines(60, 70);
-	std::vector<std::string> ret(s.size());
-
-	for(int i = 0; i < s.size(); i++)
-	{
-		ret[i] = std::string(s[i].GetChars(), s[i].Len());
-	}
-
-	return ret;
-}
-
 update_info_t UpdateButtonBar::GetUpdateInfo(bool &ok)
 {
 	if(InitCurl(this))
@@ -1164,11 +1354,7 @@ update_info_t UpdateButtonBar::GetUpdateInfo(bool &ok)
 
 		VersionInfo ver;
 
-#ifdef _WIN32
 		std::string downloadUrl;
-#else
-	#error "Updater not implemented for non-windows platforms"
-#endif
 
 		switch(CURRENT_UPDATE_CHANNEL)
 		{
@@ -1218,7 +1404,11 @@ update_info_t UpdateButtonBar::GetUpdateInfo(bool &ok)
 
 						release_json_found = true;
 					}
-					else if(s.substr(0, 14) == "Windows-UZDoom" && s.substr(s.length() - 4) == ".zip")
+					#ifdef _WIN32
+						else if(s.substr(0, 14) == "Windows-UZDoom" && s.substr(s.length() - 4) == ".zip")
+					#else
+						#error "Updater not implemented for non-windows platforms"
+					#endif
 					{
 						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
 						{
@@ -1292,7 +1482,7 @@ bool isVersionInvalid(VersionInfo ver)
 
 static void StartUpdate(UpdateButtonBar * buttonBar)
 { // TODO move to method of UpdateButtonBar
-	OpenPopup<ProgressDownloader>(buttonBar, "Updating...").Perform(buttonBar, buttonBar->GetDownloadURL());
+	OpenPopup<ProgressDownloader>(buttonBar, "Updating...").Perform(buttonBar, buttonBar->GetDownloadURL()); // TODO: localize
 }
 
 void UpdateButtonBar::CheckForUpdate()
