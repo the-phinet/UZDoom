@@ -42,6 +42,12 @@ if(USE_UPDATER)
 	set( CURL_REQUIRED TRUE )
 endif()
 
+if(WIN32 AND USE_UPDATER AND MSVC)
+	# updater.exe is only for windows for now, may be needed on macos in the future? but probably not for appimage
+	# NOTE/FIXME: updater.exe currently only builds with msvc, not a big issue for now but will need to be fixed if we switch over to mingw as the primary windows compiler (which we'll probably have to do eventually for C++26 support)
+	add_executable( updater WIN32 src/updater/updater.c )
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
