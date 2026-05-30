@@ -24,6 +24,9 @@ class PushButton;
 
 struct date_t
 {
+	static date_t getCurrentDate();
+	static date_t parseDate(FString str, date_t fallback);
+
 	static constexpr bool isLeapYear(int year)
 	{
 		return ((year % 4) == 0) && (((year % 100) != 0) || ((year % 400) == 0));
@@ -222,5 +225,19 @@ class UpdateButtonBar : public Widget
 	public:
 		std::string GetDownloadURL() { return currentUpdate->download_url; }
 	private:
+		void OpenUpdateInitChoice();
+		void OpenUpdateIntervalChoice();
 		void OpenUpdateMenu(bool isAutoUpdate);
+		void OpenDismissUpdateMenu(bool isAutoUpdate);
+		void OpenFailedUpdateMenu(const std::string &err, bool checker);
+		void StartUpdate();
+		FString UpdateToString();
+		bool InitCurl();
+
+		bool curl_initialized = false;
+		bool curl_initialized_ok = false;
+
+		friend class JsonDownloader;
+		friend class ProgressDownloader;
+		friend class UpdateChecker;
 };
