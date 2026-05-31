@@ -36,7 +36,7 @@ if(NOT FORCE_NO_LTO)
 endif()
 
 if(WIN32)
-	option( USE_UPDATER "enable auto-updater" ON )
+	option( USE_UPDATER "enable auto-updater" OFF )
 endif()
 if(USE_UPDATER)
 	set( CURL_REQUIRED TRUE )
