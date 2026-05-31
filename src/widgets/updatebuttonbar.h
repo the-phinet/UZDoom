@@ -22,156 +22,6 @@
 class LauncherWindow;
 class PushButton;
 
-struct date_t
-{
-	static date_t getCurrentDate();
-	static date_t parseDate(FString str, date_t fallback);
-
-	static constexpr bool isLeapYear(int year)
-	{
-		return ((year % 4) == 0) && (((year % 100) != 0) || ((year % 400) == 0));
-	}
-
-	static constexpr int dayCountYear(int year)
-	{
-		return isLeapYear(year) ? 366 : 365;
-	}
-
-	static constexpr int dayCount(int year, int month)
-	{
-		if(month == 2)
-		{
-			return isLeapYear(year) ? 29 : 28;
-		}
-		else
-		{
-			return (month > 7) ? 30 + (month % 2) : 31 - (month % 2);
-		}
-	}
-
-	constexpr int dayCount() const
-	{
-		return dayCount(year, month);
-	}
-
-	int day; // 1-31
-	int month; // 1-12
-	int year;
-
-	constexpr date_t& operator+=(int days)
-	{
-		day--; // 0-based
-		day += days;
-		while(day >= dayCount())
-		{
-			day -= dayCount();
-			month++;
-			if(month > 12)
-			{
-				month = 1;
-				year++;
-			}
-		}
-		day++; // 1-based
-
-		return *this;
-	}
-
-	constexpr date_t operator+(int days) const
-	{
-		date_t tmp = *this;
-		tmp += days;
-		return tmp;
-	}
-
-	constexpr date_t& operator-=(int days)
-	{
-		day--; // 0-based
-		day -= days;
-
-		while(day < 0)
-		{
-			month--;
-			if(month < 1)
-			{
-				month = 12;
-				year--;
-			}
-			day += dayCount();
-		}
-		day++; // 1-based
-
-		return *this;
-	}
-
-	constexpr date_t operator-(int days) const
-	{
-		date_t tmp = *this;
-		tmp -= days;
-		return tmp;
-	}
-
-	//difference in days
-	constexpr int operator-(date_t other) const
-	{
-		date_t tmp = *this;
-		tmp.day--; // 0-based
-		other.day--; // 0-based
-		while(tmp.year != other.year)
-		{
-			if(tmp.year > other.year)
-			{
-				other.day += dayCountYear(other.year);
-				other.year++;
-			}
-			else
-			{
-				tmp.day += dayCountYear(tmp.year);
-				tmp.year++;
-			}
-		}
-
-		while(tmp.month != other.month)
-		{
-			if(tmp.month > other.month)
-			{
-				other.month += dayCount(other.year, other.month);
-				other.month++;
-			}
-			else
-			{
-				tmp.month += dayCount(tmp.year, tmp.month);
-				tmp.month++;
-			}
-		}
-
-		return tmp.day - other.day;
-	}
-
-	constexpr std::strong_ordering operator<=>(const date_t &other) const
-	{
-		if(other.year != year)
-		{
-			return year <=> other.year;
-		}
-		else if(other.month != month)
-		{
-			return month <=> other.month;
-		}
-		else
-		{
-			return day <=> other.day;
-		}
-	}
-
-	explicit operator FString() const
-	{
-		FString tmp;
-		tmp.Format("%d-%d-%d", year, month, day);
-		return tmp;
-	}
-};
-
 struct update_info_t
 {
 	VersionInfo version;
@@ -205,7 +55,7 @@ class UpdateButtonBar : public Widget
 
 		LauncherWindow *GetLauncher() const;
 
-		update_info_t GetUpdateInfo(bool &ok);
+		std::optional<update_info_t> GetUpdateInfo(bool &ok);
 
 		FString text;
 
@@ -233,6 +83,9 @@ class UpdateButtonBar : public Widget
 		void StartUpdate();
 		FString UpdateToString();
 		bool InitCurl();
+
+		template<typename T>
+		std::optional<update_info_t> ParseRelease(T &&doc, bool &ok, bool &silentfail);
 
 		bool curl_initialized = false;
 		bool curl_initialized_ok = false;
