@@ -205,7 +205,7 @@ class UpdateButtonBar : public Widget
 
 		LauncherWindow *GetLauncher() const;
 
-		update_info_t GetUpdateInfo(bool &ok);
+		std::optional<update_info_t> GetUpdateInfo(bool &ok);
 
 		FString text;
 
@@ -233,6 +233,9 @@ class UpdateButtonBar : public Widget
 		void StartUpdate();
 		FString UpdateToString();
 		bool InitCurl();
+
+		template<typename T>
+		std::optional<update_info_t> ParseRelease(T &&doc, bool &ok, bool &silentfail);
 
 		bool curl_initialized = false;
 		bool curl_initialized_ok = false;

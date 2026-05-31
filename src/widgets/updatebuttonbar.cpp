@@ -1331,143 +1331,179 @@ public:
 	}
 };
 
-update_info_t UpdateButtonBar::GetUpdateInfo(bool &ok)
+#ifdef _WIN32
+#define RELEASE_JSON_PLATFORM_NAME "windows"
+#else
+#error "Updater not implemented for this platform"
+#endif
+
+template<typename T>
+std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bool &silentfail)
+{
+	VersionInfo ver;
+
+	std::string downloadName;
+	std::string downloadUrl;
+
+	if(!doc.IsObject() || !doc.HasMember("assets") || !doc["assets"].IsArray())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	bool release_json_found = false;
+	bool download_link_found = false;
+	auto arr = doc["assets"].GetArray();
+
+	rapidjson::Document relinfo;
+
+	for(int i = 0; i < (int)arr.Size(); i++)
+	{
+		if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+		{
+			ok = false;
+			silentfail = false;
+			return std::nullopt;
+		}
+		else if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
+		{
+			if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
+			{
+				ok = false;
+				silentfail = false;
+				return std::nullopt;
+			}
+
+			auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
+
+			if(!release_info.has_value())
+			{
+				ok = false;
+				silentfail = true;
+				return std::nullopt;
+			}
+
+			relinfo = std::move(*release_info);
+
+			release_json_found = true;
+			break;
+		}
+	}
+
+	if(!release_json_found)
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+	else if(!relinfo.HasMember("commit") || !relinfo["commit"].IsObject() || !relinfo["commit"].HasMember("parent") || !relinfo["commit"]["parent"].IsString())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	ver = VersionInfo(relinfo["commit"]["parent"].GetString());
+
+	if constexpr(CURRENT_UPDATE_CHANNEL != UpdateChannel::STABLE)
+	{
+		if(!relinfo["commit"].HasMember("distance") || !relinfo["commit"]["distance"].IsString())
+		{
+			ok = false;
+			silentfail = false;
+			return std::nullopt;
+		}
+
+		ver.distance = atoi(relinfo["commit"]["distance"].GetString());
+	}
+	else
+	{
+		ver.distance = 0;
+	}
+
+	if(!relinfo.HasMember("platforms") || !relinfo["platforms"].IsObject() || !relinfo["platforms"].HasMember(RELEASE_JSON_PLATFORM_NAME) || !relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].IsString())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	downloadName = relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].GetString();
+
+	for(int i = 0; i < (int)arr.Size(); i++)
+	{
+		if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+		{
+			ok = false;
+			silentfail = false;
+			return std::nullopt;
+		}
+		else if(std::string s = arr[i]["name"].GetString(); s == downloadName)
+		{
+			if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
+			{
+				ok = false;
+				silentfail = false;
+				return std::nullopt;
+			}
+
+			downloadUrl = arr[i]["browser_download_url"].GetString();
+			download_link_found = true;
+			break;
+		}
+	}
+
+	if(!download_link_found)
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	if(!doc.HasMember("body") || !doc["body"].IsString())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	ok = true;
+	return update_info_t{ver, false, SplitNewLines(doc["body"].GetString(), doc["body"].GetStringLength()), downloadUrl};
+}
+
+std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 {
 	if(InitCurl())
 	{
 		auto doc = (UpdateChecker {}).Perform(this, CURRENT_UPDATE_CHANNEL);
 
-		if(!doc.has_value())
+		if(doc.has_value())
 		{
-			goto fail;
-		}
-
-		if(!doc->IsObject())
-		{
-			goto jsonfail;
-		}
-
-		VersionInfo ver;
-
-		std::string downloadUrl;
-
-		switch(CURRENT_UPDATE_CHANNEL)
-		{
-		case UpdateChannel::STABLE:
-			if(!doc->HasMember("tag_name") || !(*doc)["tag_name"].IsString())
+			if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE)
 			{
-				goto jsonfail;
+				I_Error("RC updates not implemented");
 			}
-
-			ver = VersionInfo((*doc)["tag_name"].GetString());
-			break;
-		case UpdateChannel::PREVIEW:
-		case UpdateChannel::TESTING:
+			else
 			{
-				if(!doc->HasMember("assets") || !(*doc)["assets"].IsArray())
+				bool silentfail = false;
+				std::optional<update_info_t> out = ParseRelease(*doc, ok, silentfail);
+
+				if(ok)
 				{
-					goto jsonfail;
+					return out;
 				}
 
-				bool release_json_found = false;
-				bool download_link_found = false;
-				auto arr = ((*doc)["assets"]).GetArray();
-
-				rapidjson::Document relinfo;
-
-				for(int i = 0; i < (int)arr.Size(); i++)
+				if(!silentfail)
 				{
-					if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
-					{
-						goto jsonfail;
-					}
-					else if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
-					{
-						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
-						{
-							goto jsonfail;
-						}
-
-						auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
-
-						if(!release_info.has_value())
-						{
-							goto fail;
-						}
-
-						relinfo = std::move(*release_info);
-
-						release_json_found = true;
-					}
-					#ifdef _WIN32
-						else if(s.substr(0, 14) == "Windows-UZDoom" && s.substr(s.length() - 4) == ".zip")
-					#else
-						#error "Updater not implemented for non-windows platforms"
-					#endif
-					{
-						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
-						{
-							goto jsonfail;
-						}
-
-						downloadUrl = arr[i]["browser_download_url"].GetString();
-
-						download_link_found = true;
-					}
-					else
-					{
-						continue;
-					}
-
-					if(release_json_found && download_link_found)
-						break;
+					OpenFailedUpdateMenu("Invalid Update JSON", true);
 				}
-
-				if(!release_json_found || !download_link_found)
-				{
-					goto jsonfail;
-				}
-				else if(!relinfo.HasMember("commit"))
-				{
-					goto jsonfail;
-				}
-				else if(!relinfo["commit"].HasMember("parent")|| !relinfo["commit"]["parent"].IsString())
-				{
-					goto jsonfail;
-				}
-				else if(!relinfo["commit"].HasMember("distance") || !relinfo["commit"]["distance"].IsString())
-				{
-					goto jsonfail;
-				}
-
-				ver = VersionInfo(relinfo["commit"]["parent"].GetString());
-				ver.distance = atoi(relinfo["commit"]["distance"].GetString());
 			}
-			break;
-		case UpdateChannel::RELEASE_CANDIDATE:
-			//TODO RC update channel, needs to scan the releases array manually
-			I_Error("RC updates not implemented");
-			break;
 		}
-
-		if(!doc->HasMember("body") || !(*doc)["body"].IsString())
-		{
-			goto jsonfail;
-		}
-
-		ok = true;
-		return update_info_t{ver, false, SplitNewLines((*doc)["body"].GetString(), (*doc)["body"].GetStringLength()), downloadUrl};
 	}
-	else
-	{
-		goto fail;
-	}
-jsonfail:
-	OpenFailedUpdateMenu("Invalid Update JSON", true);
-	// fallthrough
-fail:
+
 	ok = false;
-	return update_info_t{{USHRT_MAX, USHRT_MAX, USHRT_MAX}, false, {}};
+	return std::nullopt;
 }
 
 bool isVersionInvalid(VersionInfo ver)
