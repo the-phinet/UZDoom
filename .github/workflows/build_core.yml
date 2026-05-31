@@ -318,12 +318,18 @@ jobs:
       env:
         NAME: ${{ steps.package.outputs.name }}
       run: |
-        if [[ -f oalsoft.zip ]]; then
-          unzip -j oalsoft.zip openal-soft-1.23.1-bin/bin/Win64/soft_oal.dll -d package
-        fi
-        if [[ -f sndfile.zip ]]; then
-          unzip -j sndfile.zip libsndfile-1.2.2-win64/bin/sndfile.dll -d package
-        fi
+        function unzip_to_package() {
+          if [[ ! -f "$1" ]]; then
+            echo "skipping $1"
+            return
+          fi
+          f=$(unzip -l "$1" | awk -v pattern="$2" '$0 ~ pattern {print $NF; exit}')
+          echo "$1: $f"
+          unzip -j "$1" "$f" -d package
+        }
+        unzip_to_package oalsoft.zip 'bin/Win64/soft_oal.dll$'
+        unzip_to_package sndfile.zip 'bin/sndfile.dll$'
+        unzip_to_package libcurl.zip 'bin/libcurl.*.dll$'
 
         rm -rf soundfonts fm_banks
 
