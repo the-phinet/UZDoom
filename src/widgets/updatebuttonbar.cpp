@@ -65,6 +65,23 @@ CVAR(Bool, updater_check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_
 CVAR(Bool, updater_debug_always_update, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 CVAR(Bool, updater_debug_throttle_download, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 
+static uint64_t daysToSeconds(uint64_t days)
+{
+	return days * 86400;
+}
+
+static uint64_t getCurrentDate()
+{
+	time_t t;
+	time(&t); //linux might need changing this to time64, maybe?
+	return (t / 86400ULL) * 86400ULL; // round to whole day
+}
+
+static uint64_t parseDate(FString str)
+{
+	return str.ToULong();
+}
+
 static std::vector<std::string> SplitNewLines(const char * str, size_t len)
 {
 	TArray<FString> s = FString(str, len).SplitNewLines(60, 70);
@@ -652,7 +669,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				updater_check_updates = true;
 				updater_update_interval = 2;
 				updater_check_updates_initialized = true;
-				updater_last_update_check = FString(date_t::getCurrentDate());
+				updater_last_update_check = std::to_string(getCurrentDate()).c_str();
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -662,7 +679,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				updater_check_updates = true;
 				updater_update_interval = 7;
 				updater_check_updates_initialized = true;
-				updater_last_update_check = FString(date_t::getCurrentDate() - 5); // first check always in 2 days
+				updater_last_update_check = std::to_string(getCurrentDate() - daysToSeconds(5)).c_str(); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -672,7 +689,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				updater_check_updates = true;
 				updater_update_interval = 30;
 				updater_check_updates_initialized = true;
-				updater_last_update_check = FString(date_t::getCurrentDate() - 28); // first check always in 2 days
+				updater_last_update_check = std::to_string(getCurrentDate() - daysToSeconds(28)).c_str(); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -684,43 +701,6 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 			}
 		}
 	}, 550.0, false);
-}
-
-date_t date_t::getCurrentDate()
-{
-	time_t t;
-	time(&t);
-	struct tm curTime;
-#if defined(_MSC_VER) || defined(MINGW_HAS_SECURE_API)
-	//use microsoft's botched localtime_s
-	localtime_s(&curTime, &t);
-#elif defined(__unix__) || defined(__APPLE__) || defined(_POSIX_VERSION) || __cplusplus >= 202302L
-	localtime_r(&t, &curTime);
-#elif defined(__STDC_LIB_EXT1__)
-	//use the actual standard localtime_s
-	localtime_s(&t, &curTime);
-#else
-	struct tm* tm_ptr = localtime(&t);
-	if (tm_ptr) curTime = *tm_ptr;
-	else curTime = {};
-#endif
-	return {curTime.tm_mday, curTime.tm_mon + 1, curTime.tm_year + 1900};
-}
-
-date_t date_t::parseDate(FString str, date_t fallback) // parse "day-month-year" string into tm, returns current date on fail
-{
-	auto sections = str.Split("-");
-
-	if(sections.size() != 3 || !sections[0].IsInt()|| !sections[1].IsInt()|| !sections[2].IsInt()) return fallback; // invalid string
-
-	int year = (int)sections[0].ToLong();
-	int month = (int)sections[1].ToLong();
-	int day = (int)sections[2].ToLong();
-
-	// don't validate year
-	if(month < 1 || month > 12 || day < 1 || day >= (date_t::dayCount(year, month))) return fallback; // invalid date
-
-	return {day, month, year};
 }
 
 bool UpdateButtonBar::InitCurl()
@@ -1261,6 +1241,11 @@ public:
 				OpenPopup(buttonBar, "Updated", {"Update was successful, the launcher will now restart."}, // TODO: localize
 				{
 					{"Confirm", 0, [progdir](auto &self){
+						updater_cached_update = "";
+						updater_last_update_check = std::to_string(getCurrentDate()).c_str();
+
+						M_SaveDefaultsFinal(); // save settings
+
 						CloseWidgetResources();
 
 						// this code leaks memory but it terminates so it's fiiiiiiiiiiiiine
@@ -1310,143 +1295,220 @@ public:
 	}
 };
 
-update_info_t UpdateButtonBar::GetUpdateInfo(bool &ok)
+#ifdef _WIN32
+#define RELEASE_JSON_PLATFORM_NAME "windows"
+#else
+#error "Updater not implemented for this platform"
+#endif
+
+template<typename T>
+std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bool &silentfail)
+{
+	VersionInfo ver;
+
+	std::string downloadName;
+	std::string downloadUrl;
+
+	if(!doc.IsObject() || !doc.HasMember("assets") || !doc["assets"].IsArray())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	bool release_json_found = false;
+	bool download_link_found = false;
+	auto arr = doc["assets"].GetArray();
+
+	rapidjson::Document relinfo;
+
+	for(int i = 0; i < (int)arr.Size(); i++)
+	{
+		if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+		{
+			ok = false;
+			silentfail = false;
+			return std::nullopt;
+		}
+		else if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
+		{
+			if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
+			{
+				ok = false;
+				silentfail = false;
+				return std::nullopt;
+			}
+
+			auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
+
+			if(!release_info.has_value())
+			{
+				ok = false;
+				silentfail = true;
+				return std::nullopt;
+			}
+
+			relinfo = std::move(*release_info);
+
+			release_json_found = true;
+			break;
+		}
+	}
+
+	if(!release_json_found)
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+	else if(!relinfo.HasMember("commit") || !relinfo["commit"].IsObject() || !relinfo["commit"].HasMember("parent") || !relinfo["commit"]["parent"].IsString())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	ver = VersionInfo(relinfo["commit"]["parent"].GetString());
+
+	if constexpr(CURRENT_UPDATE_CHANNEL != UpdateChannel::STABLE)
+	{
+		if(!relinfo["commit"].HasMember("distance") || !relinfo["commit"]["distance"].IsString())
+		{
+			ok = false;
+			silentfail = false;
+			return std::nullopt;
+		}
+
+		ver.distance = atoi(relinfo["commit"]["distance"].GetString());
+	}
+	else
+	{
+		ver.distance = 0;
+	}
+
+	if(!relinfo.HasMember("platforms") || !relinfo["platforms"].IsObject() || !relinfo["platforms"].HasMember(RELEASE_JSON_PLATFORM_NAME) || !relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].IsString())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	downloadName = relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].GetString();
+
+	for(int i = 0; i < (int)arr.Size(); i++)
+	{
+		if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+		{
+			ok = false;
+			silentfail = false;
+			return std::nullopt;
+		}
+		else if(std::string s = arr[i]["name"].GetString(); s == downloadName)
+		{
+			if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
+			{
+				ok = false;
+				silentfail = false;
+				return std::nullopt;
+			}
+
+			downloadUrl = arr[i]["browser_download_url"].GetString();
+			download_link_found = true;
+			break;
+		}
+	}
+
+	if(!download_link_found)
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	if(!doc.HasMember("body") || !doc["body"].IsString())
+	{
+		ok = false;
+		silentfail = false;
+		return std::nullopt;
+	}
+
+	ok = true;
+	return update_info_t{ver, false, SplitNewLines(doc["body"].GetString(), doc["body"].GetStringLength()), downloadUrl};
+}
+
+std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 {
 	if(InitCurl())
 	{
 		auto doc = (UpdateChecker {}).Perform(this, CURRENT_UPDATE_CHANNEL);
 
-		if(!doc.has_value())
+		if(doc.has_value())
 		{
-			goto fail;
-		}
+			bool silentfail = false;
 
-		if(!doc->IsObject())
-		{
-			goto jsonfail;
-		}
-
-		VersionInfo ver;
-
-		std::string downloadUrl;
-
-		switch(CURRENT_UPDATE_CHANNEL)
-		{
-		case UpdateChannel::STABLE:
-			if(!doc->HasMember("tag_name") || !(*doc)["tag_name"].IsString())
+			if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE)
 			{
-				goto jsonfail;
+				if(!doc->IsArray())
+				{
+					silentfail = false;
+				}
+				else
+				{
+					std::vector<std::optional<update_info_t>> updates;
+					auto arr = doc->GetArray();
+					bool anyok = false;
+					for(int i = 0; i < arr.Size(); i++)
+					{
+						if(!arr[i].IsObject() || !arr[i].HasMember("tag_name") || !arr[i]["tag_name"].IsString() || arr[i]["tag_name"].GetString()[0] < '0' || arr[i]["tag_name"].GetString()[0] > '9')
+						{
+							continue;
+						}
+						bool ok2 = true, silentfail2 = true;
+
+						std::optional<update_info_t> out = ParseRelease(arr[i], ok2, silentfail2);
+
+						if(ok2 && out.has_value() && out->version < GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL))
+						{
+							break;
+						}
+
+						if(ok2 && out.has_value())
+						{
+							anyok = true;
+							updates.push_back(out);
+						}
+					}
+
+					if(!anyok)
+					{
+						OpenFailedUpdateMenu("Failed to find any valid updates", true);
+						ok = false;
+						return std::nullopt;
+					}
+
+					return updates[0]; // TODO fully check updates, but otherwise they _should_ be in order so returning the newest one is fine since preview/experimental are excluded by the tag name check
+				}
+			}
+			else
+			{
+				silentfail = false;
+				std::optional<update_info_t> out = ParseRelease(*doc, ok, silentfail);
+
+				if(ok)
+				{
+					return out;
+				}
 			}
 
-			ver = VersionInfo((*doc)["tag_name"].GetString());
-			break;
-		case UpdateChannel::PREVIEW:
-		case UpdateChannel::TESTING:
+			if(!silentfail)
 			{
-				if(!doc->HasMember("assets") || !(*doc)["assets"].IsArray())
-				{
-					goto jsonfail;
-				}
-
-				bool release_json_found = false;
-				bool download_link_found = false;
-				auto arr = ((*doc)["assets"]).GetArray();
-
-				rapidjson::Document relinfo;
-
-				for(int i = 0; i < (int)arr.Size(); i++)
-				{
-					if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
-					{
-						goto jsonfail;
-					}
-					else if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
-					{
-						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
-						{
-							goto jsonfail;
-						}
-
-						auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
-
-						if(!release_info.has_value())
-						{
-							goto fail;
-						}
-
-						relinfo = std::move(*release_info);
-
-						release_json_found = true;
-					}
-					#ifdef _WIN32
-						else if(s.substr(0, 14) == "Windows-UZDoom" && s.substr(s.length() - 4) == ".zip")
-					#else
-						#error "Updater not implemented for non-windows platforms"
-					#endif
-					{
-						if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
-						{
-							goto jsonfail;
-						}
-
-						downloadUrl = arr[i]["browser_download_url"].GetString();
-
-						download_link_found = true;
-					}
-					else
-					{
-						continue;
-					}
-
-					if(release_json_found && download_link_found)
-						break;
-				}
-
-				if(!release_json_found || !download_link_found)
-				{
-					goto jsonfail;
-				}
-				else if(!relinfo.HasMember("commit"))
-				{
-					goto jsonfail;
-				}
-				else if(!relinfo["commit"].HasMember("parent")|| !relinfo["commit"]["parent"].IsString())
-				{
-					goto jsonfail;
-				}
-				else if(!relinfo["commit"].HasMember("distance") || !relinfo["commit"]["distance"].IsString())
-				{
-					goto jsonfail;
-				}
-
-				ver = VersionInfo(relinfo["commit"]["parent"].GetString());
-				ver.distance = atoi(relinfo["commit"]["distance"].GetString());
+				OpenFailedUpdateMenu("Invalid Update JSON", true);
 			}
-			break;
-		case UpdateChannel::RELEASE_CANDIDATE:
-			//TODO RC update channel, needs to scan the releases array manually
-			I_Error("RC updates not implemented");
-			break;
 		}
-
-		if(!doc->HasMember("body") || !(*doc)["body"].IsString())
-		{
-			goto jsonfail;
-		}
-
-		ok = true;
-		return update_info_t{ver, false, SplitNewLines((*doc)["body"].GetString(), (*doc)["body"].GetStringLength()), downloadUrl};
 	}
-	else
-	{
-		goto fail;
-	}
-jsonfail:
-	OpenFailedUpdateMenu("Invalid Update JSON", true);
-	// fallthrough
-fail:
+
 	ok = false;
-	return update_info_t{{USHRT_MAX, USHRT_MAX, USHRT_MAX}, false, {}};
+	return std::nullopt;
 }
 
 bool isVersionInvalid(VersionInfo ver)
@@ -1461,8 +1523,6 @@ void UpdateButtonBar::StartUpdate()
 
 void UpdateButtonBar::CheckForUpdate()
 {
-	if(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE) return; //REMOVE THIS WHEN RC UPDATES ARE IMPLEMENTED
-
 	if(!updater_check_updates_initialized)
 	{
 		OpenUpdateInitChoice();
@@ -1500,8 +1560,8 @@ void UpdateButtonBar::CheckForUpdate()
 			}
 		}
 
-		auto curTime = date_t::getCurrentDate();
-		auto nextCheckTime = date_t::parseDate((FString)updater_last_update_check, curTime - (updater_update_interval + 1)) + updater_update_interval;
+		uint64_t curTime = getCurrentDate();
+		uint64_t nextCheckTime = parseDate((FString)updater_last_update_check) + daysToSeconds(updater_update_interval);
 
 		if(curTime >= nextCheckTime || currentUpdate.has_value())
 		{
@@ -1513,7 +1573,7 @@ void UpdateButtonBar::CheckForUpdate()
 
 				if(!ok) return;
 
-				updater_last_update_check = FString(date_t::getCurrentDate());
+				updater_last_update_check = std::to_string(curTime).c_str();
 				if(currentUpdate.has_value())
 				{
 					updater_cached_update = FString(currentUpdate->version);
