@@ -219,7 +219,7 @@ consteval VersionInfo GetCurrentVersion()
 	return MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION);
 }
 
-consteval VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
+VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 {
 #ifdef DEBUG_FORCE_UPDATE
 	return VersionInfo(1,0,0,0);
