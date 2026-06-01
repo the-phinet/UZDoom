@@ -1,3 +1,18 @@
+/*
+** updater.c
+**
+**
+**
+**---------------------------------------------------------------------------
+**
+** Copyright 2026 UZDoom Maintainers and Contributors
+**
+** SPDX-License-Identifier: GPL-3.0-or-later
+**
+**---------------------------------------------------------------------------
+**
+*/
+
 #include "windows.h"
 #include "shlwapi.h"
 #include <string.h>
