@@ -1129,14 +1129,6 @@ public:
 					{
 						if(std::filesystem::is_directory(progdir + "update"))
 						{
-							/*
-							for(const auto &entry : std::filesystem::directory_iterator(progdir + "update"))
-							{
-								OpenFailedUpdateMenu(buttonBar, "'"+progdir + "update' is not empty", false); // TODO: localize
-								return;
-							}
-							*/
-
 							std::filesystem::remove_all(progdir + "update");
 							std::filesystem::create_directory(progdir + "update");
 						}
@@ -1155,14 +1147,6 @@ public:
 					{
 						if(std::filesystem::is_directory(progdir + "update_backup"))
 						{
-							/*
-							for(const auto &entry : std::filesystem::directory_iterator(progdir + "update_backup"))
-							{
-								OpenFailedUpdateMenu(buttonBar, "'"+progdir + "update_backup' is not empty", false); // TODO: localize
-								return;
-							}
-							*/
-
 							std::filesystem::remove_all(progdir + "update_backup");
 							std::filesystem::create_directory(progdir + "update_backup");
 						}
