@@ -15,7 +15,7 @@
 
 //TESTING TESTING TESTING
 
-#define DEBUG_FORCE_UPDATE
+//#define DEBUG_FORCE_UPDATE
 //#define PROGRESS_BAR_DEBUG
 
 
@@ -1480,24 +1480,65 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 
 		if(doc.has_value())
 		{
+			bool silentfail = false;
+
 			if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE)
 			{
-				I_Error("RC updates not implemented");
+				if(!doc->IsArray())
+				{
+					silentfail = false;
+				}
+				else
+				{
+					std::vector<std::optional<update_info_t>> updates;
+					auto arr = doc->GetArray();
+					bool anyok = false;
+					for(int i = 0; i < arr.Size(); i++)
+					{
+						if(!arr[i].IsObject() || !arr[i].HasMember("tag_name") || !arr[i]["tag_name"].IsString() || arr[i]["tag_name"].GetString()[0] < '0' || arr[i]["tag_name"].GetString()[0] > '9')
+						{
+							continue;
+						}
+						bool ok2 = true, silentfail2 = true;
+
+						std::optional<update_info_t> out = ParseRelease(arr[i], ok2, silentfail2);
+
+						if(ok2 && out.has_value() && out->version < GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL))
+						{
+							break;
+						}
+
+						if(ok2 && out.has_value())
+						{
+							anyok = true;
+							updates.push_back(out);
+						}
+					}
+
+					if(!anyok)
+					{
+						OpenFailedUpdateMenu("Failed to find any valid updates", true);
+						ok = false;
+						return std::nullopt;
+					}
+
+					return updates[0]; // TODO fully check updates, but otherwise they _should_ be in order so returning the newest one is fine since preview/experimental are excluded by the tag name check
+				}
 			}
 			else
 			{
-				bool silentfail = false;
+				silentfail = false;
 				std::optional<update_info_t> out = ParseRelease(*doc, ok, silentfail);
 
 				if(ok)
 				{
 					return out;
 				}
+			}
 
-				if(!silentfail)
-				{
-					OpenFailedUpdateMenu("Invalid Update JSON", true);
-				}
+			if(!silentfail)
+			{
+				OpenFailedUpdateMenu("Invalid Update JSON", true);
 			}
 		}
 	}
@@ -1518,8 +1559,6 @@ void UpdateButtonBar::StartUpdate()
 
 void UpdateButtonBar::CheckForUpdate()
 {
-	if(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE) return; //REMOVE THIS WHEN RC UPDATES ARE IMPLEMENTED
-
 	if(!check_updates_initialized)
 	{
 		OpenUpdateInitChoice();
