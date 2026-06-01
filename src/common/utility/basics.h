@@ -35,6 +35,7 @@
 #include <limits>
 #include <type_traits>
 #include "version.h"
+#include "gitinfo.h"
 
 #include "m_round.h"
 
@@ -219,7 +220,7 @@ consteval VersionInfo GetCurrentVersion()
 	return MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION);
 }
 
-VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
+consteval VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 {
 #ifdef DEBUG_FORCE_UPDATE
 	return VersionInfo(1,0,0,0);
@@ -232,7 +233,7 @@ VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, RC_REVISION);
 	case UpdateChannel::PREVIEW:
 	case UpdateChannel::TESTING:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, GetGitDistance());
+		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, GIT_DISTANCE);
 	}
 }
 
