@@ -378,6 +378,7 @@ public:
 	void Split(TArray<FString>& tokens, const char *delimiter, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
 
 
+	// split a string into different lines of a specified maximum length (and when it needs to wrap, the maximum length can be reduced down to minWrapLen to avoid splitting words)
 	TArray<FString> SplitNewLines(int minWrapLen = -1, int maxLineLen = -1, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
 	void SplitNewLines(TArray<FString>& tokens, int minWrapLen = -1, int maxLineLen = -1, EmptyTokenType keepEmpty = TOK_KEEPEMPTY) const;
 
