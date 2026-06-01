@@ -13,12 +13,6 @@
 **
 */
 
-//TESTING TESTING TESTING
-
-//#define DEBUG_FORCE_UPDATE
-//#define PROGRESS_BAR_DEBUG
-
-
 //ugh something is including windows.h, probably curl? disable parts of it to minimize conflicts
 #ifndef NOMINMAX
 	#define NOMINMAX // mingw already defines NOMINMAX??????
@@ -58,6 +52,8 @@ CVAR(Bool, updater_check_updates_initialized, false, CVAR_ARCHIVE | CVAR_CONFIG_
 CVAR(Int, updater_update_interval, 7, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG); // by default, check once per week
 CVAR(Bool, updater_auto_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
 CVAR(Bool, updater_check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
+CVAR(Bool, updater_debug_always_update, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(Bool, updater_debug_throttle_download, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 
 static std::vector<std::string> SplitNewLines(const char * str, size_t len)
 {
@@ -790,9 +786,10 @@ protected:
 
 		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L); // allow redirects
 
-#ifdef PROGRESS_BAR_DEBUG
-		curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, 1000000L); // set max speed of ~1mb/s for testing
-#endif
+		if(updater_debug_throttle_download)
+		{
+			curl_easy_setopt(curl, CURLOPT_MAX_RECV_SPEED_LARGE, 1000000L); // set max speed of ~1mb/s for testing
+		}
 	}
 
 	bool Perform(const std::string &url, const std::string &acceptEncoding, bool * cancelled = nullptr)
@@ -1593,9 +1590,21 @@ void UpdateButtonBar::CheckForUpdate()
 
 			if(currentUpdate.has_value())
 			{
-#ifndef DEBUG_FORCE_UPDATE
-				if(currentUpdate->version > GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL) && (skippedVer != currentUpdate->version))
-#endif
+				bool should_update;
+				if(updater_debug_always_update)
+				{
+					should_update = true;
+				}
+				else if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::TESTING)
+				{
+					should_update = (currentUpdate->version != GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL));
+				}
+				else
+				{
+					should_update = (currentUpdate->version > GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL));
+				}
+
+				if(should_update && (skippedVer != currentUpdate->version))
 				{
 					if(updater_auto_updates)
 					{
