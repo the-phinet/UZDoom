@@ -51,13 +51,13 @@
 	#include <shellapi.h>
 #endif
 
-CVAR(String, cached_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
-CVAR(String, skipped_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
-CVAR(String, last_update_check, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
-CVAR(Bool, check_updates_initialized, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
-CVAR(Int, update_interval, 7, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG); // by default, check once per week
-CVAR(Bool, auto_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
-CVAR(Bool, check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
+CVAR(String, updater_cached_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(String, updater_skipped_update, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(String, updater_last_update_check, "", CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(Bool, updater_check_updates_initialized, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
+CVAR(Int, updater_update_interval, 7, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG); // by default, check once per week
+CVAR(Bool, updater_auto_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
+CVAR(Bool, updater_check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG);
 
 static std::vector<std::string> SplitNewLines(const char * str, size_t len)
 {
@@ -453,13 +453,13 @@ void UpdateButtonBar::OpenDismissUpdateMenu(bool isAutoUpdate)
 			self.Close();
 		}},
 		{"Skip Update", 1, [=, this](auto &self){ // TODO: localize
-			skipped_update = FString(currentUpdate->version);
+			updater_skipped_update = FString(currentUpdate->version);
 			M_SaveDefaults(NULL); // save settings
 			Hide();
 			self.Close();
 		}},
 		{"Disable Update Checker", 3, [=, this](auto &self){ // TODO: localize
-			check_updates = false;
+			updater_check_updates = false;
 			M_SaveDefaults(NULL); // save settings
 			Hide();
 			self.Close();
@@ -484,7 +484,7 @@ void UpdateButtonBar::OpenFailedUpdateMenu(const std::string &err, bool checker)
 			self.Close();
 		}},
 		{"Disable Update Checker", 3, [=, this](auto &self){ // TODO: localize
-			check_updates = false;
+			updater_check_updates = false;
 			M_SaveDefaults(NULL); // save settings
 			Hide();
 			self.Close();
@@ -560,13 +560,13 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 						self.Close();
 					}},
 					{"Skip Update", 1, [this](auto &self){ // TODO: localize
-						skipped_update = FString(currentUpdate->version);
+						updater_skipped_update = FString(currentUpdate->version);
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
 						self.Close();
 					}},
 					{"Disable Update Checker", 3, [this](auto &self){ // TODO: localize
-						check_updates = false;
+						updater_check_updates = false;
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
 						self.Close();
@@ -612,20 +612,20 @@ void UpdateButtonBar::OpenUpdateInitChoice()
 		{
 			"Yes, and auto-install them", 4, [this](auto &self) // TODO: localize
 			{
-				auto_updates = true;
+				updater_auto_updates = true;
 				OpenUpdateIntervalChoice();
 			}
 		},{
 			"Yes, and manually install them", 5, [this](auto &self) // TODO: localize
 			{
-				auto_updates = false;
+				updater_auto_updates = false;
 				OpenUpdateIntervalChoice();
 			}
 		},{
 			"No", 0, [](auto &self) // TODO: localize
 			{
-				check_updates = false;
-				check_updates_initialized = true;
+				updater_check_updates = false;
+				updater_check_updates_initialized = true;
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -640,37 +640,37 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 		{
 			"Every other day", 2, [](auto &self) // TODO: localize
 			{
-				check_updates = true;
-				update_interval = 2;
-				check_updates_initialized = true;
-				last_update_check = FString(date_t::getCurrentDate());
+				updater_check_updates = true;
+				updater_update_interval = 2;
+				updater_check_updates_initialized = true;
+				updater_last_update_check = FString(date_t::getCurrentDate());
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
 		},{
 			"Every week", 1, [](auto &self) // TODO: localize
 			{
-				check_updates = true;
-				update_interval = 7;
-				check_updates_initialized = true;
-				last_update_check = FString(date_t::getCurrentDate() - 5); // first check always in 2 days
+				updater_check_updates = true;
+				updater_update_interval = 7;
+				updater_check_updates_initialized = true;
+				updater_last_update_check = FString(date_t::getCurrentDate() - 5); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
 		},{
 			"Every month", 1, [](auto &self) // TODO: localize
 			{
-				check_updates = true;
-				update_interval = 30;
-				check_updates_initialized = true;
-				last_update_check = FString(date_t::getCurrentDate() - 28); // first check always in 2 days
+				updater_check_updates = true;
+				updater_update_interval = 30;
+				updater_check_updates_initialized = true;
+				updater_last_update_check = FString(date_t::getCurrentDate() - 28); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
 		},{
 			"Back", 0, [this](auto &self) // TODO: localize
 			{
-				auto_updates = false;
+				updater_auto_updates = false;
 				OpenUpdateInitChoice();
 			}
 		}
@@ -1267,8 +1267,8 @@ public:
 				OpenPopup(buttonBar, "Updated", {"Update was successful, the launcher will now restart."}, // TODO: localize
 				{
 					{"Confirm", 0, [progdir](auto &self){
-						cached_update = "";
-						last_update_check = FString(date_t::getCurrentDate());
+						updater_cached_update = "";
+						updater_last_update_check = FString(date_t::getCurrentDate());
 
 						M_SaveDefaultsFinal(); // save settings
 
@@ -1549,19 +1549,19 @@ void UpdateButtonBar::StartUpdate()
 
 void UpdateButtonBar::CheckForUpdate()
 {
-	if(!check_updates_initialized)
+	if(!updater_check_updates_initialized)
 	{
 		OpenUpdateInitChoice();
 	}
 	else
 	{
-		if(cached_update->Length() > 0)
+		if(updater_cached_update->Length() > 0)
 		{
-			VersionInfo cachedVer(cached_update);
+			VersionInfo cachedVer(updater_cached_update);
 
 			if(isVersionInvalid(cachedVer))
 			{
-				cached_update = "";
+				updater_cached_update = "";
 				M_SaveDefaults(NULL); // save settings
 			}
 			else
@@ -1572,12 +1572,12 @@ void UpdateButtonBar::CheckForUpdate()
 
 		VersionInfo skippedVer;
 
-		if(skipped_update->Length() > 0)
+		if(updater_skipped_update->Length() > 0)
 		{
-			VersionInfo skippedVerTmp = VersionInfo((const char *)skipped_update);
+			VersionInfo skippedVerTmp = VersionInfo((const char *)updater_skipped_update);
 			if(isVersionInvalid(skippedVerTmp))
 			{
-				skipped_update = "";
+				updater_skipped_update = "";
 				M_SaveDefaults(NULL); // save settings
 			}
 			else
@@ -1587,7 +1587,7 @@ void UpdateButtonBar::CheckForUpdate()
 		}
 
 		auto curTime = date_t::getCurrentDate();
-		auto nextCheckTime = date_t::parseDate((FString)last_update_check, curTime - (update_interval + 1)) + update_interval;
+		auto nextCheckTime = date_t::parseDate((FString)updater_last_update_check, curTime - (updater_update_interval + 1)) + updater_update_interval;
 
 		if(curTime >= nextCheckTime || currentUpdate.has_value())
 		{
@@ -1599,10 +1599,10 @@ void UpdateButtonBar::CheckForUpdate()
 
 				if(!ok) return;
 
-				last_update_check = FString(date_t::getCurrentDate());
+				updater_last_update_check = FString(date_t::getCurrentDate());
 				if(currentUpdate.has_value())
 				{
-					cached_update = FString(currentUpdate->version);
+					updater_cached_update = FString(currentUpdate->version);
 				}
 				M_SaveDefaults(NULL); // save settings
 			}
@@ -1613,7 +1613,7 @@ void UpdateButtonBar::CheckForUpdate()
 				if(currentUpdate->version > GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL) && (skippedVer != currentUpdate->version))
 #endif
 				{
-					if(auto_updates)
+					if(updater_auto_updates)
 					{
 						OpenUpdateMenu(true);
 					}
