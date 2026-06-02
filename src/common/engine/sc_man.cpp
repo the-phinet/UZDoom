@@ -71,7 +71,7 @@ VersionInfo::VersionInfo(const char *string)
 		{
 			revision = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
 
-			if (*endp == '.')
+			if (*endp == '-' && endp[1] >= '0' && endp[1] <= '9')
 			{
 				distance = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
 			}
@@ -95,7 +95,7 @@ VersionInfo::operator FString()
 	FString tmp;
 	if(distance != 0 && distance != RC_REVISION_NOTRC)
 	{
-		tmp.Format("%u.%u.%u.%u", major, minor, revision, distance);
+		tmp.Format("%u.%u.%u-%u", major, minor, revision, distance);
 	}
 	else
 	{
