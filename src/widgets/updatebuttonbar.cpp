@@ -55,6 +55,23 @@ CVAR(Bool, updater_check_updates, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_
 CVAR(Bool, updater_debug_always_update, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 CVAR(Bool, updater_debug_throttle_download, false, CVAR_ARCHIVE | CVAR_CONFIG_ONLY | CVAR_GLOBALCONFIG | CVAR_NOSET | CVAR_HIDDEN);
 
+static uint64_t daysToSeconds(uint64_t days)
+{
+	return days * 86400;
+}
+
+static uint64_t getCurrentDate()
+{
+	time_t t;
+	time(&t); //linux might need changing this to time64, maybe?
+	return (t / 86400ULL) * 86400ULL; // round to whole day
+}
+
+static uint64_t parseDate(FString str)
+{
+	return str.ToULong();
+}
+
 static std::vector<std::string> SplitNewLines(const char * str, size_t len)
 {
 	TArray<FString> s = FString(str, len).SplitNewLines(60, 70);
@@ -639,7 +656,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				updater_check_updates = true;
 				updater_update_interval = 2;
 				updater_check_updates_initialized = true;
-				updater_last_update_check = FString(date_t::getCurrentDate());
+				updater_last_update_check = std::to_string(getCurrentDate()).c_str();
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -649,7 +666,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				updater_check_updates = true;
 				updater_update_interval = 7;
 				updater_check_updates_initialized = true;
-				updater_last_update_check = FString(date_t::getCurrentDate() - 5); // first check always in 2 days
+				updater_last_update_check = std::to_string(getCurrentDate() - daysToSeconds(5)).c_str(); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -659,7 +676,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				updater_check_updates = true;
 				updater_update_interval = 30;
 				updater_check_updates_initialized = true;
-				updater_last_update_check = FString(date_t::getCurrentDate() - 28); // first check always in 2 days
+				updater_last_update_check = std::to_string(getCurrentDate() - daysToSeconds(28)).c_str(); // first check always in 2 days
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
 			}
@@ -671,43 +688,6 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 			}
 		}
 	}, 550.0, false);
-}
-
-date_t date_t::getCurrentDate()
-{
-	time_t t;
-	time(&t);
-	struct tm curTime;
-#if defined(_MSC_VER) || defined(MINGW_HAS_SECURE_API)
-	//use microsoft's botched localtime_s
-	localtime_s(&curTime, &t);
-#elif defined(__unix__) || defined(__APPLE__) || defined(_POSIX_VERSION) || __cplusplus >= 202302L
-	localtime_r(&t, &curTime);
-#elif defined(__STDC_LIB_EXT1__)
-	//use the actual standard localtime_s
-	localtime_s(&t, &curTime);
-#else
-	struct tm* tm_ptr = localtime(&t);
-	if (tm_ptr) curTime = *tm_ptr;
-	else curTime = {};
-#endif
-	return {curTime.tm_mday, curTime.tm_mon + 1, curTime.tm_year + 1900};
-}
-
-date_t date_t::parseDate(FString str, date_t fallback) // parse "day-month-year" string into tm, returns current date on fail
-{
-	auto sections = str.Split("-");
-
-	if(sections.size() != 3 || !sections[0].IsInt()|| !sections[1].IsInt()|| !sections[2].IsInt()) return fallback; // invalid string
-
-	int year = (int)sections[0].ToLong();
-	int month = (int)sections[1].ToLong();
-	int day = (int)sections[2].ToLong();
-
-	// don't validate year
-	if(month < 1 || month > 12 || day < 1 || day >= (date_t::dayCount(year, month))) return fallback; // invalid date
-
-	return {day, month, year};
 }
 
 bool UpdateButtonBar::InitCurl()
@@ -1249,7 +1229,7 @@ public:
 				{
 					{"Confirm", 0, [progdir](auto &self){
 						updater_cached_update = "";
-						updater_last_update_check = FString(date_t::getCurrentDate());
+						updater_last_update_check = std::to_string(getCurrentDate()).c_str();
 
 						M_SaveDefaultsFinal(); // save settings
 
@@ -1567,8 +1547,8 @@ void UpdateButtonBar::CheckForUpdate()
 			}
 		}
 
-		auto curTime = date_t::getCurrentDate();
-		auto nextCheckTime = date_t::parseDate((FString)updater_last_update_check, curTime - (updater_update_interval + 1)) + updater_update_interval;
+		uint64_t curTime = getCurrentDate();
+		uint64_t nextCheckTime = parseDate((FString)updater_last_update_check) + daysToSeconds(updater_update_interval);
 
 		if(curTime >= nextCheckTime || currentUpdate.has_value())
 		{
@@ -1579,8 +1559,8 @@ void UpdateButtonBar::CheckForUpdate()
 				currentUpdate = GetUpdateInfo(ok);
 
 				if(!ok) return;
-
-				updater_last_update_check = FString(date_t::getCurrentDate());
+				
+				updater_last_update_check = std::to_string(curTime).c_str();
 				if(currentUpdate.has_value())
 				{
 					updater_cached_update = FString(currentUpdate->version);
