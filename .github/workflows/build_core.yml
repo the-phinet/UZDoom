@@ -100,13 +100,14 @@ jobs:
       uses: chetan/git-restore-mtime-action@v2
 
     - name: Get Cache Ref
-      id: ref
+      id: key
       shell: bash
       run: |
         ref=${{ github.base_ref || github.ref }}
+        main=${{ github.event.repository.master_branch || 'trunk' }}
+        suffix="${{ inputs.name }}/${{ inputs.build_type }}"
         echo "ref: $ref"
         if [[ -z "${ref}" || "${ref}" == refs/* ]]; then
-          main=${{ github.event.repository.master_branch || 'trunk' }}
           refs=( $(git branch -r --contains ${{ github.sha }} | grep -v 'HEAD' | grep origin/ | sed 's/^[[:space:]]*origin\///' ) )
           count=${#refs[@]}
           if [[ ${count} == 0 ]]; then
@@ -121,8 +122,9 @@ jobs:
             ref=${refs[i]}
           fi
         fi
-        echo "branch: $ref"
-        echo "branch=$ref" >> "$GITHUB_OUTPUT"
+        function key() { echo "$1=$2/${suffix// /_}" | tee -a "$GITHUB_OUTPUT" ; }
+        key primary $ref
+        key secondary $main
 
     - name: Restore Cache
       if:
@@ -130,7 +132,8 @@ jobs:
       uses: actions/cache/restore@v5
       with:
         path: build
-        key: ${{ github.repository }}/${{ steps.ref.outputs.branch }}/${{ inputs.name }}/${{ inputs.build_type }}
+        key: ${{ steps.key.outputs.primary }}
+        restore-keys: ${{ steps.key.outputs.secondary }}
 
     - name: Test Cache
       id: cached
@@ -194,7 +197,7 @@ jobs:
             wait "$watchdog_pid" 2>&1
 
             [ $exit_code -eq 0 ] && return 0
-            echo "::warning ::Attempt $i failed. Retrying in ${delay}s" >&2
+            echo "::notice ::Attempt $i failed. Retrying in ${delay}s" >&2
             sleep "${delay}"
             ((delay*=3))
           done
@@ -261,7 +264,7 @@ jobs:
           echo ::group::Config
           if ! config ; then
             echo ::endgroup::
-            echo '::warning ::Quick config failed. Cleaning up and re-trying'
+            echo '::notice ::Quick config failed. Cleaning up and re-trying'
             echo ::group::Config
             rm -rf build/CMakeFiles build/CMakeCache.txt
             config
@@ -279,7 +282,7 @@ jobs:
           echo ::group::Build
           if ! build ; then
             echo ::endgroup::
-            echo '::warning ::Quick build failed. Cleaning up and re-trying'
+            echo '::notice ::Quick build failed. Cleaning up and re-trying'
             echo ::group::Config
             cmake --build build --target clean
             rm -rf build/CMakeFiles build/CMakeCache.txt
@@ -405,6 +408,8 @@ jobs:
         REPO: ${{ github.event.repository.name }}
         TAG: latest
       run: |
+        ldd uzdoom
+
         appdir=AppDir
         pfx=$(realpath $appdir)/usr
         arch=$(uname -m)
@@ -441,11 +446,14 @@ jobs:
           echo "::warning ::Not signing"
         fi
 
+        function library() { ldconfig -p | grep -F $1 | head -1 | awk '{print $NF}' ; }
+
         chmod +x linuxdeploy
         ./linuxdeploy --output appimage \
           --appdir $appdir \
           --executable="${pfx}/bin/uzdoom" \
           --desktop-file="${pfx}/share/applications/org.zdoom.UZDoom.desktop" \
+          --library "$(library libopenal.so.)" \
           --icon-file="${pfx}/share/icons/hicolor/scalable/apps/org.zdoom.UZDoom.svg"
 
         mv *.AppImage "package/${NAME}.AppImage"
