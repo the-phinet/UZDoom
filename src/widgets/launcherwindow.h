@@ -51,6 +51,7 @@ public:
 	bool IsInMultiplayer() const;
 	bool IsHosting() const;
 	void UpdatePlayButton();
+	void ForceCheckUpdate();
 
 private:
 	void OnClose() override;

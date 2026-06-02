@@ -87,6 +87,16 @@ AboutPage::AboutPage(LauncherWindow* launcher, const FStartupSelectionInfo& info
 		Launcher->Pages->SetCurrentIndex(Launcher->Pages->GetPageIndex(Launcher->Release));
 		Launcher->Pages->GetCurrentWidget()->SetFocus();
 	};
+
+#ifdef HAS_UPDATER
+	ForceUpdate = new PushButton(this);
+	ForceUpdate->SetText("Check for Updates");
+
+	ForceUpdate->OnClick = [=,this]()
+	{
+		static_cast<LauncherWindow*>(Window())->ForceCheckUpdate();
+	};
+#endif
 }
 
 void AboutPage::SetValues(FStartupSelectionInfo& info) const
@@ -106,11 +116,18 @@ void AboutPage::OnGeometryChanged()
 	double tw, th;
 
 	th = Notes->GetPreferredHeight();
-	tw = Notes->GetPreferredWidth();
 	Text->SetFrameGeometry(0.0, y, w, h - th - 8.0);
 	y += h - th;
 
+#ifdef HAS_UPDATER
+	tw = ForceUpdate->GetPreferredWidth();
+	ForceUpdate->SetFrameGeometry(w - (tw + 10), y, tw, th);
+	tw = Notes->GetPreferredWidth();
+	Notes->SetFrameGeometry(10, y, tw, th);
+#else
+	tw = Notes->GetPreferredWidth();
 	Notes->SetFrameGeometry(round((w-tw)/2), y, tw, th);
+#endif
 	y += h;
 
 	Launcher->UpdatePlayButton();
