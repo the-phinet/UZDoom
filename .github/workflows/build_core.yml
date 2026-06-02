@@ -155,8 +155,13 @@ jobs:
           rm -rf build
         fi
         # use this condition to enable saving cache
-        if [[ "${status}" != 'skipped' && "${{github.event_name}}" != 'pull_request' ]]; then
+
+        if [[ "${status}" != 'skipped' && "${{github.event_name}}" != 'pull_request' && \
+        "${{steps.cache.outputs.cache-primary-key}}" == "${{steps.key.outputs.primary}}" ]]; then
           echo "save=yes" >> "$GITHUB_OUTPUT"
+          if [[ "${status}" != 'missing' ]]; then
+            echo "clear=yes" >> "$GITHUB_OUTPUT"
+          fi
         fi
 
     - name: Setup MSVC
@@ -475,7 +480,7 @@ jobs:
         name: ${{ inputs.name }} ${{ inputs.build_type }}
 
     - name: Prepare Cache
-      if: steps.cached.outputs.save == 'yes' && steps.cached.outputs.status != 'skipped'
+      if: steps.cached.outputs.save == 'yes'
       env:
         GH_TOKEN: ${{ github.token }}
         REPO: ${{ github.repository }}
@@ -490,7 +495,7 @@ jobs:
         echo ::endgroup::
 
         # https://github.com/actions/cache/issues/342
-        if [[ "${{ steps.cached.outputs.status }}" != 'missing' ]]; then
+        if [[ "${{ steps.cached.outputs.clear }}" == 'yes' ]]; then
           echo ::group::Delete-Remote
           if ! err=$(gh api --method DELETE "/repos/${REPO}/actions/caches?key=${KEY// /%20}"); then
             echo "$err" >&2
