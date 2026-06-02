@@ -41,7 +41,7 @@ class UpdateButtonBar : public Widget
 
 		double GetPreferredHeight() const;
 
-		void CheckForUpdate();
+		void CheckForUpdate(bool force = false);
 
 		int GetMargin() { return 4; }
 
@@ -87,8 +87,8 @@ class UpdateButtonBar : public Widget
 		template<typename T>
 		std::optional<update_info_t> ParseRelease(T &&doc, bool &ok, bool &silentfail);
 
-		bool curl_initialized = false;
-		bool curl_initialized_ok = false;
+		static bool curl_initialized;
+		static bool curl_initialized_ok;
 
 		friend class JsonDownloader;
 		friend class ProgressDownloader;
