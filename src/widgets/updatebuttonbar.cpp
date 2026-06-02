@@ -535,6 +535,9 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 		bool ok = false;
 		currentUpdate = GetUpdateInfo(ok); // we only have the cached update number right now, grab full update info
 		if(!ok || !currentUpdate.has_value()) return;
+		updater_cached_update = FString(currentUpdate->version);
+		updater_last_update_check = std::to_string(getCurrentDate()).c_str();
+		M_SaveDefaults(NULL); // save settings
 		UpdateLanguage();
 	}
 
