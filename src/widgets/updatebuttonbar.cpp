@@ -394,6 +394,10 @@ void UpdateButtonBar::UpdateLanguage()
 	{
 		text = "New Update Available: " + UpdateToString(); // TODO: localize
 	}
+	else
+	{
+		text = "";
+	}
 }
 
 void UpdateButtonBar::OnPaint(Canvas* canvas)
@@ -692,6 +696,9 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 		}
 	}, 550.0, false);
 }
+
+bool UpdateButtonBar::curl_initialized = false;
+bool UpdateButtonBar::curl_initialized_ok = false;
 
 bool UpdateButtonBar::InitCurl()
 {
@@ -1511,13 +1518,15 @@ void UpdateButtonBar::StartUpdate()
 	OpenPopup<ProgressDownloader>(this, "Updating...").Perform(this, GetDownloadURL()); // TODO: localize
 }
 
-void UpdateButtonBar::CheckForUpdate()
+void UpdateButtonBar::CheckForUpdate(bool force)
 {
+	Hide();
+
 	if(!updater_check_updates_initialized)
 	{
 		OpenUpdateInitChoice();
 	}
-	else
+	else if(updater_check_updates || force)
 	{
 		if(updater_cached_update->Length() > 0)
 		{
@@ -1530,7 +1539,7 @@ void UpdateButtonBar::CheckForUpdate()
 			}
 			else
 			{
-				currentUpdate = update_info_t{cachedVer, true, {}};
+				currentUpdate = update_info_t{cachedVer, true, {}, ""};
 			}
 		}
 
@@ -1553,9 +1562,9 @@ void UpdateButtonBar::CheckForUpdate()
 		uint64_t curTime = getCurrentDate();
 		uint64_t nextCheckTime = parseDate((FString)updater_last_update_check) + daysToSeconds(updater_update_interval);
 
-		if(curTime >= nextCheckTime || currentUpdate.has_value())
+		if(curTime >= nextCheckTime || currentUpdate.has_value() || force)
 		{
-			if(!currentUpdate.has_value() || curTime >= nextCheckTime) // invalidate cache if check time is due
+			if(!currentUpdate.has_value() || curTime >= nextCheckTime || force) // invalidate cache if check time is due
 			{
 				bool ok;
 
@@ -1567,6 +1576,10 @@ void UpdateButtonBar::CheckForUpdate()
 				if(currentUpdate.has_value())
 				{
 					updater_cached_update = FString(currentUpdate->version);
+				}
+				else
+				{
+					updater_cached_update = "";
 				}
 				M_SaveDefaults(NULL); // save settings
 			}
@@ -1589,7 +1602,7 @@ void UpdateButtonBar::CheckForUpdate()
 
 				if(should_update && (skippedVer != currentUpdate->version))
 				{
-					if(updater_auto_updates)
+					if(updater_auto_updates || force)
 					{
 						OpenUpdateMenu(true);
 					}

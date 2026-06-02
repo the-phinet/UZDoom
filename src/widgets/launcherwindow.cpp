@@ -56,10 +56,7 @@ void LauncherWindow::UpdateSize()
 	double windowHeight = 700.0;
 
 #ifdef HAS_UPDATER
-	if(!UpdateBar->IsHidden())
-	{
-		windowHeight += UpdateBar->GetPreferredHeight() + UpdateBar->GetMargin();
-	}
+	windowHeight += UpdateBar->GetPreferredHeight() + UpdateBar->GetMargin();
 #endif
 
 	SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
@@ -107,6 +104,13 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 
 #ifdef HAS_UPDATER
 	UpdateBar->CheckForUpdate();
+#endif
+}
+
+void LauncherWindow::ForceCheckUpdate()
+{
+#ifdef HAS_UPDATER
+	UpdateBar->CheckForUpdate(true);
 #endif
 }
 
@@ -192,12 +196,9 @@ void LauncherWindow::OnGeometryChanged()
 	top += Banner->GetPreferredHeight();
 
 #ifdef HAS_UPDATER
-	if(!UpdateBar->IsHidden())
-	{
-		double updateBarHeight = UpdateBar->GetPreferredHeight();
-		UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
-		top += updateBarHeight + UpdateBar->GetMargin();
-	}
+	double updateBarHeight = UpdateBar->GetPreferredHeight();
+	UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
+	top += updateBarHeight + UpdateBar->GetMargin();
 #endif
 
 	bottom -= Buttonbar->GetPreferredHeight();
