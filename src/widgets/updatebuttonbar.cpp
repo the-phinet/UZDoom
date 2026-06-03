@@ -1443,7 +1443,7 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 		{
 			bool silentfail = false;
 
-			if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE)
+			if (CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE)
 			{
 				if(!doc->IsArray())
 				{

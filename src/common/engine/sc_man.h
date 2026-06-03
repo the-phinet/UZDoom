@@ -26,10 +26,12 @@
 #define __SC_MAN_H__
 
 #include <vector>
+
 #include "zstring.h"
 #include "tarray.h"
 #include "name.h"
 #include "basics.h"
+#include "version.h"
 
 class FScanner
 {
