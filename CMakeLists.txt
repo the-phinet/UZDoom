@@ -1,22 +1,14 @@
 cmake_minimum_required( VERSION 3.16 )
 
-if( COMMAND cmake_policy )
-	if( POLICY CMP0011 )
-		cmake_policy( SET CMP0011 NEW )
-	endif()
-	if( POLICY CMP0054 )
-		cmake_policy( SET CMP0054 NEW )
-	endif()
-	if ( POLICY CMP0067 )
-		cmake_policy( SET CMP0067 NEW )
-	endif()
-	if ( POLICY CMP0091 )
-		cmake_policy( SET CMP0091 NEW )
-		set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	endif()
-endif()
+cmake_policy( SET CMP0067 NEW )
+cmake_policy( SET CMP0091 NEW )
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 project(UZDoom)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(ABSL_BUILD_TESTING OFF) # don't build/run abseil tests
 
@@ -38,19 +30,21 @@ endif()
 if(WIN32)
 	option( USE_UPDATER "enable auto-updater" ON )
 endif()
+
 if(USE_UPDATER)
 	set( CURL_REQUIRED TRUE )
-endif()
 
-if(WIN32 AND USE_UPDATER AND MSVC)
-	# updater.exe is only for windows for now, may be needed on macos in the future? but probably not for appimage
-	# NOTE/FIXME: updater.exe currently only builds with msvc, not a big issue for now but will need to be fixed if we switch over to mingw as the primary windows compiler (which we'll probably have to do eventually for C++26 support)
-	add_executable( updater WIN32 src/updater/updater.c )
+	if (WIN32)
+		if (NOT MSVC)
+			# NOTE: not a big issue for now but will need to be fixed if we switch over to mingw as the
+			#       primary windows compiler (which we'll probably have to do eventually for C++26 support)
+			message( FATAL_ERROR "updater.exe currently only builds with msvc" )
+		endif()
+		add_executable( updater WIN32 src/win32/updater.c )
+	else()
+		message( FATAL_ERROR "Updater not available on this platform" )
+	endif()
 endif()
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Threads REQUIRED)
 find_package(Python3 3.6 REQUIRED)
