@@ -34,8 +34,6 @@
 #include <cstdlib>
 #include <limits>
 #include <type_traits>
-#include "version.h"
-#include "gitinfo.h"
 
 #include "m_round.h"
 
@@ -142,102 +140,4 @@ static inline void PrefetchL3(const void* Address)
 #if defined(_M_X64) || defined(__x86_64__) || defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64)
 	_mm_prefetch(static_cast<const char*>(Address), _MM_HINT_T1);
 #endif
-}
-
-class FString;
-
-struct VersionInfo
-{
-	uint16_t major;
-	uint16_t minor;
-	uint32_t revision;
-	uint32_t distance;
-
-	constexpr VersionInfo() = default;
-	constexpr VersionInfo(uint16_t _major, uint16_t _minor, uint32_t _revision = 0, uint32_t _distance = 0)
-		: major(_major), minor(_minor), revision(_revision), distance(_distance)
-	{
-	}
-	explicit VersionInfo(const char *);
-
-	constexpr bool operator <=(const VersionInfo& o) const
-	{
-		return operator<=>(o) != std::strong_ordering::greater;
-	}
-	constexpr bool operator >=(const VersionInfo& o) const
-	{
-		return operator<=>(o) != std::strong_ordering::less;
-	}
-	constexpr bool operator > (const VersionInfo& o) const
-	{
-		return operator<=>(o) == std::strong_ordering::greater;
-	}
-	constexpr bool operator < (const VersionInfo& o) const
-	{
-		return operator<=>(o) == std::strong_ordering::less;
-	}
-	constexpr bool operator == (const VersionInfo& o) const
-	{
-		return operator<=>(o) == std::strong_ordering::equal;
-	}
-	constexpr bool operator != (const VersionInfo& o) const
-	{
-		return operator<=>(o) != std::strong_ordering::equal;
-	}
-
-	constexpr std::strong_ordering operator <=> (const VersionInfo& o) const
-	{
-		if(major != o.major)
-		{
-			return major <=> o.major;
-		}
-		else if(minor != o.minor)
-		{
-			return minor <=> o.minor;
-		}
-		else if(revision != o.revision)
-		{
-			return revision <=> o.revision;
-		}
-		else //if(distance != o.distance)
-		{
-			return distance <=> o.distance;
-		}
-	}
-
-	void operator=(const char* string);
-	explicit operator FString();
-};
-
-// Cannot be a constructor because Lemon would puke on it.
-constexpr VersionInfo MakeVersion(unsigned int ma, unsigned int mi, unsigned int re = 0)
-{
-	return{ (uint16_t)ma, (uint16_t)mi, (uint32_t)re };
-}
-
-consteval VersionInfo GetCurrentVersion()
-{
-	return MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION);
-}
-
-consteval VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
-{
-#ifdef DEBUG_FORCE_UPDATE
-	return VersionInfo(1,0,0,0);
-#endif
-
-	switch(channel)
-	{
-	case UpdateChannel::STABLE:
-	case UpdateChannel::RELEASE_CANDIDATE:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, RC_REVISION);
-	case UpdateChannel::PREVIEW:
-	case UpdateChannel::TESTING:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, GIT_DISTANCE);
-	}
-}
-
-consteval VersionInfo GetCurrentEngineVersion()
-{
-	return MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION);
 }

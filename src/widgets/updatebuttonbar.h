@@ -17,7 +17,9 @@
 
 #include <zwidget/core/widget.h>
 #include <optional>
+
 #include "basics.h"
+#include "version.h"
 
 class LauncherWindow;
 class PushButton;
