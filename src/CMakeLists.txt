@@ -346,7 +346,10 @@ message("Building for target architecture: ${TARGET_ARCHITECTURE}")
 
 if( CURL_FOUND )
 	include_directories( SYSTEM "${CURL_INCLUDE_DIRS}" )
-	set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} ${CURL_LIBRARIES} )
+
+	if( NOT DEFINED LOAD_CURL_AT_RUNTIME OR NOT LOAD_CURL_AT_RUNTIME)
+		set( PROJECT_LIBRARIES ${PROJECT_LIBRARIES} ${CURL_LIBRARIES} )
+	endif()
 endif()
 
 # VPX
@@ -802,6 +805,16 @@ else()
 	set (UPDATER_SOURCES "")
 endif()
 
+if (DEFINED CURL_REQUIRED AND CURL_REQUIRED AND DEFINED LOAD_CURL_AT_RUNTIME AND LOAD_CURL_AT_RUNTIME)
+	set (CURL_SOURCES
+		curl_loader.cpp
+	)
+
+	add_compile_definitions("RUNTIME_CURL")
+else()
+	set (CURL_SOURCES "")
+endif()
+
 set (PCH_SOURCES
 	am_map.cpp
 	playsim/bots/b_bot.cpp
@@ -1002,6 +1015,7 @@ set (PCH_SOURCES
 	widgets/themedata.cpp
 	widgets/widgetresourcedata.cpp
 	${UPDATER_SOURCES}
+	${CURL_SOURCES}
 
 	common/audio/sound/i_sound.cpp
 	common/audio/sound/oalsound.cpp

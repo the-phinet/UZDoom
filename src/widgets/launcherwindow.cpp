@@ -34,6 +34,7 @@
 
 #ifdef HAS_UPDATER
 #include "updatebuttonbar.h"
+#include "curl_loader.h"
 #endif
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
@@ -56,7 +57,10 @@ void LauncherWindow::UpdateSize()
 	double windowHeight = 700.0;
 
 #ifdef HAS_UPDATER
-	windowHeight += UpdateBar->GetPreferredHeight() + UpdateBar->GetMargin();
+	if(IsCurlLoaded())
+	{
+		windowHeight += UpdateBar->GetPreferredHeight() + UpdateBar->GetMargin();
+	}
 #endif
 
 	SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
@@ -64,6 +68,9 @@ void LauncherWindow::UpdateSize()
 
 LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window, RenderAPI::Unspecified, false), Info(&info)
 {
+#ifdef HAS_UPDATER
+	LoadCurl();
+#endif
 	SetWindowTitle(GAMENAME);
 	this->SetStyleColor("background-color", Theme::getHeader(COLOR_BACKGROUND));
 
@@ -73,8 +80,11 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	Buttonbar = new LauncherButtonbar(this);
 	Buttonbar->SetStyleColor("background-color", Theme::getMain(COLOR_BACKGROUND));
 #ifdef HAS_UPDATER
-	UpdateBar = new UpdateButtonBar(this);
-	UpdateBar->Hide();
+	if(IsCurlLoaded())
+	{
+		UpdateBar = new UpdateButtonBar(this);
+		UpdateBar->Hide();
+	}
 #endif
 
 	bool releasenotes = info.isNewRelease && info.notifyNewRelease;
@@ -103,14 +113,20 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, Wi
 	Pages->GetCurrentWidget()->SetFocus();
 
 #ifdef HAS_UPDATER
-	UpdateBar->CheckForUpdate();
+	if(IsCurlLoaded())
+	{
+		UpdateBar->CheckForUpdate();
+	}
 #endif
 }
 
 void LauncherWindow::ForceCheckUpdate()
 {
 #ifdef HAS_UPDATER
-	UpdateBar->CheckForUpdate(true);
+	if(IsCurlLoaded())
+	{
+		UpdateBar->CheckForUpdate(true);
+	}
 #endif
 }
 
@@ -177,7 +193,10 @@ void LauncherWindow::UpdateLanguage()
 	Buttonbar->UpdateLanguage();
 
 #ifdef HAS_UPDATER
-	UpdateBar->UpdateLanguage();
+	if(IsCurlLoaded())
+	{
+		UpdateBar->UpdateLanguage();
+	}
 #endif
 	OnGeometryChanged();
 }
@@ -196,9 +215,12 @@ void LauncherWindow::OnGeometryChanged()
 	top += Banner->GetPreferredHeight();
 
 #ifdef HAS_UPDATER
-	double updateBarHeight = UpdateBar->GetPreferredHeight();
-	UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
-	top += updateBarHeight + UpdateBar->GetMargin();
+	if(IsCurlLoaded())
+	{
+		double updateBarHeight = UpdateBar->GetPreferredHeight();
+		UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);
+		top += updateBarHeight + UpdateBar->GetMargin();
+	}
 #endif
 
 	bottom -= Buttonbar->GetPreferredHeight();
