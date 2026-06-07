@@ -32,5 +32,9 @@ bool IsCurlLoaded()
 
 bool LoadCurl()
 {
-	return CurlModule.Load({"libcurl-x64.dll", "libcurl-arm64.dll"});
+#ifdef _M_ARM64
+	return CurlModule.Load({"libcurl-arm64.dll"});
+#else
+	return CurlModule.Load({"libcurl-x64.dll"});
+#endif
 }
