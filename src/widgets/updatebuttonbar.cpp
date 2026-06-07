@@ -33,7 +33,7 @@
 #include <zwidget/widgets/pushbutton/pushbutton.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include <ctime>
-#include <curl/curl.h>
+#include "curl_loader_internal.h"
 #include <algorithm>
 #include <format>
 #include <thread>
