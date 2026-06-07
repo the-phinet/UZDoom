@@ -33,6 +33,10 @@
 #include "version.h"
 #include "zstring.h"
 
+#ifdef HAS_UPDATER
+#include "curl_loader.h"
+#endif
+
 AboutPage::AboutPage(LauncherWindow* launcher, const FStartupSelectionInfo& info) : Widget(nullptr), Launcher(launcher)
 {
 	// [Marcus] TODO: Probably make this rich-text
@@ -89,13 +93,16 @@ AboutPage::AboutPage(LauncherWindow* launcher, const FStartupSelectionInfo& info
 	};
 
 #ifdef HAS_UPDATER
-	ForceUpdate = new PushButton(this);
-	ForceUpdate->SetText("Check for Updates");
-
-	ForceUpdate->OnClick = [=,this]()
+	if(IsCurlLoaded())
 	{
-		static_cast<LauncherWindow*>(Window())->ForceCheckUpdate();
-	};
+		ForceUpdate = new PushButton(this);
+		ForceUpdate->SetText("Check for Updates");
+
+		ForceUpdate->OnClick = [=,this]()
+		{
+			static_cast<LauncherWindow*>(Window())->ForceCheckUpdate();
+		};
+	}
 #endif
 }
 
@@ -120,10 +127,18 @@ void AboutPage::OnGeometryChanged()
 	y += h - th;
 
 #ifdef HAS_UPDATER
-	tw = ForceUpdate->GetPreferredWidth();
-	ForceUpdate->SetFrameGeometry(w - (tw + 10), y, tw, th);
-	tw = Notes->GetPreferredWidth();
-	Notes->SetFrameGeometry(10, y, tw, th);
+	if(IsCurlLoaded())
+	{
+		tw = ForceUpdate->GetPreferredWidth();
+		ForceUpdate->SetFrameGeometry(w - (tw + 10), y, tw, th);
+		tw = Notes->GetPreferredWidth();
+		Notes->SetFrameGeometry(10, y, tw, th);
+	}
+	else
+	{
+		tw = Notes->GetPreferredWidth();
+		Notes->SetFrameGeometry(round((w-tw)/2), y, tw, th);
+	}
 #else
 	tw = Notes->GetPreferredWidth();
 	Notes->SetFrameGeometry(round((w-tw)/2), y, tw, th);
