@@ -486,7 +486,7 @@ int Printf (const char *format, ...)
 
 inline int _DPrintf(DPrintLevel level, PrintFlag printlevel, const char *format, va_list argptr)
 {
-	return (developer >= level)? VPrintf(printlevel, format, argptr): 0;
+	return (!developer.get() || developer >= level)? VPrintf(printlevel, format, argptr): 0;
 }
 
 int DPrintf (DPrintLevel level, PrintFlag printlevel, const char *format, ...)
