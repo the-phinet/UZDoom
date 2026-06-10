@@ -630,13 +630,13 @@ void UpdateButtonBar::OpenUpdateInitChoice()
 	OpenPopup(this, "Update Checker", {"Would you like to automatically check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
-			"Yes, and auto-install them", 4, [this](auto &self) // TODO: localize
+			"Yes, and prompt to install updates", 5, [this](auto &self) // TODO: localize
 			{
 				updater_auto_updates = true;
 				OpenUpdateIntervalChoice();
 			}
 		},{
-			"Yes, and manually install them", 5, [this](auto &self) // TODO: localize
+			"Yes", 0, [this](auto &self) // TODO: localize
 			{
 				updater_auto_updates = false;
 				OpenUpdateIntervalChoice();
