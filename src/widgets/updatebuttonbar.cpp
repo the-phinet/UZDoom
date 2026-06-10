@@ -561,13 +561,9 @@ bool UpdateButtonBar::OnMouseDown(const Point& pos, InputKey key)
 	return false;
 }
 
-void UpdateButtonBar::OpenDismissUpdateMenu(bool isAutoUpdate)
+void UpdateButtonBar::OpenDismissUpdateMenu()
 {
 	PopupBase::ActionListType actions = {
-		{"Dismiss", [=, this](auto &self){ // TODO: localize
-			Hide();
-			self.Close();
-		}},
 		{"Skip Update", [=, this](auto &self){ // TODO: localize
 			updater_skipped_update = FString(currentUpdate->version);
 			M_SaveDefaults(NULL); // save settings
@@ -576,14 +572,11 @@ void UpdateButtonBar::OpenDismissUpdateMenu(bool isAutoUpdate)
 		}},
 	};
 
-	if(isAutoUpdate)
-	{
-		actions.push_back({"Back", [=, this](auto &self){ // TODO: localize
-			OpenUpdateMenu(true);
-		}});
-	}
+	actions.push_back({"Back", [=, this](auto &self){ // TODO: localize
+		self.Close();
+	}});
 
-	OpenPopup(this, "Dismiss Update?", {}, actions, 550.0, isAutoUpdate ? POPUPF_DISALLOW_CLOSE : 0); // TODO: localize
+	OpenPopup(this, "Dismiss Update?", {}, actions, 550.0, 0); // TODO: localize
 }
 
 void UpdateButtonBar::OpenFailedUpdateMenu(const std::string &err, bool checker)
@@ -630,7 +623,8 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 		}, ACTIONF_FLOAT_RIGHT});
 
 		actions.push_back({"Dismiss", [this](auto &self){ // TODO: localize
-			Hide();
+			UpdateLanguage();
+			Show();
 			self.Close();
 		}});
 	}
@@ -1632,6 +1626,7 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 	}
 	else if(updater_check_updates || force)
 	{
+		bool new_update = true;
 		if(updater_cached_update->Length() > 0)
 		{
 			VersionInfo cachedVer(updater_cached_update);
@@ -1643,6 +1638,7 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 			}
 			else
 			{
+				new_update = false;
 				currentUpdate = update_info_t{cachedVer, true, {}, ""};
 			}
 		}
@@ -1671,11 +1667,21 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 			if(!currentUpdate.has_value() || curTime >= nextCheckTime || force) // invalidate cache if check time is due
 			{
 				bool ok;
+				bool was_cached = currentUpdate.has_value() && currentUpdate->cached;
+
+				VersionInfo cachedVer;
+
+				if(was_cached)
+				{
+					cachedVer = currentUpdate->version;
+				}
 
 				currentUpdate = GetUpdateInfo(ok);
 
 				if(!ok) return;
-				
+
+				new_update = !was_cached || (currentUpdate->version != cachedVer);
+
 				updater_last_update_check = std::to_string(curTime).c_str();
 				if(currentUpdate.has_value())
 				{
@@ -1706,7 +1712,7 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 
 				if(should_update && (skippedVer != currentUpdate->version))
 				{
-					if(updater_auto_updates || force)
+					if((updater_auto_updates && new_update) || force)
 					{
 						OpenUpdateMenu(true);
 					}
