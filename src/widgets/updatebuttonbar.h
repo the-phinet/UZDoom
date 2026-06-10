@@ -80,7 +80,7 @@ class UpdateButtonBar : public Widget
 		void OpenUpdateInitChoice();
 		void OpenUpdateIntervalChoice();
 		void OpenUpdateMenu(bool isAutoUpdate);
-		void OpenDismissUpdateMenu(bool isAutoUpdate);
+		void OpenDismissUpdateMenu();
 		void OpenFailedUpdateMenu(const std::string &err, bool checker);
 		void StartUpdate();
 		FString UpdateToString();
