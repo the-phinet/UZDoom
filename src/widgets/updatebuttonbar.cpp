@@ -297,33 +297,34 @@ public:
 
 				for(auto &btn : btns)
 				{
-					bool align_right = (actions[count].flags & ACTIONF_FLOAT_RIGHT);
-					count++;
+					bool align_right = !ignore_right_align && (actions[count].flags & ACTIONF_FLOAT_RIGHT) || ((count + 1) == btns.size() && float_last_right);
 
 					int len = btn->GetPreferredWidth();
 
-					if(((count != btns.size() || !float_last_right) && !align_right) || ignore_right_align)
+					if(!align_right)
 					{
 						btn->SetFrameGeometry(left, GetHeight() - rowHeight, len, buttonHeight);
 
 						left += (len + 5);
 					}
+
+					count++;
 				}
 
 				if(!ignore_right_align)
 				{
-					count = 0;
+					count = btns.size();
 					int right = GetWidth();
 
 					for(auto &btn : btns | std::views::reverse)
 					{
-						bool align_right = (actions[count].flags & ACTIONF_FLOAT_RIGHT);
+						count--;
 
-						count++;
+						bool align_right = (actions[count].flags & ACTIONF_FLOAT_RIGHT) || ((count + 1) == btns.size() && float_last_right);
 
 						int len = btn->GetPreferredWidth();
 
-						if((count == 1 && float_last_right) || align_right)
+						if(align_right)
 						{
 							right -= (len + 5);
 
