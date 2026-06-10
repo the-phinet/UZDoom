@@ -38,6 +38,7 @@
 #include <format>
 #include <thread>
 #include <mutex>
+#include <ranges>
 #include <filesystem>
 #include "filesystem.h"
 #include "cmdlib.h"
@@ -94,10 +95,31 @@ class PopupBase;
 
 std::unique_ptr<PopupBase> currentPopup;
 
+enum PopupButtonActionFlags
+{
+	ACTIONF_FLOAT_RIGHT = 0x1,
+};
+
+struct PopupButtonAction
+{
+	std::string text;
+	std::function<void(PopupBase&)> action;
+	int flags = 0;
+	int row = 0;
+};
+
+enum PopupFlags
+{
+	POPUPF_DISALLOW_CLOSE =			0x1,
+	POPUPF_JUSTIFY_BUTTONS =		0x2,
+	POPUPF_LAST_BUTTON_ALIGN_LEFT =	0x4,
+	POPUPF_CENTER_BUTTONS =			0x8,
+};
+
 class PopupBase : public Widget
 { // TODO move popups to their own header/file so that more things can use them, and change it so that multiple popups can open and stack, instead of just overwriting one another
 public:
-	using ActionListType = std::vector<std::tuple<std::string, int, std::function<void(PopupBase&)>>>;
+	using ActionListType = std::vector<PopupButtonAction>;
 	virtual ~PopupBase() = default;
 
 protected:
@@ -137,13 +159,9 @@ public:
 	}
 };
 
-
 template<class Derived>
 class ChoicePopup : public PopupBase
 {
-public:
-	using ActionListType = std::vector<std::tuple<std::string, int, std::function<void(ChoicePopup&)>>>;
-
 protected:
 	int GetExtraHeight() { return 0; }
 
@@ -151,10 +169,10 @@ protected:
 
 	std::vector<TextLabel *> text;
 public:
-	ChoicePopup(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, bool allowClose)
+	ChoicePopup(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, int flags)
 		: PopupBase(parent->Window(), WidgetType::Utility, RenderAPI::Unspecified, false)
 	{
-		allowCloseButton = allowClose;
+		allowCloseButton = !(flags & POPUPF_DISALLOW_CLOSE);
 
 		Size screenSize = GetScreenSize();
 
@@ -164,9 +182,20 @@ public:
 
 		windowHeight = text.size() > 0 ? 90.0 + (20 * text.size()): 80.0;
 
+		int numrows = 1;
+
+		for(auto &act : actions)
+		{
+			numrows = std::max(act.row + 1, numrows);
+		}
+
 		if(actions.size() == 0)
 		{
 			windowHeight -= 40;
+		}
+		else if(numrows > 1)
+		{
+			windowHeight += (numrows - 1) * 35;
 		}
 
 		if(extraHeight > 0)
@@ -204,36 +233,106 @@ public:
 			static_cast<Derived*>(this)->AddExtraElements(5);
 		}
 
-		int left = 0;
-		int count = 0;
-
-		for(auto &act : actions)
+		for(int i = 0; i < numrows; i++)
 		{
-			count++;
+			std::vector<PushButton *> btns;
 
-			PushButton * btn = new PushButton(this);
+			double totalwidth = 0.0;
+			double buttonHeight = 30.0;
+			double rowHeight = 35.0 * (numrows - i);
 
-			btn->SetText(std::get<0>(act));
-
-			int len = 90 + std::get<1>(act) * 30;
-
-			if(count == actions.size())
+			for(auto &act : actions)
 			{
-				btn->SetFrameGeometry(GetWidth() - (len + 5), GetHeight() - 35, len, 30);
+				if(act.row != i) continue;
+
+				PushButton * btn = new PushButton(this);
+
+				btn->SetText(act.text);
+
+				btn->OnClick = [this, act]()
+				{
+					act.action(*this);
+				};
+
+				btns.push_back(btn);
+
+				cleanup.push_back(std::unique_ptr<Widget>{btn});
+
+				totalwidth += btn->GetPreferredWidth();
+			}
+
+			if(flags & POPUPF_JUSTIFY_BUTTONS)
+			{
+				int left = 5;
+				int count = 0;
+
+				int padding = ((GetWidth() - 10) - totalwidth)/btns.size();
+
+				for(auto &btn : btns)
+				{
+					count++;
+
+					int len = btn->GetPreferredWidth();
+
+					if(count == btns.size())
+					{
+						btn->SetFrameGeometry(GetWidth() - (len + 5), GetHeight() - rowHeight, len, buttonHeight);
+					}
+					else
+					{
+						btn->SetFrameGeometry(left, GetHeight() - rowHeight, len, buttonHeight);
+					}
+
+					left += (len + padding);
+				}
 			}
 			else
 			{
-				btn->SetFrameGeometry(left + 5, GetHeight() - 35, len, 30);
+				int left = (flags & POPUPF_CENTER_BUTTONS) ? (GetWidth() - (totalwidth + 5 * btns.size())) / 2 : 5;
+				int count = 0;
+
+				bool ignore_right_align = (flags & POPUPF_CENTER_BUTTONS);
+
+				bool float_last_right = !(flags & POPUPF_LAST_BUTTON_ALIGN_LEFT);
+
+				for(auto &btn : btns)
+				{
+					bool align_right = !ignore_right_align && (actions[count].flags & ACTIONF_FLOAT_RIGHT) || ((count + 1) == btns.size() && float_last_right);
+
+					int len = btn->GetPreferredWidth();
+
+					if(!align_right)
+					{
+						btn->SetFrameGeometry(left, GetHeight() - rowHeight, len, buttonHeight);
+
+						left += (len + 5);
+					}
+
+					count++;
+				}
+
+				if(!ignore_right_align)
+				{
+					count = btns.size();
+					int right = GetWidth();
+
+					for(auto &btn : btns | std::views::reverse)
+					{
+						count--;
+
+						bool align_right = (actions[count].flags & ACTIONF_FLOAT_RIGHT) || ((count + 1) == btns.size() && float_last_right);
+
+						int len = btn->GetPreferredWidth();
+
+						if(align_right)
+						{
+							right -= (len + 5);
+
+							btn->SetFrameGeometry(right, GetHeight() - rowHeight, len, buttonHeight);
+						}
+					}
+				}
 			}
-
-			btn->OnClick = [this, act]()
-			{
-				std::get<2>(act)(*this);
-			};
-
-			cleanup.push_back(std::unique_ptr<Widget>{btn});
-
-			left += len + 5;
 		}
 
 		Show();
@@ -253,14 +352,14 @@ public:
 };
 
 template<class T = BasicPopup>
-T& OpenPopup(Widget * parent, const std::string &title, const std::vector<std::string> &text = {}, const PopupBase::ActionListType &actions = {}, double windowWidth = 500.0, bool allowClose = true)
+T& OpenPopup(Widget * parent, const std::string &title, const std::vector<std::string> &text = {}, const PopupBase::ActionListType &actions = {}, double windowWidth = 500.0, int flags = 0)
 {
 	if(currentPopup)
 	{
 		currentPopup->Close();
 	}
 
-	currentPopup = std::unique_ptr<PopupBase>(new T(parent, title, text, actions, windowWidth, allowClose));
+	currentPopup = std::unique_ptr<PopupBase>(new T(parent, title, text, actions, windowWidth, flags));
 
 	return *static_cast<T*>(currentPopup.get());
 }
@@ -279,7 +378,7 @@ protected:
 	double updateBarPercentage;
 
 	template<class>
-	friend void OpenPopup(Widget *, const std::string &, const std::vector<std::string> &, const PopupBase::ActionListType &, double, bool);
+	friend void OpenPopup(Widget *, const std::string &, const std::vector<std::string> &, const PopupBase::ActionListType &, double, int);
 
 	int GetExtraHeight()
 	{
@@ -465,42 +564,36 @@ bool UpdateButtonBar::OnMouseDown(const Point& pos, InputKey key)
 void UpdateButtonBar::OpenDismissUpdateMenu(bool isAutoUpdate)
 {
 	PopupBase::ActionListType actions = {
-		{"Dismiss", 0, [=, this](auto &self){ // TODO: localize
+		{"Dismiss", [=, this](auto &self){ // TODO: localize
 			Hide();
 			self.Close();
 		}},
-		{"Skip Update", 1, [=, this](auto &self){ // TODO: localize
+		{"Skip Update", [=, this](auto &self){ // TODO: localize
 			updater_skipped_update = FString(currentUpdate->version);
 			M_SaveDefaults(NULL); // save settings
 			Hide();
 			self.Close();
 		}},
-		{"Disable Update Checker", 3, [=, this](auto &self){ // TODO: localize
-			updater_check_updates = false;
-			M_SaveDefaults(NULL); // save settings
-			Hide();
-			self.Close();
-		}}
 	};
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Back", 0, [=, this](auto &self){ // TODO: localize
+		actions.push_back({"Back", [=, this](auto &self){ // TODO: localize
 			OpenUpdateMenu(true);
 		}});
 	}
 
-	OpenPopup(this, "Dismiss Update?", {}, actions, 550.0, !isAutoUpdate); // TODO: localize
+	OpenPopup(this, "Dismiss Update?", {}, actions, 550.0, isAutoUpdate ? POPUPF_DISALLOW_CLOSE : 0); // TODO: localize
 }
 
 void UpdateButtonBar::OpenFailedUpdateMenu(const std::string &err, bool checker)
 {
 	PopupBase::ActionListType actions = {
-		{"Dismiss", 0, [=, this](auto &self){ // TODO: localize
+		{"Dismiss", [=, this](auto &self){ // TODO: localize
 			Hide();
 			self.Close();
 		}},
-		{"Disable Update Checker", 3, [=, this](auto &self){ // TODO: localize
+		{"Disable Update Checker", [=, this](auto &self){ // TODO: localize
 			updater_check_updates = false;
 			M_SaveDefaults(NULL); // save settings
 			Hide();
@@ -508,28 +601,28 @@ void UpdateButtonBar::OpenFailedUpdateMenu(const std::string &err, bool checker)
 		}}
 	};
 
-	OpenPopup(this, checker ? "Checking for Update Failed" : "Update Failed", SplitNewLines((checker ? "Checking for Update Failed\n" : "Update Failed\n") + err), actions, 550.0, false); // TODO: localize
+	OpenPopup(this, checker ? "Checking for Update Failed" : "Update Failed", SplitNewLines((checker ? "Checking for Update Failed\n" : "Update Failed\n") + err), actions, 550.0, POPUPF_DISALLOW_CLOSE); // TODO: localize
 }
 
 void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 {
 	PopupBase::ActionListType actions = {
-		{"View Release Notes", 4, [this, isAutoUpdate](auto &self){
+		{"View Release Notes", [this, isAutoUpdate](auto &self){
 			OpenPopup(this, "Release Notes", this->currentUpdate->release_notes, // TODO: localize
 			{
-				{"Back", 0, [this, isAutoUpdate](auto &self){ // TODO: localize
+				{"Back", [this, isAutoUpdate](auto &self){ // TODO: localize
 					OpenUpdateMenu(isAutoUpdate);
 				}}
 			});
 		}},
-		{"Update", 0, [this](auto &currentPopup){ // TODO: localize
+		{"Update", [this](auto &currentPopup){ // TODO: localize
 			StartUpdate();
 		}}
 	};
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Dismiss", 0, [this](auto &self){ // TODO: localize
+		actions.push_back({"Dismiss/Skip", [this](auto &self){ // TODO: localize
 			OpenDismissUpdateMenu(true);
 		}});
 	}
@@ -549,7 +642,7 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 
 	updateInfo.push_back((GAMENAME + (" " + UpdateToString())).GetChars());
 
-	OpenPopup(this, isAutoUpdate ? "New Update Available" : "Update", updateInfo, actions, 500.0, !isAutoUpdate); // TODO: localize
+	OpenPopup(this, isAutoUpdate ? "New Update Available" : "Update", updateInfo, actions, 500.0, isAutoUpdate ? POPUPF_DISALLOW_CLOSE : 0); // TODO: localize
 }
 
 bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
@@ -575,17 +668,17 @@ bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
 			{
 				OpenPopup(this, "Dismiss Update?", {}, // TODO: localize
 				{
-					{"Dismiss", 0, [this](auto &self){ // TODO: localize
+					{"Dismiss", [this](auto &self){ // TODO: localize
 						this->Hide();
 						self.Close();
 					}},
-					{"Skip Update", 1, [this](auto &self){ // TODO: localize
+					{"Skip Update", [this](auto &self){ // TODO: localize
 						updater_skipped_update = FString(currentUpdate->version);
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
 						self.Close();
 					}},
-					{"Disable Update Checker", 3, [this](auto &self){ // TODO: localize
+					{"Disable Update Checker", [this](auto &self){ // TODO: localize
 						updater_check_updates = false;
 						M_SaveDefaults(NULL); // save settings
 						this->Hide();
@@ -630,27 +723,30 @@ void UpdateButtonBar::OpenUpdateInitChoice()
 	OpenPopup(this, "Update Checker", {"Would you like to automatically check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
-			"Yes, and prompt to install updates", 5, [this](auto &self) // TODO: localize
-			{
-				updater_auto_updates = true;
-				OpenUpdateIntervalChoice();
-			}
-		},{
-			"Yes", 5, [this](auto &self) // TODO: localize
+			"Yes", [this](auto &self) // TODO: localize
 			{
 				updater_auto_updates = false;
 				OpenUpdateIntervalChoice();
-			}
+			},
 		},{
-			"No", 0, [](auto &self) // TODO: localize
+			"Yes, and prompt to install updates", [this](auto &self) // TODO: localize
+			{
+				updater_auto_updates = true;
+				OpenUpdateIntervalChoice();
+			},
+			//ACTIONF_FLOAT_RIGHT
+		},{
+			"No", [](auto &self) // TODO: localize
 			{
 				updater_check_updates = false;
 				updater_check_updates_initialized = true;
 				M_SaveDefaults(NULL); // save settings
 				self.Close();
-			}
+			},
+			//0, 1
 		}
-	}, 600.0, false);
+	}, 600.0, POPUPF_DISALLOW_CLOSE|POPUPF_CENTER_BUTTONS);
+	//}, 600.0, POPUPF_DISALLOW_CLOSE);
 }
 
 void UpdateButtonBar::OpenUpdateIntervalChoice()
@@ -658,7 +754,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 	OpenPopup(this, "Update Checker", {"How often would you like to check for updates?", "(this can be changed later in the options tab)"}, // TODO: localize
 	{
 		{
-			"Every other day", 2, [](auto &self) // TODO: localize
+			"Every other day", [](auto &self) // TODO: localize
 			{
 				updater_check_updates = true;
 				updater_update_interval = 2;
@@ -668,7 +764,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				self.Close();
 			}
 		},{
-			"Every week", 1, [](auto &self) // TODO: localize
+			"Every week", [](auto &self) // TODO: localize
 			{
 				updater_check_updates = true;
 				updater_update_interval = 7;
@@ -678,7 +774,7 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				self.Close();
 			}
 		},{
-			"Every month", 1, [](auto &self) // TODO: localize
+			"Every month", [](auto &self) // TODO: localize
 			{
 				updater_check_updates = true;
 				updater_update_interval = 30;
@@ -688,13 +784,13 @@ void UpdateButtonBar::OpenUpdateIntervalChoice()
 				self.Close();
 			}
 		},{
-			"Back", 0, [this](auto &self) // TODO: localize
+			"Back", [this](auto &self) // TODO: localize
 			{
 				updater_auto_updates = false;
 				OpenUpdateInitChoice();
 			}
 		}
-	}, 550.0, false);
+	}, 550.0, POPUPF_DISALLOW_CLOSE);
 }
 
 bool UpdateButtonBar::curl_initialized = false;
@@ -1039,9 +1135,9 @@ protected:
 	};
 
 public:
-	ProgressDownloader(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, bool allowClose)
+	ProgressDownloader(Widget * parent, const std::string &title, const std::vector<std::string> &text, const PopupBase::ActionListType &actions, double _windowWidth, int flags)
 		:	CurlEasy(GAMENAME " Updater", true, false),
-		ProgressPopup(parent, title, ConcatText({"Starting Download..."}, text), actions, _windowWidth, allowClose) // TODO: localize
+		ProgressPopup(parent, title, ConcatText({"Starting Download..."}, text), actions, _windowWidth, flags) // TODO: localize
 	{}
 
 	static void DownloaderThread(ProgressDownloader * self, const std::string &url)
@@ -1096,7 +1192,7 @@ public:
 			{
 				OpenPopup(buttonBar, "Failed to open zip file", {"Update was cancelled"}, // TODO: localize
 				{
-					{"Back", 0, [](auto &self){
+					{"Back", [](auto &self){
 						self.Close();
 					}}
 				});
@@ -1237,7 +1333,7 @@ public:
 
 				OpenPopup(buttonBar, "Updated", {"Update was successful, the launcher will now restart."}, // TODO: localize
 				{
-					{"Confirm", 0, [progdir](auto &self){
+					{"Confirm", [progdir](auto &self){
 						updater_cached_update = "";
 						updater_last_update_check = std::to_string(getCurrentDate()).c_str();
 
@@ -1260,7 +1356,7 @@ public:
 						argv[0] = updater_filename_w;
 						_wexecv(updater_filename_w, argv);
 					}}
-				}, 500.0, false);
+				}, 500.0, POPUPF_DISALLOW_CLOSE);
 				#else
 					#error "Updater not implemented for non-windows platforms"
 				#endif
@@ -1280,7 +1376,7 @@ public:
 
 			OpenPopup(buttonBar, "Cancelled", {"Download was cancelled"}, // TODO: localize
 			{
-				{"Back", 0, [](auto &self){
+				{"Back", [](auto &self){
 					self.Close();
 				}}
 			});
