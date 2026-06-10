@@ -622,8 +622,16 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 
 	if(isAutoUpdate)
 	{
-		actions.push_back({"Dismiss/Skip", [this](auto &self){ // TODO: localize
-			OpenDismissUpdateMenu(true);
+		actions.push_back({"Skip", [this](auto &self){ // TODO: localize
+			updater_skipped_update = FString(currentUpdate->version);
+			M_SaveDefaults(NULL); // save settings
+			Hide();
+			self.Close();
+		}, ACTIONF_FLOAT_RIGHT});
+
+		actions.push_back({"Dismiss", [this](auto &self){ // TODO: localize
+			Hide();
+			self.Close();
 		}});
 	}
 
@@ -642,7 +650,7 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 
 	updateInfo.push_back((GAMENAME + (" " + UpdateToString())).GetChars());
 
-	OpenPopup(this, isAutoUpdate ? "New Update Available" : "Update", updateInfo, actions, 500.0, isAutoUpdate ? POPUPF_DISALLOW_CLOSE : 0); // TODO: localize
+	OpenPopup(this, isAutoUpdate ? "New Update Available" : "Update", updateInfo, actions, 500.0/*, isAutoUpdate ? POPUPF_DISALLOW_CLOSE : 0*/); // TODO: localize
 }
 
 bool UpdateButtonBar::OnMouseUp(const Point& pos, InputKey key)
