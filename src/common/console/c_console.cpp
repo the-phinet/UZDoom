@@ -409,7 +409,9 @@ void WriteLineToLog(FILE *LogFile, const char *outline)
 	fflush(LogFile);
 }
 
-inline int _PrintString(PrintFlag iprintlevel, const char *outline)
+namespace detail
+{
+inline int PrintString(PrintFlag iprintlevel, const char *outline)
 {
 	PrintFlag printlevel = static_cast<PrintFlag>(iprintlevel & PRINT_TYPES);
 	bool toScreen = printlevel != PRINT_LOG;
@@ -448,6 +450,8 @@ inline int _PrintString(PrintFlag iprintlevel, const char *outline)
 
 	return count;
 }
+}
+
 
 extern bool gameisdead;
 struct BufferedWrite { PrintFlag l; std::string s; };
@@ -465,13 +469,13 @@ int PrintString (PrintFlag iprintlevel, const char *outline)
 		return 0;
 	}
 
-	auto ret = _PrintString(iprintlevel, outline);
+	auto ret = ::detail::PrintString(iprintlevel, outline);
 
 	if (prebuffer) // we want the version string to be the first thing printed
 	{
 		for (auto &line: *prebuffer)
 		{
-			_PrintString(line.l, line.s.c_str());
+			::detail::PrintString(line.l, line.s.c_str());
 		}
 		prebuffer.reset();
 	}
@@ -510,16 +514,19 @@ int Printf (const char *format, ...)
 	return count;
 }
 
-inline int _DPrintf(DPrintLevel level, PrintFlag printlevel, const char *format, va_list argptr)
+namespace detail
+{
+inline int DPrintf(DPrintLevel level, PrintFlag printlevel, const char *format, va_list argptr)
 {
 	return (!developer.get() || developer >= level)? VPrintf(printlevel, format, argptr): 0;
+}
 }
 
 int DPrintf (DPrintLevel level, PrintFlag printlevel, const char *format, ...)
 {
 	va_list argptr;
 	va_start(argptr, format);
-	int count = _DPrintf(level, printlevel, format, argptr);
+	int count = ::detail::DPrintf(level, printlevel, format, argptr);
 	va_end(argptr);
 	return count;
 }
@@ -528,12 +535,14 @@ int DPrintf(DPrintLevel level, const char *format, ...)
 {
 	va_list argptr;
 	va_start(argptr, format);
-	int count = _DPrintf(level, PRINT_HIGH, format, argptr);
+	int count = ::detail::DPrintf(level, PRINT_HIGH, format, argptr);
 	va_end(argptr);
 	return count;
 }
 
-void __DebugLog(std::string_view file, size_t line, const char * format, ...)
+namespace detail
+{
+void DebugLog(std::string_view file, size_t line, const char * format, ...)
 {
 	static const size_t start = [&file]() {
 		std::string here = __FILE__;
@@ -556,6 +565,7 @@ void __DebugLog(std::string_view file, size_t line, const char * format, ...)
 	data.VFormat(format, argptr);
 	va_end(argptr);
 	DPrintf(DMSG_SPAMMY, PRINT_HIGH, "%s:%lu : %s\n", file.data(), line, data.GetChars());
+}
 }
 
 void C_FlushDisplay ()
