@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       env_name: ${{ steps.set-env.outputs.environment }}
+      rel_name: ${{ steps.set-env.outputs.stream }}
     steps:
     - name: Set Environment
       id: set-env
@@ -51,12 +52,17 @@ jobs:
         REF: ${{ github.ref }}
       run: |
         environment=""
+        stream="rolling"
         if [[ "$REPO" == UZDoom/UZDoom ]]; then
-          if [[ "$REF" == refs/heads/trunk ]] || [[ "$REF" =~ refs/heads/\d+\.\d+.* ]]; then
+          if [[ "$REF" == refs/heads/trunk ]]; then
             environment="production"
+          elif [[ "$REF" =~ refs/heads/\d+\.\d+.* ]]; then
+            environment="production"
+            stream="versioned"
           fi
         fi
         echo "environment=$environment" | tee -a "$GITHUB_OUTPUT"
+        echo "stream=$stream" | tee -a "$GITHUB_OUTPUT"
 
   run_build:
     name: ${{ inputs.name }} ${{ inputs.build_type }}
@@ -337,7 +343,6 @@ jobs:
         cp -f ../fm_banks/GENMIDI.GS.wopl ../fm_banks/gs-by-papiezak-and-sneakernets.wopn package/fm_banks
 
         shopt -s nullglob
-        
         mv -f *.exe *.pk3 *.pdb package
 
         cd package
@@ -412,7 +417,7 @@ jobs:
         NAME: ${{ steps.package.outputs.name }}
         OWNER: ${{ github.repository_owner }}
         REPO: ${{ github.event.repository.name }}
-        TAG: latest
+        TAG: ${{ needs.setup_build.outputs.rel_name == 'rolling' && 'latest-pre' || 'latest' }}
       run: |
         ldd uzdoom
 
