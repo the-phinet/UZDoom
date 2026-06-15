@@ -255,9 +255,6 @@ jobs:
         BUILD_TYPE: ${{ inputs.build_type }}
         BUILD_OPTS: ${{ inputs.build_opts }}
       run: |
-        export GIT_DESCRIBE="$(git describe --tags --exclude x-*)"
-        echo "version=$GIT_DESCRIBE" | tee -a "$GITHUB_OUTPUT"
-
         config () { cmake -B build -S . -DPK3_QUIET_ZIPDIR=ON -G Ninja -DCMAKE_BUILD_TYPE=$BUILD_TYPE $BUILD_OPTS ; }
         build () { cmake --build build --config $BUILD_TYPE ; }
 
@@ -309,7 +306,7 @@ jobs:
         mkdir package
         7z a package/licenses.zip ../docs/licenses/*
 
-        echo "name=${{ runner.os }}-$(uname -m)-UZDoom-${{ steps.build.outputs.version }}" | tee -a "$GITHUB_OUTPUT"
+        echo "name=${{ runner.os }}-$(uname -m)-UZDoom-$(git describe --tags --exclude x-*)" | tee -a "$GITHUB_OUTPUT"
 
     - name: Package Windows
       if: runner.os == 'Windows'
@@ -413,7 +410,6 @@ jobs:
       working-directory: build
       env:
         NAME: ${{ steps.package.outputs.name }}
-        GIT_DESCRIBE: ${{ steps.build.outputs.version }}
         OWNER: ${{ github.repository_owner }}
         REPO: ${{ github.event.repository.name }}
         TAG: latest
