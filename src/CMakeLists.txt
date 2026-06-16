@@ -325,8 +325,9 @@ option(BUILD_FLATPAK "Enable Flatpak-specific build options" OFF)
 
 # Update gitinfo.h
 
-add_custom_target( revision_check ALL
+add_custom_target( revision_check
 	COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/cmake/UpdateRevision.cmake" "${CMAKE_BINARY_DIR}/gitinfo.h"
+	BYPRODUCTS "${CMAKE_BINARY_DIR}/gitinfo.h"
 	WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
 
@@ -640,6 +641,8 @@ file( GLOB HEADER_FILES
 	rendering/hwrenderer/*.h
 	rendering/hwrenderer/scene/*.h
 	*.h
+
+	${CMAKE_BINARY_DIR}/gitinfo.h
 )
 
 set ( SWRENDER_SOURCES
@@ -1424,8 +1427,6 @@ include_directories(
 	${SYSTEM_SOURCES_DIR}
 )
 
-add_dependencies( zdoom revision_check )
-
 set_target_properties( zdoom PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${ZDOOM_OUTPUT_DIR} )
 set_target_properties( zdoom PROPERTIES OUTPUT_NAME ${ZDOOM_EXE_NAME} )
 
@@ -1600,6 +1601,8 @@ endif()
 install(TARGETS zdoom
 		DESTINATION ${INSTALL_PATH}
 		COMPONENT "Game executable")
+
+add_dependencies( zdoom revision_check )
 
 source_group("Audio Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/sound/.+")
 source_group("Game Data" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/gamedata/.+")
