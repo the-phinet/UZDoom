@@ -1337,13 +1337,16 @@ if (ENABLE_IWYU)
 	find_program(IWYU NAMES include-what-you-use iwyu)
 	if(IWYU)
 		message(STATUS "Using IWYU, found at ${IWYU}")
+		if (USE_PCH)
+			message(WARNING "PCH is known to make IWYU diagnostics fail. Consider disabling PCH with USE_PCH=OFF")
+		endif()
 		set_target_properties(zdoom PROPERTIES
 			CXX_INCLUDE_WHAT_YOU_USE "${IWYU}"
 			"-Xiwyu" "--mapping_file=${CMAKE_SOURCE_DIR}/tools/iwyu.imp"
 		)
 		set_source_files_properties(utility/name.cpp PROPERTIES SKIP_LINTING ON)
 	else()
-		message(WARNING "IWYU not found.")
+		message(STATUS "IWYU not found. Diagnostics disabled")
 	endif()
 endif()
 
