@@ -53,6 +53,7 @@
 #include "zstring.h"
 #include <array>
 #include <string_view>
+#include <vector>
 
 namespace Console::Defaults
 {
@@ -449,15 +450,33 @@ inline int _PrintString(PrintFlag iprintlevel, const char *outline)
 }
 
 extern bool gameisdead;
+struct BufferedWrite { PrintFlag l; std::string s; };
+std::unique_ptr<std::vector<BufferedWrite>> prebuffer;
 
 int PrintString (PrintFlag iprintlevel, const char *outline)
 {
 	if (gameisdead)
 		return 0;
 
-	if (!conbuffer) return 0;
+	if (!conbuffer)
+	{
+		if (!prebuffer) prebuffer = std::make_unique<std::vector<BufferedWrite>>();
+		if (prebuffer) prebuffer->push_back({iprintlevel, outline});
+		return 0;
+	}
 
-	return _PrintString(iprintlevel, outline);
+	auto ret = _PrintString(iprintlevel, outline);
+
+	if (prebuffer) // we want the version string to be the first thing printed
+	{
+		for (auto &line: *prebuffer)
+		{
+			_PrintString(line.l, line.s.c_str());
+		}
+		prebuffer.reset();
+	}
+
+	return ret;
 }
 
 int VPrintf (PrintFlag printlevel, const char *format, va_list parms)
