@@ -408,6 +408,46 @@ void WriteLineToLog(FILE *LogFile, const char *outline)
 	fflush(LogFile);
 }
 
+inline int _PrintString(PrintFlag iprintlevel, const char *outline)
+{
+	PrintFlag printlevel = static_cast<PrintFlag>(iprintlevel & PRINT_TYPES);
+	bool toScreen = printlevel != PRINT_LOG;
+	bool toFile = Logfile != nullptr && !(iprintlevel & PRINT_NOLOG);
+	bool toDebugger = !(iprintlevel & PRINT_NODAPEVENT);
+	int count = 0;
+
+	if (toScreen || toFile || toDebugger)
+	{
+		// Convert everything coming through here to UTF-8 so that all console text is in a consistent format
+		outline = MakeUTF8(outline, &count);
+	}
+	if (count == 0) return 0;
+
+	if (toScreen)
+	{
+		I_PrintStr(outline);
+		if (!(iprintlevel & PRINT_NOCONSOLE))
+			conbuffer->AddText(printlevel, outline);
+		if (vidactive && screen && !(iprintlevel & PRINT_NONOTIFY) && NotifyStrings)
+		{
+			if (printlevel >= msglevel)
+			{
+				NotifyStrings->AddString(iprintlevel, outline);
+			}
+		}
+	}
+	if (toFile)
+	{
+		WriteLineToLog(Logfile, outline);
+	}
+	if (toDebugger)
+	{
+		DebugServer::RuntimeEvents::EmitLogEvent(iprintlevel, outline);
+	}
+
+	return count;
+}
+
 extern bool gameisdead;
 
 int PrintString (PrintFlag iprintlevel, const char *outline)
@@ -415,42 +455,9 @@ int PrintString (PrintFlag iprintlevel, const char *outline)
 	if (gameisdead)
 		return 0;
 
-	if (!conbuffer) return 0;	// when called too early
-	PrintFlag printlevel = static_cast<PrintFlag>(iprintlevel & PRINT_TYPES);
-	if (*outline == '\0')
-	{
-		return 0;
-	}
-	if (printlevel != PRINT_LOG || !(iprintlevel & PRINT_NODAPEVENT) || Logfile != nullptr)
-	{
-		// Convert everything coming through here to UTF-8 so that all console text is in a consistent format
-		int count;
-		outline = MakeUTF8(outline, &count);
+	if (!conbuffer) return 0;
 
-		if (printlevel != PRINT_LOG)
-		{
-			I_PrintStr(outline);
-			if (!(iprintlevel & PRINT_NOCONSOLE))
-				conbuffer->AddText(printlevel, outline);
-			if (vidactive && screen && !(iprintlevel & PRINT_NONOTIFY) && NotifyStrings)
-			{
-				if (printlevel >= msglevel)
-				{
-					NotifyStrings->AddString(iprintlevel, outline);
-				}
-			}
-		}
-		if (Logfile != nullptr && !(iprintlevel & PRINT_NOLOG))
-		{
-			WriteLineToLog(Logfile, outline);
-		}
-		if (!(iprintlevel & PRINT_NODAPEVENT))
-		{
-			DebugServer::RuntimeEvents::EmitLogEvent(iprintlevel, outline);
-		}
-		return count;
-	}
-	return 0;	// Don't waste time on calculating this if nothing at all was printed...
+	return _PrintString(iprintlevel, outline);
 }
 
 int VPrintf (PrintFlag printlevel, const char *format, va_list parms)
