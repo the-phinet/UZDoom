@@ -47,6 +47,7 @@ private:
 	TextLabel* ExtrasLabel = nullptr;
 	TextLabel* LoadLabel = nullptr;
 	CheckboxLabel* FullscreenCheckbox = nullptr;
+	CheckboxLabel* VsyncCheckbox = nullptr;
 	CheckboxLabel* DisableAutoloadCheckbox = nullptr;
 	CheckboxLabel* DontAskAgainCheckbox = nullptr;
 	CheckboxLabel* LightsCheckbox = nullptr;

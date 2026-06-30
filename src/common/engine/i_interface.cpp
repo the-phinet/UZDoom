@@ -80,6 +80,7 @@ CVAR(Float, ui_color_mix, .35, CVAR_ARCHIVE | CVAR_GLOBALCONFIG);
 EXTERN_CVAR(Bool, ui_generic)
 EXTERN_CVAR(Int, vid_preferbackend)
 EXTERN_CVAR(Bool, vid_fullscreen)
+EXTERN_CVAR(Bool, vid_vsync)
 
 #ifdef HAS_UPDATER
 EXTERN_CVAR(Int, updater_update_interval)
@@ -104,6 +105,7 @@ FStartupSelectionInfo::FStartupSelectionInfo(const TArray<WadStuff>& wads, FArgs
 	DefaultLanguage = language;
 	DefaultBackend = vid_preferbackend;
 	DefaultFullscreen = vid_fullscreen;
+	DefaultVsync = vid_vsync;
 
 	if (defaultiwad[0] != '\0')
 	{
@@ -182,6 +184,7 @@ int FStartupSelectionInfo::SaveInfo()
 	queryiwad = DefaultQueryIWAD;
 	language = DefaultLanguage.GetChars();
 	vid_fullscreen = DefaultFullscreen;
+	vid_vsync = DefaultVsync;
 	if (DefaultBackend != vid_preferbackend)
 		vid_preferbackend = DefaultBackend;
 

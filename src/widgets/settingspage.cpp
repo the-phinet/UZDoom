@@ -47,6 +47,7 @@ SettingsPage::SettingsPage(LauncherWindow* launcher, const FStartupSelectionInfo
 	GeneralLabel = new TextLabel(this);
 	ExtrasLabel = new TextLabel(this);
 	FullscreenCheckbox = new CheckboxLabel(this);
+	VsyncCheckbox = new CheckboxLabel(this);
 	DisableAutoloadCheckbox = new CheckboxLabel(this);
 	DontAskAgainCheckbox = new CheckboxLabel(this);
 	LightsCheckbox = new CheckboxLabel(this);
@@ -55,6 +56,7 @@ SettingsPage::SettingsPage(LauncherWindow* launcher, const FStartupSelectionInfo
 	SupportWadsCheckbox = new CheckboxLabel(this);
 
 	FullscreenCheckbox->SetChecked(info.DefaultFullscreen);
+	VsyncCheckbox->SetChecked(info.DefaultVsync);
 	DontAskAgainCheckbox->SetChecked(!info.DefaultQueryIWAD);
 
 	DisableAutoloadCheckbox->SetChecked(info.DefaultStartFlags & 1);
@@ -178,6 +180,7 @@ SettingsPage::SettingsPage(LauncherWindow* launcher, const FStartupSelectionInfo
 void SettingsPage::SetValues(FStartupSelectionInfo& info) const
 {
 	info.DefaultFullscreen = FullscreenCheckbox->GetChecked();
+	info.DefaultVsync = VsyncCheckbox->GetChecked();
 	info.DefaultQueryIWAD = !DontAskAgainCheckbox->GetChecked();
 	info.DefaultLanguage = languages[LangList->GetSelectedItem()].first.GetChars();
 
@@ -240,7 +243,8 @@ void SettingsPage::UpdateLanguage()
 	LoadLabel->SetText(GStrings.GetString("PICKER_FILELOADING"));
 	GeneralLabel->SetText(GStrings.GetString("PICKER_GENERAL"));
 	ExtrasLabel->SetText(GStrings.GetString("PICKER_EXTRA"));
-	FullscreenCheckbox->SetText(GStrings.GetString("PICKER_FULLSCREEN"));
+	FullscreenCheckbox->SetText(GStrings.GetString("VIDMNU_FULLSCREEN"));
+	VsyncCheckbox->SetText(GStrings.GetString("DSPLYMNU_VSYNC"));
 	DisableAutoloadCheckbox->SetText(GStrings.GetString("PICKER_NOAUTOLOAD"));
 	DontAskAgainCheckbox->SetText(GStrings.GetString("PICKER_DONTASK"));
 	LightsCheckbox->SetText(GStrings.GetString("PICKER_LIGHTS"));
@@ -320,6 +324,9 @@ void SettingsPage::OnGeometryChanged()
 
 	FullscreenCheckbox->SetFrameGeometry(0.0, y, 190.0, FullscreenCheckbox->GetPreferredHeight());
 	y += FullscreenCheckbox->GetPreferredHeight();
+
+	VsyncCheckbox->SetFrameGeometry(0.0, y, 190.0, VsyncCheckbox->GetPreferredHeight());
+	y += VsyncCheckbox->GetPreferredHeight();
 
 	DisableAutoloadCheckbox->SetFrameGeometry(0.0, y, 190.0, DisableAutoloadCheckbox->GetPreferredHeight());
 	y += DisableAutoloadCheckbox->GetPreferredHeight();
