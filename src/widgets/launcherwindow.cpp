@@ -66,7 +66,7 @@ void LauncherWindow::UpdateSize()
 	SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
 }
 
-LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window, RenderAPI::Unspecified, false), Info(&info)
+LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window), Info(&info)
 {
 #ifdef HAS_UPDATER
 	LoadCurl();
