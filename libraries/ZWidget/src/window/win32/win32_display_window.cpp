@@ -98,16 +98,21 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, Win32Displ
 	// WS_SYSMENU shows the min/max/close buttons
 	// WS_THICKFRAME makes the window resizable
 
+	float scale = GetDpiForSystem()/96.0;
 	resizable = params.resizable;
-	minW = params.minSize.width;
-	minH = params.minSize.height;
-	maxW = params.maxSize.width;
-	maxH = params.maxSize.height;
+	minW = scale * params.minSize.width;
+	minH = scale * params.minSize.height;
+	maxW = scale * params.maxSize.width;
+	maxH = scale * params.maxSize.height;
+	params.size.width *= scale;
+	params.size.height *= scale;
+	if (params.size.width < minW) params.size.width = minW;
+	if (params.size.height < minH) params.size.height = minH;
 
 	int x = 0, y = 0;
 	if (params.centered)
 	{
-		auto s = GetScreenSize();
+		auto s = GetScreenSize() * scale;
 		x = std::max(0.0, s.width - params.size.width) / 2;
 		y = std::max(0.0, s.height - params.size.height) / 2;
 	}
@@ -595,10 +600,10 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 			LPMINMAXINFO lpMMI = (LPMINMAXINFO)lparam;
 			int minWL = GetSystemMetrics(SM_CXMINTRACK), minHL = GetSystemMetrics(SM_CYMINTRACK);
 			int maxWL = GetSystemMetrics(SM_CXMAXTRACK), maxHL = GetSystemMetrics(SM_CYMAXTRACK);
-			lpMMI->ptMinTrackSize.x = std::max(minW, minWL);
-			lpMMI->ptMinTrackSize.y = std::max(minH, minHL);
-			lpMMI->ptMaxTrackSize.x = std::min(maxW >= minW? maxW: maxWL, maxWL);
-			lpMMI->ptMaxTrackSize.y = std::min(maxH >= minH? maxH: maxHL, maxHL);
+			lpMMI->ptMinTrackSize.x = std::max(minW, std::max(1, minWL));
+			lpMMI->ptMinTrackSize.y = std::max(minH, std::max(1, minHL));
+			lpMMI->ptMaxTrackSize.x = std::min(maxW >= lpMMI->ptMinTrackSize.x? maxW: maxWL, maxWL);
+			lpMMI->ptMaxTrackSize.y = std::min(maxH >= lpMMI->ptMinTrackSize.y? maxH: maxHL, maxHL);
 		}
 	}
 	else if (msg == WM_PAINT)
