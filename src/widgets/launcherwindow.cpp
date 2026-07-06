@@ -39,12 +39,15 @@
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
-	unsigned height = 800, width = 650;
+	unsigned width = 650, height = 800;
 
 #ifdef HAS_UPDATER
 	LoadCurl();
 	if (IsCurlLoaded()) height += 34;
 #endif
+
+	if (info.LauncherWidth > 0) width = info.LauncherWidth;
+	if (info.LauncherHeight > 0) height = info.LauncherHeight;
 
 	auto launcher = std::make_unique<LauncherWindow>(info, WindowParams{
 		.size = { width, height },
@@ -200,6 +203,9 @@ void LauncherWindow::OnClose()
 
 void LauncherWindow::OnGeometryChanged()
 {
+	Info->LauncherWidth = GetWidth();
+	Info->LauncherHeight = GetHeight();
+
 	double top = Banner->GetPreferredHeight();
 	double bottom = GetHeight();
 
