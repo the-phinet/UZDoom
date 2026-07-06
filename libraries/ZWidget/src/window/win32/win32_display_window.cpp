@@ -1,4 +1,3 @@
-
 #include "win32_display_window.h"
 #include <zwidget/core/image.h>
 #include <windowsx.h>
@@ -80,7 +79,7 @@ static double DelayLoadGetDpiScale(HWND hwnd)
 	}
 }
 
-Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popupWindow, Win32DisplayWindow* owner, RenderAPI renderAPI, bool resizable, bool utility) : WindowHost(windowHost), PopupWindow(popupWindow)
+Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, Win32DisplayWindow* owner, RenderAPI renderAPI, struct WindowParams params) : WindowHost(windowHost), PopupWindow(params.popup)
 {
 	Windows.push_front(this);
 	WindowsIterator = Windows.begin();
@@ -99,8 +98,22 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popup
 	// WS_SYSMENU shows the min/max/close buttons
 	// WS_THICKFRAME makes the window resizable
 
+	resizable = params.resizable;
+	minW = params.minSize.width;
+	minH = params.minSize.height;
+	maxW = params.maxSize.width;
+	maxH = params.maxSize.height;
+
+	int x = 0, y = 0;
+	if (params.centered)
+	{
+		auto s = GetScreenSize();
+		x = std::max(0.0, s.width - params.size.width) / 2;
+		y = std::max(0.0, s.height - params.size.height) / 2;
+	}
+
 	DWORD style = 0, exstyle = 0;
-	if (popupWindow)
+	if (params.popup)
 	{
 		exstyle = WS_EX_NOACTIVATE;
 		style = WS_POPUP;
@@ -108,9 +121,9 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, bool popup
 	else
 	{
 		exstyle = WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME;
-		style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | (resizable ? (WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) : WS_MINIMIZEBOX);
+		style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | (params.resizable ? (WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) : WS_MINIMIZEBOX);
 	}
-	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, 0, 0, 100, 100, owner ? owner->WindowHandle.hwnd : 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, x, y, params.size.width, params.size.height, owner ? owner->WindowHandle.hwnd : 0, 0, GetModuleHandle(0), this);
 }
 
 Win32DisplayWindow::~Win32DisplayWindow()
@@ -574,6 +587,19 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 			}
 		}
 		return DefWindowProc(WindowHandle.hwnd, msg, wparam, lparam);
+	}
+	else if (msg == WM_GETMINMAXINFO)
+	{
+		if (resizable)
+		{
+			LPMINMAXINFO lpMMI = (LPMINMAXINFO)lparam;
+			int minWL = GetSystemMetrics(SM_CXMINTRACK), minHL = GetSystemMetrics(SM_CYMINTRACK);
+			int maxWL = GetSystemMetrics(SM_CXMAXTRACK), maxHL = GetSystemMetrics(SM_CYMAXTRACK);
+			lpMMI->ptMinTrackSize.x = std::max(minW, minWL);
+			lpMMI->ptMinTrackSize.y = std::max(minH, minHL);
+			lpMMI->ptMaxTrackSize.x = std::min(maxW >= minW? maxW: maxWL, maxWL);
+			lpMMI->ptMaxTrackSize.y = std::min(maxH >= minH? maxH: maxHL, maxHL);
+		}
 	}
 	else if (msg == WM_PAINT)
 	{
