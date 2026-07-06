@@ -39,9 +39,20 @@
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
-	auto launcher = std::make_unique<LauncherWindow>(info);
+	unsigned height = 700, width = 615;
 
-	launcher->UpdateSize();
+#ifdef HAS_UPDATER
+	LoadCurl();
+	if (IsCurlLoaded()) height += 34;
+#endif
+
+	auto launcher = std::make_unique<LauncherWindow>(info, WindowParams{
+		.size = { width, height },
+		.resizable = true,
+		.minSize = { 450, 550 },
+		.centered = true,
+	});
+
 	launcher->Show();
 
 	DisplayWindow::RunLoop();
@@ -49,28 +60,8 @@ bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 	return launcher->ExecResult;
 }
 
-void LauncherWindow::UpdateSize()
+LauncherWindow::LauncherWindow(FStartupSelectionInfo& info, struct WindowParams params) : Widget(nullptr, WidgetType::Window, RenderAPI::Unspecified, params), Info(&info)
 {
-	Size screenSize = GetScreenSize();
-
-	double windowWidth = 615.0;
-	double windowHeight = 700.0;
-
-#ifdef HAS_UPDATER
-	if(IsCurlLoaded())
-	{
-		windowHeight += UpdateBar->GetPreferredHeight() + UpdateBar->GetMargin();
-	}
-#endif
-
-	SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);
-}
-
-LauncherWindow::LauncherWindow(FStartupSelectionInfo& info) : Widget(nullptr, WidgetType::Window), Info(&info)
-{
-#ifdef HAS_UPDATER
-	LoadCurl();
-#endif
 	SetWindowTitle(GAMENAME);
 	this->SetStyleColor("background-color", Theme::getHeader(COLOR_BACKGROUND));
 

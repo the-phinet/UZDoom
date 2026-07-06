@@ -41,7 +41,7 @@ class LauncherWindow : public Widget
 public:
 	static bool ExecModal(FStartupSelectionInfo& info);
 
-	LauncherWindow(FStartupSelectionInfo& info);
+	LauncherWindow(FStartupSelectionInfo& info, struct WindowParams params);
 	void UpdateLanguage();
 
 	void UpdateSize();
