@@ -39,18 +39,15 @@
 
 bool LauncherWindow::ExecModal(FStartupSelectionInfo& info)
 {
-	unsigned width = 650, height = 800;
-
 #ifdef HAS_UPDATER
 	LoadCurl();
-	if (IsCurlLoaded()) height += 34;
 #endif
 
-	if (info.LauncherWidth > 0) width = info.LauncherWidth;
-	if (info.LauncherHeight > 0) height = info.LauncherHeight;
-
 	auto launcher = std::make_unique<LauncherWindow>(info, WindowParams{
-		.size = { width, height },
+		.size = {
+			info.LauncherWidth>0? info.LauncherWidth: 650,
+			info.LauncherHeight>0? info.LauncherHeight: 800,
+		},
 		.resizable = true,
 		.minSize = { 550, 450 },
 		.centered = true,
@@ -85,6 +82,7 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info, struct WindowParams 
 	if(IsCurlLoaded())
 	{
 		UpdateBar = new UpdateButtonBar(this, Settings);
+		UpdateBar->Subscribe(this);
 		UpdateBar->Hide();
 	}
 #endif
@@ -115,6 +113,13 @@ LauncherWindow::LauncherWindow(FStartupSelectionInfo& info, struct WindowParams 
 #endif
 }
 
+void LauncherWindow::Notify(Widget* source, const WidgetEvent type)
+{
+#ifdef HAS_UPDATER  
+	if (source == UpdateBar && type==WidgetEvent::VisibilityChange) OnGeometryChanged();
+#endif
+}
+
 void LauncherWindow::ForceCheckUpdate()
 {
 #ifdef HAS_UPDATER
@@ -130,8 +135,8 @@ void LauncherWindow::OnWindowClose()
 {
 	Close();
 }
-
 #endif
+
 void LauncherWindow::UpdatePlayButton()
 {
 	Buttonbar->UpdateLanguage();
@@ -193,6 +198,7 @@ void LauncherWindow::UpdateLanguage()
 		UpdateBar->UpdateLanguage();
 	}
 #endif
+
 	OnGeometryChanged();
 }
 
@@ -214,7 +220,7 @@ void LauncherWindow::OnGeometryChanged()
 	Banner->SetFrameGeometry(0, 0, GetWidth(), top);
 
 #ifdef HAS_UPDATER
-	if(IsCurlLoaded())
+	if(IsCurlLoaded() && UpdateBar->IsVisible())
 	{
 		double updateBarHeight = UpdateBar->GetPreferredHeight();
 		UpdateBar->SetFrameGeometry(0.0, top, GetWidth(), updateBarHeight);

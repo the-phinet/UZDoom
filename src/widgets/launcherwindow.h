@@ -57,6 +57,7 @@ private:
 	void OnClose() override;
 	void OnGeometryChanged() override;
 	void OnWindowClose() override;
+	void Notify(Widget* source, const WidgetEvent type) override;
 
 	LauncherBanner* Banner = nullptr;
 	TabWidget* Pages = nullptr;
