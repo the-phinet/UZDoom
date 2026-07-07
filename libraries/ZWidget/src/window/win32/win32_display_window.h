@@ -100,5 +100,5 @@ public:
 	StandardCursor CurrentCursor = StandardCursor::arrow;
 private:
 	bool resizable;
-	int minW, maxW, minH, maxH;
+	int minW, maxW, minH, maxH, padW, padH;
 };

@@ -98,25 +98,6 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, Win32Displ
 	// WS_SYSMENU shows the min/max/close buttons
 	// WS_THICKFRAME makes the window resizable
 
-	float scale = GetDpiForSystem()/96.0;
-	resizable = params.resizable;
-	minW = scale * params.minSize.width;
-	minH = scale * params.minSize.height;
-	maxW = scale * params.maxSize.width;
-	maxH = scale * params.maxSize.height;
-	params.size.width *= scale;
-	params.size.height *= scale;
-	if (params.size.width < minW) params.size.width = minW;
-	if (params.size.height < minH) params.size.height = minH;
-
-	int x = 0, y = 0;
-	if (params.centered)
-	{
-		auto s = GetScreenSize() * scale;
-		x = std::max(0.0, s.width - params.size.width) / 2;
-		y = std::max(0.0, s.height - params.size.height) / 2;
-	}
-
 	DWORD style = 0, exstyle = 0;
 	if (params.popup)
 	{
@@ -128,7 +109,38 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, Win32Displ
 		exstyle = WS_EX_APPWINDOW | WS_EX_DLGMODALFRAME;
 		style = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | (params.resizable ? (WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX) : WS_MINIMIZEBOX);
 	}
-	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, x, y, params.size.width, params.size.height, owner ? owner->WindowHandle.hwnd : 0, 0, GetModuleHandle(0), this);
+
+	float scale = GetDpiForSystem()/96.0;
+	resizable = params.resizable;
+	minW = scale * params.minSize.width;
+	minH = scale * params.minSize.height;
+	maxW = scale * params.maxSize.width;
+	maxH = scale * params.maxSize.height;
+	LONG width = params.size.width * scale;
+	LONG height = params.size.height * scale;
+	if (width < minW) width = minW;
+	if (height < minH) height = minH;
+	RECT wr = { 0, 0, width, height };
+	AdjustWindowRectEx(&wr, style, FALSE, exstyle);
+	padW = wr.right - wr.left - width;
+	padH = wr.bottom - wr.top - height;
+	width += padW;
+	height += padH;
+	minW += padW;
+	minH += padH;
+	maxW += padW;
+	maxH += padH;
+
+	int x = 0, y = 0;
+	if (params.centered)
+	{
+		auto s = GetScreenSize() * scale;
+		x = std::max(0.0, s.width - width) / 2;
+		y = std::max(0.0, s.height - height) / 2;
+	}
+
+	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, x, y, width, height,
+		owner ? owner->WindowHandle.hwnd : 0, 0, GetModuleHandle(0), this);
 }
 
 Win32DisplayWindow::~Win32DisplayWindow()
