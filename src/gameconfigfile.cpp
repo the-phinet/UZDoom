@@ -705,7 +705,7 @@ void FGameConfigFile::DoGlobalSetup ()
 #ifdef HAS_UPDATER
 		if (EngineLastRunVer < 232) // UZDoom 5.0
 		{
-			if (updater_update_interval == 2) updater_update_interval == 1;
+			if (updater_update_interval == 2) updater_update_interval = 1;
 		}
 #endif
 	}
