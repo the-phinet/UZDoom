@@ -1447,7 +1447,11 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	std::string downloadName;
 	std::string downloadUrl;
 
-	if(!doc.IsObject() || !doc.HasMember("assets") || !doc["assets"].IsArray())
+#define HAS_MEMBER(source, id, type) ( source.HasMember(id) && source[id].Is##type() )
+#define FAIL_WITH_ERROR { ok = false; silentfail = false; return std::nullopt; }
+#define FAIL_AND_RECOVER { ok = false; silentfail = true; return std::nullopt; }
+	
+	if(!doc.IsObject() || !HAS_MEMBER(doc, "assets", Array))
 	{
 		ok = false;
 		silentfail = false;
@@ -1462,29 +1466,15 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 
 	for(int i = 0; i < (int)arr.Size(); i++)
 	{
-		if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+		if(!HAS_MEMBER(arr[i], "name", String)) FAIL_WITH_ERROR;
+
+		if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
 		{
-			ok = false;
-			silentfail = false;
-			return std::nullopt;
-		}
-		else if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
-		{
-			if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
-			{
-				ok = false;
-				silentfail = false;
-				return std::nullopt;
-			}
+			if(!HAS_MEMBER(arr[i], "browser_download_url", String)) FAIL_WITH_ERROR;
 
 			auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
 
-			if(!release_info.has_value())
-			{
-				ok = false;
-				silentfail = true;
-				return std::nullopt;
-			}
+			if(!release_info.has_value()) FAIL_AND_RECOVER;
 
 			relinfo = std::move(*release_info);
 
@@ -1493,29 +1483,16 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 		}
 	}
 
-	if(!release_json_found)
-	{
-		ok = false;
-		silentfail = false;
-		return std::nullopt;
-	}
-	else if(!relinfo.HasMember("commit") || !relinfo["commit"].IsObject() || !relinfo["commit"].HasMember("parent") || !relinfo["commit"]["parent"].IsString())
-	{
-		ok = false;
-		silentfail = false;
-		return std::nullopt;
-	}
+	if(!release_json_found) FAIL_WITH_ERROR;
+	
+	if(!HAS_MEMBER(relinfo, "commit", Object)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(relinfo["commit"], "parent", String)) FAIL_WITH_ERROR;
 
 	ver = VersionInfo(relinfo["commit"]["parent"].GetString());
 
 	if constexpr(CURRENT_UPDATE_CHANNEL != UpdateChannel::STABLE)
 	{
-		if(!relinfo["commit"].HasMember("distance") || !relinfo["commit"]["distance"].IsString())
-		{
-			ok = false;
-			silentfail = false;
-			return std::nullopt;
-		}
+		if(!HAS_MEMBER(relinfo["commit"], "distance", String)) FAIL_WITH_ERROR;
 
 		ver.distance = atoi(relinfo["commit"]["distance"].GetString());
 	}
@@ -1524,31 +1501,18 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 		ver.distance = 0;
 	}
 
-	if(!relinfo.HasMember("platforms") || !relinfo["platforms"].IsObject() || !relinfo["platforms"].HasMember(RELEASE_JSON_PLATFORM_NAME) || !relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].IsString())
-	{
-		ok = false;
-		silentfail = false;
-		return std::nullopt;
-	}
+	if(!HAS_MEMBER(relinfo, "platforms", Object)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(relinfo["platforms"], RELEASE_JSON_PLATFORM_NAME, String)) FAIL_WITH_ERROR;
 
 	downloadName = relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].GetString();
 
 	for(int i = 0; i < (int)arr.Size(); i++)
 	{
-		if(!arr[i].HasMember("name") || !arr[i]["name"].IsString())
+		if(!HAS_MEMBER(arr[i], "name", String)) FAIL_WITH_ERROR;
+		
+		if(std::string s = arr[i]["name"].GetString(); s == downloadName)
 		{
-			ok = false;
-			silentfail = false;
-			return std::nullopt;
-		}
-		else if(std::string s = arr[i]["name"].GetString(); s == downloadName)
-		{
-			if(!arr[i].HasMember("browser_download_url") || !arr[i]["browser_download_url"].IsString())
-			{
-				ok = false;
-				silentfail = false;
-				return std::nullopt;
-			}
+			if(!HAS_MEMBER(arr[i], "browser_download_url", String)) FAIL_WITH_ERROR;
 
 			downloadUrl = arr[i]["browser_download_url"].GetString();
 			download_link_found = true;
@@ -1556,22 +1520,15 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 		}
 	}
 
-	if(!download_link_found)
-	{
-		ok = false;
-		silentfail = false;
-		return std::nullopt;
-	}
-
-	if(!doc.HasMember("body") || !doc["body"].IsString())
-	{
-		ok = false;
-		silentfail = false;
-		return std::nullopt;
-	}
+	if(!download_link_found) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(doc, "body", String)) FAIL_WITH_ERROR;
 
 	ok = true;
 	return update_info_t{ver, false, SplitNewLines(doc["body"].GetString(), doc["body"].GetStringLength()), downloadUrl};
+
+#undef FAIL_AND_RECOVER
+#undef FAIL_WITH_ERROR
+#undef HAS_MEMBER
 }
 
 std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
