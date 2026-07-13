@@ -39,6 +39,7 @@
 #include <inttypes.h>
 #include "filesystem.h"
 #include "version.h"
+#include "versioninfo.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -60,31 +61,60 @@
 
 VersionInfo::VersionInfo(const char *string)
 {
+	major = minor = revision = distance = 0;
+	std::memset(extension, 0, sizeof(extension));
+
+	if (!string || *string == '\0') return;
+
 	char *endp;
 
-	minor = revision = distance = 0;
-
 	major = (int16_t)clamp<unsigned long long>(strtoull(string, &endp, 10), 0, USHRT_MAX);
-	if (*endp == '.')
+	if (endp && *endp == '.')
 	{
 		minor = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
-		if (*endp == '.')
-		{
-			revision = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
-
-			if (*endp == '-' && endp[1] >= '0' && endp[1] <= '9')
-			{
-				distance = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
-			}
-		}
 	}
 
-	if (*endp != 0 && *endp != '-')
+	if (endp && *endp == '.')
 	{
-		major = USHRT_MAX;
+		revision = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
+	}
+
+	if (endp && *endp == '-')
+	{
+		endp++;
+
+		size_t i, max_chars = (sizeof(extension) / sizeof(extension[0])) - 1;
+
+		for (i = 0; i < max_chars && endp[i] && endp[i] != '+'; i++)
+		{
+			extension[i] = endp[i];
+		}
+		extension[i] = '\0';
+		endp+=i;
+	}
+
+	if (endp && *endp == '+')
+	{
+		distance = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
 	}
 }
 
+VersionInfo::VersionInfo(const char *version, const char *base): VersionInfo(base)
+{
+	if (!version) return;
+
+	auto verlen = strlen(version);
+	auto baselen = strlen(base);
+	
+	if (verlen <= baselen+1) return; // cannot have extra data
+	if (strncmp(base, version, baselen) != 0) return; // not from this tag // FIXME: this should throw
+
+	version += baselen + 1;
+	if ('0' <= *version && *version <= '9')
+	{
+		distance = (uint32_t)clamp<unsigned long long>(strtoull(version, nullptr, 10), 0, UINT32_MAX);
+	}
+}
 
 void VersionInfo::operator=(const char *string)
 {

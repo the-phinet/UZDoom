@@ -22,6 +22,7 @@
 
 #include "serializer_rapidjson.h"
 
+#include "versioninfo.h"
 #include "updatebuttonbar.h"
 #include "launcherwindow.h"
 #include "gstrings.h"

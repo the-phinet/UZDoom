@@ -22,11 +22,12 @@
 **
 */
 
-
 %stack_size 0
 
 %include
 {
+#define PARSING_ZCC
+
 // Allocates a new AST node off the parse state's arena.
 #define NEW_AST_NODE(type,name,tok) \
 	ZCC_##type *name = static_cast<ZCC_##type *>(stat->InitNode(sizeof(ZCC_##type), AST_##type)); \
@@ -219,7 +220,7 @@ class_head(X) ::= EXTEND CLASS(T) IDENTIFIER(A).
 	head->ParentName = nullptr;
 	head->Flags =  ZCC_Extension;
 	head->Replaces = nullptr;
-	head->Version = {0, 0};
+	head->Version = {0, 0, 0};
 	head->Type = nullptr;
 	head->Symbol = nullptr;
 	head->DeprecationMessage = nullptr;
@@ -247,7 +248,7 @@ class_ancestry(X) ::= .						{ X = NULL; }
 class_ancestry(X) ::= COLON dottable_id(A).	{ X = A; /*X-overwrites-A*/ }
 
 %type class_flags{ClassFlagsBlock}
-class_flags(X) ::= .										{ X.Flags = 0; X.Replaces = NULL; X.Version = {0,0}; X.Sealed = NULL; X.DeprecationMessage = NULL; }
+class_flags(X) ::= .										{ X.Flags = 0; X.Replaces = NULL; X.Version = {0,0,0}; X.Sealed = NULL; X.DeprecationMessage = NULL; }
 class_flags(X) ::= class_flags(A) ABSTRACT.					{ X.Flags = A.Flags | ZCC_Abstract; X.Replaces = A.Replaces; X.Version = A.Version; X.Sealed = A.Sealed; X.DeprecationMessage = A.DeprecationMessage; }
 class_flags(X) ::= class_flags(A) FINAL.					{ X.Flags = A.Flags | ZCC_Final; X.Replaces = A.Replaces; X.Version = A.Version; X.Sealed = A.Sealed; X.DeprecationMessage = A.DeprecationMessage; }
 class_flags(X) ::= class_flags(A) NATIVE.					{ X.Flags = A.Flags | ZCC_Native; X.Replaces = A.Replaces; X.Version = A.Version; X.Sealed = A.Sealed; X.DeprecationMessage = A.DeprecationMessage; }
@@ -424,14 +425,14 @@ struct_def(X) ::= EXTEND STRUCT(T) IDENTIFIER(A) LBRACE opt_struct_body(B) RBRAC
 	def->Body = B;
 	def->Type = nullptr;
 	def->Symbol = nullptr;
-	def->Version = {0, 0};
+	def->Version = {0, 0, 0};
 	def->Flags = ZCC_Extension;
 	def->DeprecationMessage = nullptr;
 	X = def;
 }
 
 %type struct_flags{ClassFlagsBlock}
-struct_flags(X) ::= .													{ X.Flags = 0; X.Version = {0, 0}; X.DeprecationMessage = NULL; }
+struct_flags(X) ::= .													{ X.Flags = 0; X.Version = {0, 0, 0}; X.DeprecationMessage = NULL; }
 struct_flags(X) ::= struct_flags(A) UI.									{ X.Flags = A.Flags | ZCC_UIFlag; X.Version = A.Version; X.DeprecationMessage = A.DeprecationMessage; }
 struct_flags(X) ::= struct_flags(A) PLAY.								{ X.Flags = A.Flags | ZCC_Play; X.Version = A.Version; X.DeprecationMessage = A.DeprecationMessage; }
 struct_flags(X) ::= struct_flags(A) CLEARSCOPE.							{ X.Flags = A.Flags | ZCC_ClearScope; X.Version = A.Version; X.DeprecationMessage = A.DeprecationMessage; }
@@ -1292,7 +1293,7 @@ decl_flags(X) ::= decl_flags(F) decl_flag(A).
 		X = nil_f;
 		X->Id = nullptr;
 		X->Flags = A.Int;
-		X->Version = { 0, 0 };
+		X->Version = { 0, 0, 0 };
 		X->DeprecationMessage = nullptr;
 	}
 	else
@@ -1311,7 +1312,7 @@ decl_flags(X) ::= decl_flags(F) ACTION(B) states_opts(A).
 		X = nil_f;
 		X->Flags = ZCC_Action;
 		X->Id = nullptr;
-		X->Version = { 0, 0 };
+		X->Version = { 0, 0, 0 };
 		X->DeprecationMessage = nullptr;
 	}
 	else
@@ -1333,7 +1334,7 @@ decl_flags(X) ::= decl_flags(F) DEPRECATED(B) LPAREN STRCONST(A) opt_deprecation
 		X = nil_f;
 		X->Flags = ZCC_Deprecated;
 		X->Id = nullptr;
-		X->Version = { 0, 0 };
+		X->Version = { 0, 0, 0 };
 	}
 	else
 	{
@@ -1352,7 +1353,7 @@ decl_flags(X) ::= decl_flags(F) VERSION(B) LPAREN STRCONST(A) RPAREN.
 		X = nil_f;
 		X->Flags = ZCC_Version;
 		X->Id = nullptr;
-		X->Version = { 0, 0 };
+		X->Version = { 0, 0, 0 };
 		X->DeprecationMessage = nullptr;
 	}
 	else
@@ -2417,4 +2418,9 @@ variable_list_with_init(X) ::= variable_list_with_init(A) COMMA var_init(B).
 {
 	AppendTreeNodeSibling(A, B);
 	X = A; /*X-overwrites-A*/
+}
+
+%include
+{
+#undef PARSING_ZCC
 }

@@ -135,10 +135,3 @@ const char *GetGitTag();
 int GetGitDistance();
 
 #define RC_REVISION_NOTRC 999999
-
-#ifdef __cplusplus
-
-#include <compare>
-#include <cstdint>
-
-#endif // __cplusplus

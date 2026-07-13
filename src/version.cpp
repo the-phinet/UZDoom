@@ -24,6 +24,7 @@
 
 #include "gitinfo.h"
 #include "version.h"
+#include "versioninfo.h"
 #include "basics.h"
 
 //==========================================================================
