@@ -100,7 +100,7 @@ VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 		// no releases can be made when git distance is not 0
 	case UpdateChannel::PREVIEW:
 	case UpdateChannel::TESTING:
-		return VersionInfo(GIT_DESCRIPTION, GIT_TAG);
+		return VersionInfo(GIT_DESCRIPTION);
 	}
 }
 

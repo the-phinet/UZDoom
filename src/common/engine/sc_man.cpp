@@ -61,6 +61,7 @@
 
 VersionInfo::VersionInfo(const char *string)
 {
+	printf("\n\n\n!!! %s\n\n\n\n", string);
 	major = minor = revision = distance = 0;
 	std::memset(extension, 0, sizeof(extension));
 
@@ -98,7 +99,7 @@ VersionInfo::VersionInfo(const char *string)
 		distance = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
 	}
 }
-
+/*
 VersionInfo::VersionInfo(const char *version, const char *base): VersionInfo(base)
 {
 	if (!version) return;
@@ -115,7 +116,7 @@ VersionInfo::VersionInfo(const char *version, const char *base): VersionInfo(bas
 		distance = (uint32_t)clamp<unsigned long long>(strtoull(version, nullptr, 10), 0, UINT32_MAX);
 	}
 }
-
+*/
 void VersionInfo::operator=(const char *string)
 {
 	(*this) = VersionInfo(string);

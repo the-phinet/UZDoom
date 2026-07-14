@@ -39,7 +39,7 @@ struct VersionInfo
 	}
 #ifndef PARSING_ZCC
 	explicit VersionInfo(const char *);
-	explicit VersionInfo(const char *, const char *);
+	// explicit VersionInfo(const char *, const char *);
 #endif
 
 	constexpr bool operator <=(const VersionInfo& o) const
