@@ -123,15 +123,9 @@ void VersionInfo::operator=(const char *string)
 
 VersionInfo::operator FString()
 {
-	FString tmp;
-	if(distance != 0 && distance != RC_REVISION_NOTRC)
-	{
-		tmp.Format("%u.%u.%u-%u", major, minor, revision, distance);
-	}
-	else
-	{
-		tmp.Format("%u.%u.%u", major, minor, revision);
-	}
+	FString tmp = FStringf("%u.%u.%u", major, minor, revision);
+	if (*extension) tmp.AppendFormat("-%s", extension);
+	if (distance) tmp.AppendFormat("+%d", distance);
 	return tmp;
 }
 

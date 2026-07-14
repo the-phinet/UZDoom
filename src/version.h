@@ -42,8 +42,6 @@
 #define ENG_MINOR 0
 #define ENG_REVISION 0
 
-#define RC_REVISION 999999
-
 #define CURRENT_UPDATE_CHANNEL UpdateChannel::PREVIEW
 
 // Version stored in the ini's [LastRun] section.
@@ -133,5 +131,3 @@ const char *GetGitHash();
 const char *GetGitTime();
 const char *GetGitTag();
 int GetGitDistance();
-
-#define RC_REVISION_NOTRC 999999

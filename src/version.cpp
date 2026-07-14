@@ -97,10 +97,10 @@ VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 	{
 	case UpdateChannel::STABLE:
 	case UpdateChannel::RELEASE_CANDIDATE:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, RC_REVISION);
+		// no releases can be made when git distance is not 0
 	case UpdateChannel::PREVIEW:
 	case UpdateChannel::TESTING:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, GIT_DISTANCE);
+		return VersionInfo(GIT_DESCRIPTION, GIT_TAG);
 	}
 }
 
