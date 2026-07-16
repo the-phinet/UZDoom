@@ -22,9 +22,14 @@
 **
 */
 
+#include <climits>
+#include <cstring>
+
 #include "gitinfo.h"
 #include "version.h"
+#include "versioninfo.h"
 #include "basics.h"
+#include "zstring.h"
 
 //==========================================================================
 //
@@ -34,7 +39,9 @@
 
 const char *GetVersionString()
 {
-	return (GIT_DESCRIPTION[0] == '\0')? VERSIONSTR: GIT_DESCRIPTION;
+	static FString version = FString{GetCurrentVersion()};
+
+	return version.GetChars();
 }
 
 //==========================================================================
@@ -83,7 +90,23 @@ int GetGitDistance()
 
 VersionInfo GetCurrentVersion()
 {
-	return MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION);
+	static VersionInfo version = ([]() {
+		VersionInfo v = { VER_MAJOR, VER_MINOR, VER_REVISION };
+		std::string_view hash = GIT_HASH;
+		if (hash != "0000000")
+		{
+			v = VersionInfo{GIT_TAG};
+			v.distance = GIT_DISTANCE;
+			hash.substr(0,sizeof(v.commit)-1).copy(v.commit, sizeof(v.commit)-1);
+			v.commit[sizeof(v.commit)-1] = '\0';
+		}
+		assert(v.major == VER_MAJOR);
+		assert(v.minor == VER_MINOR);
+		assert(v.revision == VER_REVISION);
+		return v;
+	})();
+
+	return version;
 }
 
 VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
@@ -96,14 +119,89 @@ VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 	{
 	case UpdateChannel::STABLE:
 	case UpdateChannel::RELEASE_CANDIDATE:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, RC_REVISION);
+		// no releases can be made when git distance is not 0
 	case UpdateChannel::PREVIEW:
 	case UpdateChannel::TESTING:
-		return VersionInfo(VER_MAJOR, VER_MINOR, VER_REVISION, GIT_DISTANCE);
+		return MakeVersion2(GIT_DESCRIPTION, GIT_TAG);
 	}
 }
 
 VersionInfo GetCurrentEngineVersion()
 {
 	return MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION);
+}
+
+VersionInfo::VersionInfo(const char *string)
+{
+	major = minor = revision = distance = 0;
+	std::memset(extension, 0, sizeof(extension));
+
+	if (!string || *string == '\0') return;
+
+	char *endp;
+
+	major = (int16_t)clamp<unsigned long long>(strtoull(string, &endp, 10), 0, USHRT_MAX);
+	if (endp && *endp == '.')
+	{
+		minor = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
+	}
+
+	if (endp && *endp == '.')
+	{
+		revision = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
+	}
+
+	if (endp && *endp == '-')
+	{
+		endp++;
+
+		size_t i, max_chars = (sizeof(extension) / sizeof(extension[0])) - 1;
+
+		for (i = 0; i < max_chars && endp[i] && endp[i] != '+'; i++)
+		{
+			extension[i] = endp[i];
+		}
+		extension[i] = '\0';
+		endp+=i;
+	}
+
+	if (endp && *endp == '+')
+	{
+		distance = (int16_t)clamp<unsigned long long>(strtoull(endp + 1, &endp, 10), 0, USHRT_MAX);
+	}
+}
+
+VersionInfo MakeVersion2(const char *version, const char *base)
+{
+	auto v = VersionInfo(base);
+
+	if (!version) return v;
+
+	auto verlen = strlen(version);
+	auto baselen = strlen(base);
+
+	if (verlen <= baselen+1) return v; // cannot have extra data
+	if (strncmp(base, version, baselen) != 0) return v; // not from this tag // FIXME: this should throw
+
+	version += baselen + 1;
+	if ('0' <= *version && *version <= '9')
+	{
+		v.distance = (uint32_t)clamp<unsigned long long>(strtoull(version, nullptr, 10), 0, UINT32_MAX);
+	}
+
+	return v;
+}
+
+void VersionInfo::operator=(const char *string)
+{
+	(*this) = VersionInfo(string);
+}
+
+VersionInfo::operator FString()
+{
+	FString tmp = FStringf("%u.%u.%u", major, minor, revision);
+	if (*extension) tmp.AppendFormat("-%s", extension);
+	if (distance > 0) tmp.AppendFormat("+%d-%s", distance, commit);
+	if (distance < 0) tmp.AppendFormat("+%d-%s-m", -distance, commit);
+	return tmp;
 }
