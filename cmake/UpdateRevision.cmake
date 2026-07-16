@@ -24,7 +24,7 @@ function(query_repo_info)
 
 	set(Description "unknown")
 	set(Tag "unknown")
-	set(Distance -1)
+	set(Distance 0)
 	set(Hash "0000000")
 	string(TIMESTAMP Timestamp "%Y-%m-%d %H:%M:%S %z")
 
@@ -78,6 +78,17 @@ function(query_repo_info)
 			)
 			if("${Error}" STREQUAL "0")
 				set(Distance "${Temp}")
+
+				execute_process(
+					COMMAND git status --porcelain
+					OUTPUT_VARIABLE Temp
+					ERROR_QUIET
+					OUTPUT_STRIP_TRAILING_WHITESPACE
+				)
+
+				if(NOT "${Temp}" STREQUAL "")
+					math(EXPR Distance "(${Distance} * -1) - 1")
+				endif()
 			endif()
 		endif()
 
