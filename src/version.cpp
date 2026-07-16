@@ -201,7 +201,12 @@ VersionInfo::operator FString()
 {
 	FString tmp = FStringf("%u.%u.%u", major, minor, revision);
 	if (*extension) tmp.AppendFormat("-%s", extension);
-	if (distance > 0) tmp.AppendFormat("+%d-%s", distance, commit);
-	if (distance < 0) tmp.AppendFormat("+%d-%s-m", -distance, commit);
+	auto dist = distance;
+	if (dist != 0)
+	{
+		bool modified = dist < 0;
+		if (modified) dist = -(dist+1);
+		tmp.AppendFormat("+%d-%s%s", dist, commit, modified? "-m": "");
+	}
 	return tmp;
 }
