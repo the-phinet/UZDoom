@@ -22,6 +22,8 @@
 
 #include "serializer_rapidjson.h"
 
+#include "printf.h"
+#include "versioninfo.h"
 #include "updatebuttonbar.h"
 #include "launcherwindow.h"
 #include "gstrings.h"
@@ -461,32 +463,13 @@ UpdateButtonBar::UpdateButtonBar(LauncherWindow *parent, SettingsPage* settings)
 
 FString UpdateButtonBar::UpdateToString()
 {
-	FString str = "";
+	FString str = FString(currentUpdate->version);
 
-	VersionInfo update = currentUpdate->version;
-
-	switch(CURRENT_UPDATE_CHANNEL)
+	if (CURRENT_UPDATE_CHANNEL == UpdateChannel::TESTING)
 	{
-	case UpdateChannel::STABLE:
-		str.Format("%u.%u.%u", update.major, update.minor, update.revision);
-		break;
-	case UpdateChannel::PREVIEW:
-		str.Format("%u.%u.%u-pre-%u", update.major, update.minor, update.revision, update.distance);
-		break;
-	case UpdateChannel::TESTING:
-		str.Format("%u.%u.%u-pre-%u (%s)", update.major, update.minor, update.revision, update.distance, GStrings.GetString("TXT_EXPERIMENTAL"));
-		break;
-	case UpdateChannel::RELEASE_CANDIDATE:
-		if(update.distance != 0 && update.distance != RC_REVISION_NOTRC)
-		{
-			str.Format("%u.%u.%u-rc%u", update.major, update.minor, update.revision, update.distance);
-		}
-		else
-		{
-			str.Format("%u.%u.%u", update.major, update.minor, update.revision);
-		}
-		break;
+		str.AppendFormat(" (%s)", GStrings.GetString("TXT_EXPERIMENTAL"));
 	}
+
 	return str;
 }
 
@@ -1487,19 +1470,16 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	
 	if(!HAS_MEMBER(relinfo, "commit", Object)) FAIL_WITH_ERROR;
 	if(!HAS_MEMBER(relinfo["commit"], "parent", String)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(relinfo["commit"], "distance", String)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(relinfo["commit"], "commit", String)) FAIL_WITH_ERROR;
 
-	ver = VersionInfo(relinfo["commit"]["parent"].GetString());
+	auto distance = atoi(relinfo["commit"]["distance"].GetString());
+	auto parent = relinfo["commit"]["parent"].GetString();
+	std::string_view commit = relinfo["commit"]["commit"].GetString();
 
-	if constexpr(CURRENT_UPDATE_CHANNEL != UpdateChannel::STABLE)
-	{
-		if(!HAS_MEMBER(relinfo["commit"], "distance", String)) FAIL_WITH_ERROR;
-
-		ver.distance = atoi(relinfo["commit"]["distance"].GetString());
-	}
-	else
-	{
-		ver.distance = 0;
-	}
+	ver = VersionInfo{parent};
+	commit.copy(ver.commit, sizeof(ver.commit)-1);
+	ver.distance = distance;
 
 	if(!HAS_MEMBER(relinfo, "platforms", Object)) FAIL_WITH_ERROR;
 	if(!HAS_MEMBER(relinfo["platforms"], RELEASE_JSON_PLATFORM_NAME, String)) FAIL_WITH_ERROR;
