@@ -22,8 +22,10 @@
 **
 */
 
+#include <charconv>
 #include <climits>
 #include <cstring>
+#include <string_view>
 
 #include "basics.h"
 #include "gitinfo.h"
@@ -219,18 +221,48 @@ std::strong_ordering VersionInfo::operator <=> (const VersionInfo& o) const
 
 	// version with extension (1.0.0-rc1) comes before one without (1.0.0)
 	if (auto cmp = ext_a.empty() <=> ext_b.empty(); cmp != 0) return cmp;
-	// FIXME: update me to handle semver sorting https://semver.org/#spec-item-11 (bullet 4)
-	// we need to do this if we ever have more than 10 numbered pre-releases lol
-	if (auto cmp = ext_a <=> ext_b; cmp != 0) return cmp;
 
-	if (distance >= 0 && o.distance >= 0)
+	// converts string to natural number, returns -1 if not possible
+	auto Number = [](std::string_view s)->int {
+		if (s.empty()) return -1;
+		int v = 0;
+		auto [p, e] = std::from_chars(s.data(), s.data() + s.size(), v);
+		if (e == std::errc{} && p == s.data() + s.size() && v >= 0) return v;
+		return -1;
+	};
+
+	// https://semver.org/#spec-item-11 (point 4)
+	size_t start_a = 0, start_b = 0, end_a = 0, end_b = 0, len_a = ext_a.size(), len_b = ext_b.size();
+	std::string_view sub_a, sub_b;
+	int num_a, num_b;
+	while (start_a <= len_a && start_b <= len_b)
 	{
-		return distance <=> o.distance;
+		while (end_a < len_a && ext_a[end_a] != '.') end_a++;
+		while (end_b < len_b && ext_b[end_b] != '.') end_b++;
+		sub_a = ext_a.substr(start_a, end_a-start_a);
+		sub_b = ext_b.substr(start_b, end_b-start_b);
+		num_a = Number(sub_a);
+		num_b = Number(sub_b);
+		if (num_a < 0 || num_b < 0)
+		{
+			if (auto cmp = (num_a < 0) <=> (num_b < 0); cmp != 0) return cmp;
+			if (auto cmp = sub_a <=> sub_b; cmp != 0) return cmp;
+		}
+		else
+		{
+			if (auto cmp = num_a <=> num_b; cmp != 0) return cmp;
+		}
+		end_a++;
+		end_b++;
+		start_a = end_a;
+		start_b = end_b;
 	}
-	else
-	{ // if one is negative, it has been edited. The edited one is "newer"
-		return o.distance <=> distance;
-	}
+	if (auto cmp = (start_a <= len_a) <=> (start_b <= len_b); cmp != 0) return cmp;
+
+	// not actually part of semvers
+	return (distance >= 0 && o.distance >= 0)
+		? distance <=> o.distance
+		: o.distance <=> distance; // if one is negative, it has been edited. The edited one is "newer"
 }
 
 void VersionInfo::operator=(const char *string)
