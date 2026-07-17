@@ -32,6 +32,8 @@
 #include "i_net.h"
 #include "engineerrors.h"
 #include "widgets/themedata.h"
+#include "c_console.h"
+
 #include <zwidget/widgets/pushbutton/pushbutton.h>
 #include <zwidget/widgets/textlabel/textlabel.h>
 #include "settingspage.h"
@@ -892,6 +894,8 @@ protected:
 	{
 		if(!curl) return false;
 
+		DEBUG_LOG("fetching %s", url.c_str());
+
 		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, acceptEncoding.c_str());
 
@@ -1368,7 +1372,7 @@ public:
 						updater_filename_quoted.Substitute("\\", "\\\\");
 						updater_filename_quoted.Substitute("\"", "\\\"");
 						updater_filename_quoted = "\""+updater_filename_quoted+"\"";
-						
+
 						int numchars = MultiByteToWideChar(CP_UTF8, 0, updater_filename.c_str(), updater_filename.length(), NULL, 0);
 
 						WCHAR * updater_filename_w = new WCHAR[numchars + 1];
@@ -1392,7 +1396,6 @@ public:
 			}
 		}
 	}
-
 
 	virtual void OnClose() override
 	{
@@ -1430,10 +1433,12 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	std::string downloadName;
 	std::string downloadUrl;
 
+	DEBUG_LOG("parsing");
+
 #define HAS_MEMBER(source, id, type) ( source.HasMember(id) && source[id].Is##type() )
-#define FAIL_WITH_ERROR { ok = false; silentfail = false; return std::nullopt; }
-#define FAIL_AND_RECOVER { ok = false; silentfail = true; return std::nullopt; }
-	
+#define FAIL_WITH_ERROR { ok = false; silentfail = false; DEBUG_LOG("errored"); return std::nullopt; }
+#define FAIL_AND_RECOVER { ok = false; silentfail = true; DEBUG_LOG("stopping"); return std::nullopt; }
+
 	if(!doc.IsObject() || !HAS_MEMBER(doc, "assets", Array))
 	{
 		ok = false;
@@ -1467,7 +1472,7 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	}
 
 	if(!release_json_found) FAIL_WITH_ERROR;
-	
+
 	if(!HAS_MEMBER(relinfo, "commit", Object)) FAIL_WITH_ERROR;
 	if(!HAS_MEMBER(relinfo["commit"], "parent", String)) FAIL_WITH_ERROR;
 	if(!HAS_MEMBER(relinfo["commit"], "distance", String)) FAIL_WITH_ERROR;
@@ -1481,15 +1486,19 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	commit.copy(ver.commit, sizeof(ver.commit)-1);
 	ver.distance = distance;
 
+	DEBUG_LOG("%s", FString(ver).GetChars());
+
 	if(!HAS_MEMBER(relinfo, "platforms", Object)) FAIL_WITH_ERROR;
 	if(!HAS_MEMBER(relinfo["platforms"], RELEASE_JSON_PLATFORM_NAME, String)) FAIL_WITH_ERROR;
 
 	downloadName = relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].GetString();
 
+	DEBUG_LOG("%s", downloadName.c_str());
+
 	for(int i = 0; i < (int)arr.Size(); i++)
 	{
 		if(!HAS_MEMBER(arr[i], "name", String)) FAIL_WITH_ERROR;
-		
+
 		if(std::string s = arr[i]["name"].GetString(); s == downloadName)
 		{
 			if(!HAS_MEMBER(arr[i], "browser_download_url", String)) FAIL_WITH_ERROR;
@@ -1503,6 +1512,8 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	if(!download_link_found) FAIL_WITH_ERROR;
 	if(!HAS_MEMBER(doc, "body", String)) FAIL_WITH_ERROR;
 
+	DEBUG_LOG("%s", downloadUrl.c_str());
+
 	ok = true;
 	return update_info_t{ver, false, SplitNewLines(doc["body"].GetString(), doc["body"].GetStringLength()), downloadUrl};
 
@@ -1513,11 +1524,21 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 
 std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 {
-	if(InitCurl())
+	DEBUG_LOG("starting");
+
+	if(!InitCurl())
+	{
+		DEBUG_LOG("no curl");
+	}
+	else
 	{
 		auto doc = (UpdateChecker {}).Perform(this, CURRENT_UPDATE_CHANNEL);
 
-		if(doc.has_value())
+		if(!doc.has_value())
+		{
+			DEBUG_LOG("empty response");
+		}
+		else
 		{
 			bool silentfail = false;
 
@@ -1525,10 +1546,12 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 			{
 				if(!doc->IsArray())
 				{
+					DEBUG_LOG("invalid data");
 					silentfail = false;
 				}
 				else
 				{
+					DEBUG_LOG("grabbing rc");
 					std::vector<std::optional<update_info_t>> updates;
 					auto arr = doc->GetArray();
 					bool anyok = false;
@@ -1566,6 +1589,8 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 			}
 			else
 			{
+				DEBUG_LOG("grabbing");
+
 				silentfail = false;
 				std::optional<update_info_t> out = ParseRelease(*doc, ok, silentfail);
 
@@ -1598,13 +1623,20 @@ void UpdateButtonBar::StartUpdate()
 
 void UpdateButtonBar::CheckForUpdate(bool force)
 {
+	DEBUG_LOG("starting");
+
 	Hide();
 
 	if(!updater_check_updates_initialized)
 	{
+		DEBUG_LOG("onboarding");
 		OpenUpdateInitChoice();
 	}
-	else if(updater_check_updates || force)
+	else if(!updater_check_updates && !force)
+	{
+		DEBUG_LOG("skipping");
+	}
+	else
 	{
 		bool new_update = true;
 		if(updater_cached_update->Length() > 0)
@@ -1613,11 +1645,13 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 
 			if(isVersionInvalid(cachedVer))
 			{
+				DEBUG_LOG("invalidating cache");
 				updater_cached_update = "";
 				M_SaveDefaults(NULL); // save settings
 			}
 			else
 			{
+				DEBUG_LOG("using cache");
 				new_update = false;
 				currentUpdate = update_info_t{cachedVer, true, {}, ""};
 			}
@@ -1630,17 +1664,21 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 			VersionInfo skippedVerTmp = VersionInfo((const char *)updater_skipped_update);
 			if(isVersionInvalid(skippedVerTmp))
 			{
+				DEBUG_LOG("clearing skip");
 				updater_skipped_update = "";
 				M_SaveDefaults(NULL); // save settings
 			}
 			else
 			{
+				DEBUG_LOG("skipping");
 				skippedVer = skippedVerTmp;
 			}
 		}
 
 		uint64_t curTime = getCurrentDate();
 		uint64_t nextCheckTime = parseDate((FString)updater_last_update_check) + daysToSeconds(updater_update_interval);
+
+		DEBUG_LOG("%lu → %lu (%d%d)", curTime, nextCheckTime, curTime >= nextCheckTime, force);
 
 		if(curTime >= nextCheckTime || currentUpdate.has_value() || force)
 		{
@@ -1676,19 +1714,17 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 
 			if(currentUpdate.has_value())
 			{
-				bool should_update;
-				if(updater_debug_always_update)
-				{
-					should_update = true;
-				}
-				else if constexpr(CURRENT_UPDATE_CHANNEL == UpdateChannel::TESTING)
-				{
-					should_update = (currentUpdate->version != GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL));
-				}
-				else
-				{
-					should_update = (currentUpdate->version > GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL));
-				}
+				auto current = GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL);
+				bool should_update = updater_debug_always_update || (currentUpdate->version > current);
+
+				DEBUG_LOG(
+					"%s → %s (%d%d%d)",
+					FString(current).GetChars(),
+					FString(currentUpdate->version).GetChars(),
+					*updater_debug_always_update,
+					(currentUpdate->version > current),
+					skippedVer != currentUpdate->version
+				);
 
 				if(should_update && (skippedVer != currentUpdate->version))
 				{
