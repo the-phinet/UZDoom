@@ -25,10 +25,10 @@
 #include <climits>
 #include <cstring>
 
+#include "basics.h"
 #include "gitinfo.h"
 #include "version.h"
 #include "versioninfo.h"
-#include "basics.h"
 #include "zstring.h"
 
 //==========================================================================
@@ -96,7 +96,7 @@ VersionInfo GetCurrentVersion()
 		if (hash != "0000000")
 		{
 			v = VersionInfo{GIT_TAG};
-			v.distance = -1;
+			v.distance = GIT_DISTANCE;
 			hash.substr(0,sizeof(v.commit)-1).copy(v.commit, sizeof(v.commit)-1);
 			v.commit[sizeof(v.commit)-1] = '\0';
 		}
@@ -122,7 +122,7 @@ VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
 		// no releases can be made when git distance is not 0
 	case UpdateChannel::PREVIEW:
 	case UpdateChannel::TESTING:
-		return VersionInfo{VER_MAJOR, VER_MINOR, VER_REVISION, GIT_DISTANCE};
+		return GetCurrentVersion();
 	}
 }
 
