@@ -28,6 +28,7 @@
 #include <string_view>
 
 #include "basics.h"
+#include "c_console.h"
 #include "gitinfo.h"
 #include "version.h"
 #include "versioninfo.h"
@@ -35,7 +36,7 @@
 
 //==========================================================================
 //
-// <Tag>-<Distance>-g<commit>
+// <Tag>-<Distance>+<commit>
 //
 //==========================================================================
 
@@ -93,18 +94,11 @@ int GetGitDistance()
 VersionInfo GetCurrentVersion()
 {
 	static VersionInfo version = ([]() {
-		VersionInfo v = { VER_MAJOR, VER_MINOR, VER_REVISION };
-		std::string_view hash = GIT_HASH;
-		if (hash != "0000000")
-		{
-			v = VersionInfo{GIT_TAG};
-			v.distance = GIT_DISTANCE;
-			hash.substr(0,sizeof(v.commit)-1).copy(v.commit, sizeof(v.commit)-1);
-			v.commit[sizeof(v.commit)-1] = '\0';
-		}
+		VersionInfo v = VersionInfo{GIT_DESCRIPTION};
 		assert(v.major == VER_MAJOR);
 		assert(v.minor == VER_MINOR);
 		assert(v.revision == VER_REVISION);
+		DEBUG_LOG("%d|%d|%d|%s|%s", v.major, v.minor, v.revision, v.prerelease, v.build);
 		return v;
 	})();
 
@@ -147,9 +141,9 @@ bool IsValidExtension(const char *data, size_t count)
 
 VersionInfo::VersionInfo(const char *string)
 {
-	major = minor = revision = distance = 0;
-	std::memset(extension, 0, sizeof(extension));
-	std::memset(commit, 0, sizeof(commit));
+	major = minor = revision = 0;
+	std::memset(prerelease, 0, sizeof(prerelease));
+	std::memset(build, 0, sizeof(build));
 
 	if (!string || *string == '\0') return;
 
@@ -170,56 +164,54 @@ VersionInfo::VersionInfo(const char *string)
 	{
 		endp++;
 
-		size_t i, max_chars = (sizeof(extension) / sizeof(extension[0])) - 1;
-
+		size_t i, max_chars = sizeof(prerelease) - 1;
 		for (i = 0; i < max_chars && endp[i] && endp[i] != '+'; i++)
 		{
-			extension[i] = endp[i];
+			prerelease[i] = endp[i];
 		}
-		extension[i] = '\0';
+		prerelease[i] = '\0';
 		endp+=i;
+
+		if (!IsValidExtension(prerelease, sizeof(prerelease)))
+		{
+			assert(false);
+			std::memset(prerelease, 0, sizeof(prerelease));
+		}
 	}
 
 	if (endp && *endp == '+')
-	{ // this parses specifically only what `VersionInfo::operator FString()` can emit
-		if (!IsValidExtension(endp+1, strlen(endp+1)+1)) return;
-		std::string ext = endp+1;
-		size_t size = ext.size();
-		if (size <= sizeof(commit)) return; // at minimum 0-0000000
-		bool mod = ext[size-1] == 'm';
-		if (mod)
+	{
+		endp++;
+
+		size_t i, max_chars = sizeof(build) - 1;
+		for (i = 0; i < max_chars && endp[i] && endp[i] != '+'; i++)
 		{
-			if (ext[size-2] != '-' && size <= sizeof(commit)+2) return; // at minimum 0-0000000-m
-			size -= 2;
+			build[i] = endp[i];
 		}
-		size_t mid = size - sizeof(commit);
-		if (ext[mid] != '-') return;
+		build[i] = '\0';
+		endp+=i;
 
-		auto dst = ext.substr(0, mid);
-		if (!std::all_of(dst.begin(), dst.end(), [](char c) { return ('0' <= c && c <= '9'); })) return;
-
-		auto cmt = ext.substr(mid+1, size-mid-1);
-		if (!std::all_of(cmt.begin(), cmt.end(), [](char c) { return ('0' <= c && c <= '9') || ('a' <= c && c <= 'f'); })) return;
-
-		distance = (int16_t)clamp<unsigned long long>(strtoull(dst.c_str(), nullptr, 10), 0, USHRT_MAX);
-		cmt.copy(commit, sizeof(commit));
-		if (mod) distance = -(distance+1);
+		if (!IsValidExtension(build, sizeof(build)))
+		{
+			assert(false);
+			std::memset(build, 0, sizeof(build));
+		}
 	}
 }
 
 std::strong_ordering VersionInfo::operator <=> (const VersionInfo& o) const
 {
-	assert(IsValidExtension(extension, sizeof(extension)));
-	assert(IsValidExtension(o.extension, sizeof(o.extension)));
+	assert(IsValidExtension(prerelease, sizeof(prerelease)));
+	assert(IsValidExtension(o.prerelease, sizeof(o.prerelease)));
 
 	if (auto cmp = major <=> o.major; cmp != 0) return cmp;
 	if (auto cmp = minor <=> o.minor; cmp != 0) return cmp;
 	if (auto cmp = revision <=> o.revision; cmp != 0) return cmp;
 
-	std::string_view ext_a(extension);
-	std::string_view ext_b(o.extension);
+	std::string_view ext_a(prerelease);
+	std::string_view ext_b(o.prerelease);
 
-	// version with extension (1.0.0-rc1) comes before one without (1.0.0)
+	// version with prerelease (1.0.0-rc1) comes before one without (1.0.0)
 	if (auto cmp = ext_a.empty() <=> ext_b.empty(); cmp != 0) return cmp;
 
 	// converts string to natural number, returns -1 if not possible
@@ -259,10 +251,7 @@ std::strong_ordering VersionInfo::operator <=> (const VersionInfo& o) const
 	}
 	if (auto cmp = (start_a <= len_a) <=> (start_b <= len_b); cmp != 0) return cmp;
 
-	// not actually part of semvers
-	return (distance >= 0 && o.distance >= 0)
-		? distance <=> o.distance
-		: o.distance <=> distance; // if one is negative, it has been edited. The edited one is "newer"
+	return std::strong_ordering::equivalent;
 }
 
 void VersionInfo::operator=(const char *string)
@@ -273,13 +262,7 @@ void VersionInfo::operator=(const char *string)
 VersionInfo::operator FString() const
 {
 	FString tmp = FStringf("%u.%u.%u", major, minor, revision);
-	if (*extension) tmp.AppendFormat("-%s", extension);
-	auto dist = distance;
-	if (dist != 0)
-	{
-		bool modified = dist < 0;
-		if (modified) dist = -(dist+1);
-		tmp.AppendFormat("+%d-%s%s", dist, commit, modified? "-m": "");
-	}
+	if (*prerelease) tmp.AppendFormat("-%s", prerelease);
+	if (*build) tmp.AppendFormat("+%s", build);
 	return tmp;
 }
