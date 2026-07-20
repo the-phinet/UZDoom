@@ -24,22 +24,20 @@ struct VersionInfo
 	uint16_t major;
 	uint16_t minor;
 	uint32_t revision;
-	int32_t distance;
-	char extension[16];
-	char commit[8];
+	char prerelease[16];
+	char build[16];
 
 	constexpr VersionInfo() = default;
 	constexpr VersionInfo(
 		uint16_t _major,
 		uint16_t _minor,
 		uint32_t _revision = 0,
-		int32_t _distance = 0,
-		const char *_ext = "",
-		const char *_cmt = ""
-	): major(_major), minor(_minor), revision(_revision), distance(_distance), extension{}, commit{}
+		const char *_prerelease = "",
+		const char *_build = ""
+	): major(_major), minor(_minor), revision(_revision), prerelease{}, build{}
 	{
-		for (size_t i = 0; i < sizeof(extension)-1 && _ext && _ext[i]; i++) extension[i] = _ext[i];
-		for (size_t i = 0; i < sizeof(commit)-1 && _cmt && _cmt[i]; i++) commit[i] = _cmt[i];
+		for (size_t i = 0; i < sizeof(prerelease)-1 && _prerelease && _prerelease[i]; i++) prerelease[i] = _prerelease[i];
+		for (size_t i = 0; i < sizeof(build)-1 && _build && _build[i]; i++) build[i] = _build[i];
 	}
 	explicit VersionInfo(const char *);
 

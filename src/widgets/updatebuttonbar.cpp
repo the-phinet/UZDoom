@@ -1474,17 +1474,10 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	if(!release_json_found) FAIL_WITH_ERROR;
 
 	if(!HAS_MEMBER(relinfo, "commit", Object)) FAIL_WITH_ERROR;
-	if(!HAS_MEMBER(relinfo["commit"], "parent", String)) FAIL_WITH_ERROR;
-	if(!HAS_MEMBER(relinfo["commit"], "distance", String)) FAIL_WITH_ERROR;
-	if(!HAS_MEMBER(relinfo["commit"], "commit", String)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(relinfo["commit"], "version", String)) FAIL_WITH_ERROR;
 
-	auto distance = atoi(relinfo["commit"]["distance"].GetString());
-	auto parent = relinfo["commit"]["parent"].GetString();
-	std::string_view commit = relinfo["commit"]["commit"].GetString();
-
-	ver = VersionInfo{parent};
-	commit.copy(ver.commit, sizeof(ver.commit)-1);
-	ver.distance = distance;
+	auto version = relinfo["commit"]["version"].GetString();
+	ver = VersionInfo{version};
 
 	DEBUG_LOG("%s", FString(ver).GetChars());
 
