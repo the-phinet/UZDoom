@@ -141,11 +141,3 @@ static inline void PrefetchL3(const void* Address)
 	_mm_prefetch(static_cast<const char*>(Address), _MM_HINT_T1);
 #endif
 }
-
-enum class UpdateChannel
-{
-	STABLE,
-	PREVIEW,
-	TESTING,
-	RELEASE_CANDIDATE,
-};

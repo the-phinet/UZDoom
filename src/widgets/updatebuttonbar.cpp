@@ -463,23 +463,11 @@ UpdateButtonBar::UpdateButtonBar(LauncherWindow *parent, SettingsPage* settings)
 	_settings = settings;
 }
 
-FString UpdateButtonBar::UpdateToString()
-{
-	FString str = FString(currentUpdate->version);
-
-	if (CURRENT_UPDATE_CHANNEL == UpdateChannel::TESTING)
-	{
-		str.AppendFormat(" (%s)", GStrings.GetString("TXT_EXPERIMENTAL"));
-	}
-
-	return str;
-}
-
 void UpdateButtonBar::UpdateLanguage()
 {
 	if(currentUpdate.has_value())
 	{
-		text = FStringf("%s: %s", GStrings.GetString("UPDATER_UPDATE_AVAILABLE"), UpdateToString());
+		text = FStringf("%s: %s", GStrings.GetString("UPDATER_UPDATE_AVAILABLE"), FString(currentUpdate->version));
 	}
 	else
 	{
@@ -647,7 +635,7 @@ void UpdateButtonBar::OpenUpdateMenu(bool isAutoUpdate)
 
 	std::vector<std::string> updateInfo;
 
-	updateInfo.push_back((GAMENAME + (" " + UpdateToString())).GetChars());
+	updateInfo.push_back((GAMENAME + (" " + FString(currentUpdate->version))).GetChars());
 
 	OpenPopup(this, isAutoUpdate ? "UPDATER_UPDATE_AVAILABLE" : "TXT_UPDATE", updateInfo, actions, 500.0/*, isAutoUpdate ? POPUPF_DISALLOW_CLOSE : 0*/);
 }
@@ -950,85 +938,6 @@ static int callUpdateProgress(void * self, curl_off_t dltotal, curl_off_t dlnow,
 	return ((CurlEasy*)self)->cancelled;
 }
 
-const char * getMainURL(UpdateChannel channel)
-{
-	switch(channel)
-	{
-	case UpdateChannel::STABLE:
-		return UPDATER_URL_STABLE;
-	case UpdateChannel::PREVIEW:
-		return UPDATER_URL_PREVIEW;
-	case UpdateChannel::TESTING:
-		return UPDATER_URL_TESTING;
-	case UpdateChannel::RELEASE_CANDIDATE:
-		return UPDATER_URL_ALL;
-	default:
-		I_Error("Unknown Update Channel");
-	}
-}
-
-const char * getBackupURL(UpdateChannel channel)
-{
-	switch(channel)
-	{
-	case UpdateChannel::STABLE:
-		return UPDATER_URL_STABLE_BACKUP;
-	case UpdateChannel::PREVIEW:
-		return UPDATER_URL_PREVIEW_BACKUP;
-	case UpdateChannel::TESTING:
-		return UPDATER_URL_TESTING_BACKUP;
-	case UpdateChannel::RELEASE_CANDIDATE:
-		return UPDATER_URL_ALL_BACKUP;
-	default:
-		I_Error("Unknown Update Channel");
-	}
-}
-
-class UpdateChecker : public CurlEasy
-{
-	std::string buffer;
-
-	virtual void AcceptData(TArrayView<std::byte> data) override
-	{
-		buffer += std::string((const char *)data.Data(), data.Size());
-	}
-
-	const char * firstErr = nullptr;
-
-	virtual void OnError(const char * err)
-	{
-		if(!firstErr) firstErr = err;
-	};
-public:
-	UpdateChecker() : CurlEasy(GAMENAME " Updater", false, false)
-	{}
-
-	std::optional<rapidjson::Document> Perform(UpdateButtonBar * buttonBar, UpdateChannel channel)
-	{
-		if(!CurlEasy::Perform(getMainURL(channel), "application/vnd.github+json"))
-		{
-			buffer = "";
-			if(!CurlEasy::Perform(getBackupURL(channel), "application/vnd.github+json"))
-			{
-				buttonBar->OpenFailedUpdateMenu(firstErr, true);
-				return std::nullopt;
-			}
-		}
-		Close();
-
-		rapidjson::Document doc;
-		rapidjson::ParseResult ok = doc.Parse(buffer.c_str(), buffer.length());
-
-		if(!ok)
-		{
-			buttonBar->OpenFailedUpdateMenu(GStrings.GetString("UPDATER_INVALID_JSON"), true);
-			return std::nullopt;
-		}
-
-		return doc;
-	}
-};
-
 class JsonDownloader : public CurlEasy
 {
 	std::string buffer;
@@ -1060,11 +969,7 @@ public:
 		rapidjson::Document doc;
 		rapidjson::ParseResult ok = doc.Parse(buffer.c_str(), buffer.length());
 
-		if(!ok)
-		{
-			buttonBar->OpenFailedUpdateMenu(GStrings.GetString("UPDATER_INVALID_JSON"), true);
-			return std::nullopt;
-		}
+		if(!ok) return std::nullopt;
 
 		return doc;
 	}
@@ -1431,7 +1336,6 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 	VersionInfo ver;
 
 	std::string downloadName;
-	std::string downloadUrl;
 
 	DEBUG_LOG("parsing");
 
@@ -1439,76 +1343,27 @@ std::optional<update_info_t> UpdateButtonBar::ParseRelease(T &&doc, bool &ok, bo
 #define FAIL_WITH_ERROR { ok = false; silentfail = false; DEBUG_LOG("errored"); return std::nullopt; }
 #define FAIL_AND_RECOVER { ok = false; silentfail = true; DEBUG_LOG("stopping"); return std::nullopt; }
 
-	if(!doc.IsObject() || !HAS_MEMBER(doc, "assets", Array))
-	{
-		ok = false;
-		silentfail = false;
-		return std::nullopt;
-	}
-
-	bool release_json_found = false;
 	bool download_link_found = false;
-	auto arr = doc["assets"].GetArray();
 
-	rapidjson::Document relinfo;
+	if(!HAS_MEMBER(doc, "commit", Object)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(doc["commit"], "version", String)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(doc["commit"], "message", String)) FAIL_WITH_ERROR;
 
-	for(int i = 0; i < (int)arr.Size(); i++)
-	{
-		if(!HAS_MEMBER(arr[i], "name", String)) FAIL_WITH_ERROR;
-
-		if(std::string s = arr[i]["name"].GetString(); s == "_release.json")
-		{
-			if(!HAS_MEMBER(arr[i], "browser_download_url", String)) FAIL_WITH_ERROR;
-
-			auto release_info = (JsonDownloader {}).Perform(this, arr[i]["browser_download_url"].GetString());
-
-			if(!release_info.has_value()) FAIL_AND_RECOVER;
-
-			relinfo = std::move(*release_info);
-
-			release_json_found = true;
-			break;
-		}
-	}
-
-	if(!release_json_found) FAIL_WITH_ERROR;
-
-	if(!HAS_MEMBER(relinfo, "commit", Object)) FAIL_WITH_ERROR;
-	if(!HAS_MEMBER(relinfo["commit"], "version", String)) FAIL_WITH_ERROR;
-
-	auto version = relinfo["commit"]["version"].GetString();
+	auto version = doc["commit"]["version"].GetString();
+	auto message = doc["commit"]["message"].GetString();
 	ver = VersionInfo{version};
 
 	DEBUG_LOG("%s", FString(ver).GetChars());
 
-	if(!HAS_MEMBER(relinfo, "platforms", Object)) FAIL_WITH_ERROR;
-	if(!HAS_MEMBER(relinfo["platforms"], RELEASE_JSON_PLATFORM_NAME, String)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(doc, "platforms", Object)) FAIL_WITH_ERROR;
+	if(!HAS_MEMBER(doc["platforms"], RELEASE_JSON_PLATFORM_NAME, String)) FAIL_WITH_ERROR;
 
-	downloadName = relinfo["platforms"][RELEASE_JSON_PLATFORM_NAME].GetString();
+	downloadName = doc["platforms"][RELEASE_JSON_PLATFORM_NAME].GetString();
 
 	DEBUG_LOG("%s", downloadName.c_str());
 
-	for(int i = 0; i < (int)arr.Size(); i++)
-	{
-		if(!HAS_MEMBER(arr[i], "name", String)) FAIL_WITH_ERROR;
-
-		if(std::string s = arr[i]["name"].GetString(); s == downloadName)
-		{
-			if(!HAS_MEMBER(arr[i], "browser_download_url", String)) FAIL_WITH_ERROR;
-
-			downloadUrl = arr[i]["browser_download_url"].GetString();
-			download_link_found = true;
-			break;
-		}
-	}
-
-	if(!download_link_found) FAIL_WITH_ERROR;
-	if(!HAS_MEMBER(doc, "body", String)) FAIL_WITH_ERROR;
-
-	DEBUG_LOG("%s", downloadUrl.c_str());
-
 	ok = true;
-	return update_info_t{ver, false, SplitNewLines(doc["body"].GetString(), doc["body"].GetStringLength()), downloadUrl};
+	return update_info_t{ver, false, { message }, downloadName};
 
 #undef FAIL_AND_RECOVER
 #undef FAIL_WITH_ERROR
@@ -1519,13 +1374,103 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 {
 	DEBUG_LOG("starting");
 
+	bool primary;
+	std::string stream = "latest";
+	auto URL = [&stream](bool primary, std::string asset)
+	{
+		return primary
+			? std::format(UPDATER_URL, stream, asset)
+			: (stream == "latest")
+				? std::format(UPDATER_URL_BACKUP, stream, "download", asset)
+				: std::format(UPDATER_URL_BACKUP, "download", stream, asset);
+	};
+	auto TryGetData = [this, &primary, &stream, &URL]()
+	{
+		DEBUG_LOG("Trying '%s'", stream.c_str());
+		auto doc = (JsonDownloader {}).Perform(this, URL(true, "_release.json"));
+		primary = doc.has_value();
+		if (!primary) doc = (JsonDownloader {}).Perform(this, URL(false, "_release.json"));
+		return doc;
+	};
+	auto ToNum = [](unsigned &v, const std::string &str)
+	{
+		auto [p, e] = std::from_chars(str.data(), str.data()+str.size(), v);
+		return (e == std::errc{} && p == str.data()+str.size() && v >= 0);
+	};
+	auto GetReleaseData = [this, &TryGetData, &ToNum, &stream]
+	{
+		std::optional<rapidjson::Document> doc;
+		std::string current = GetVersionString();
+		std::string tag = GetGitTag();
+
+		if (!current.starts_with(tag))
+		{
+			stream = tag;
+			DEBUG_LOG("Preview build");
+			return TryGetData();
+		}
+
+		// try to get next prerelease tag by incrementing numeric prerelease parts
+		VersionInfo temp = GetCurrentVersion();
+		auto pre = std::string(temp.prerelease);
+		temp.prerelease[0] = temp.build[0] = '\0';
+		if (pre.empty())
+		{
+			stream = "latest";
+			DEBUG_LOG("Stable build");
+			return TryGetData();
+		}
+		else
+		{
+			unsigned v;
+			auto base = std::string(temp);
+			std::vector<std::string> parts;
+			for (auto part : pre | std::views::split('.'))
+			{
+				parts.emplace_back(part.begin(), part.end());
+			}
+			if (!ToNum(v, parts.back()))
+			{ // final part was not numeric so we'll add it just to test
+				parts.emplace_back("0");
+			}
+			std::vector<std::string> candidates;
+			candidates.emplace_back("latest");
+			while (!parts.empty())
+			{
+				std::string end = parts.back();
+				parts.pop_back();
+				std::string release = base;
+				release += "-";
+				for (auto i = 0; i < parts.size(); i++)
+				{
+					release += parts[i] + ".";
+				}
+				if (ToNum(v, end))
+				{
+					release += std::to_string(v+1);
+					candidates.emplace_back(release);
+				}
+			}
+			candidates.emplace_back(base);
+			for (int i = candidates.size()-1; i >= 0; i--)
+			{
+				stream = candidates[i];
+				if (doc = TryGetData(); doc.has_value()) return doc;
+			}
+		}
+
+		return doc;
+	};
+
 	if(!InitCurl())
 	{
 		DEBUG_LOG("no curl");
 	}
 	else
 	{
-		auto doc = (UpdateChecker {}).Perform(this, CURRENT_UPDATE_CHANNEL);
+		auto doc = GetReleaseData();
+
+		DEBUG_LOG("Using '%s'", stream.c_str());
 
 		if(!doc.has_value())
 		{
@@ -1535,67 +1480,18 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 		{
 			bool silentfail = false;
 
-			if (CURRENT_UPDATE_CHANNEL == UpdateChannel::RELEASE_CANDIDATE)
+			std::optional<update_info_t> out = ParseRelease(*doc, ok, silentfail);
+
+			if(ok)
 			{
-				if(!doc->IsArray())
-				{
-					DEBUG_LOG("invalid data");
-					silentfail = false;
-				}
-				else
-				{
-					DEBUG_LOG("grabbing rc");
-					std::vector<std::optional<update_info_t>> updates;
-					auto arr = doc->GetArray();
-					bool anyok = false;
-					for(int i = 0; i < arr.Size(); i++)
-					{
-						if(!arr[i].IsObject() || !arr[i].HasMember("tag_name") || !arr[i]["tag_name"].IsString() || arr[i]["tag_name"].GetString()[0] < '0' || arr[i]["tag_name"].GetString()[0] > '9')
-						{
-							continue;
-						}
-						bool ok2 = true, silentfail2 = true;
+				out->download_url = URL(primary, out->download_url);
 
-						std::optional<update_info_t> out = ParseRelease(arr[i], ok2, silentfail2);
-
-						if(ok2 && out.has_value() && out->version < GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL))
-						{
-							break;
-						}
-
-						if(ok2 && out.has_value())
-						{
-							anyok = true;
-							updates.push_back(out);
-						}
-					}
-
-					if(!anyok)
-					{
-						OpenFailedUpdateMenu("Failed to find any valid updates", true);
-						ok = false;
-						return std::nullopt;
-					}
-
-					return updates[0]; // TODO fully check updates, but otherwise they _should_ be in order so returning the newest one is fine since preview/experimental are excluded by the tag name check
-				}
-			}
-			else
-			{
-				DEBUG_LOG("grabbing");
-
-				silentfail = false;
-				std::optional<update_info_t> out = ParseRelease(*doc, ok, silentfail);
-
-				if(ok)
-				{
-					return out;
-				}
+				return out;
 			}
 
 			if(!silentfail)
 			{
-				OpenFailedUpdateMenu("Invalid Update JSON", true);
+				OpenFailedUpdateMenu(GStrings.GetString("UPDATER_INVALID_JSON"), true);
 			}
 		}
 	}
@@ -1709,7 +1605,7 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 
 			if(currentUpdate.has_value())
 			{
-				auto current = GetCurrentVersionForUpdate(CURRENT_UPDATE_CHANNEL);
+				auto current = GetCurrentVersion();
 				bool should_update = updater_debug_always_update || (currentUpdate->version > current);
 
 				DEBUG_LOG(
