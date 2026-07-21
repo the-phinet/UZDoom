@@ -102,7 +102,7 @@ jobs:
           tag=$(git describe --tags --abbrev=0 --exclude x-\* ${COMMIT})
           distance=$(git rev-list "${tag}..${COMMIT}" --count)
           semver="$tag"
-          if [[ $distance != 0 ]]; then semver+="+${distance}-${COMMIT:0:7}"; fi
+          if [[ $distance != 0 ]]; then semver+="-${distance}+${COMMIT:0:7}"; fi
           commit=$(git log --format=%s -n 1 ${COMMIT})
           timestamp=$(date -uIseconds)
           if [[ -n "${PREVIEW}" && ${BRANCH} != 'trunk' ]]; then
@@ -139,7 +139,7 @@ jobs:
 
           # TODO: after some time, replace this version here with semver
           jq -n '{ commit: $ARGS.named }'      \
-            --arg version  "${version}"        \
+            --arg version  "${semver}"         \
             --arg distance "${distance}"       \
             --arg message  "${commit}"         \
             --arg commit   "${COMMIT}"         \

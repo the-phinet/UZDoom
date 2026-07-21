@@ -105,23 +105,6 @@ VersionInfo GetCurrentVersion()
 	return version;
 }
 
-VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel)
-{
-#ifdef DEBUG_FORCE_UPDATE
-	return VersionInfo(1,0,0,0);
-#endif
-
-	switch(channel)
-	{
-	case UpdateChannel::STABLE:
-	case UpdateChannel::RELEASE_CANDIDATE:
-		// no releases can be made when git distance is not 0
-	case UpdateChannel::PREVIEW:
-	case UpdateChannel::TESTING:
-		return GetCurrentVersion();
-	}
-}
-
 VersionInfo GetCurrentEngineVersion()
 {
 	return MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION);
@@ -265,4 +248,10 @@ VersionInfo::operator FString() const
 	if (*prerelease) tmp.AppendFormat("-%s", prerelease);
 	if (*build) tmp.AppendFormat("+%s", build);
 	return tmp;
+}
+
+VersionInfo::operator std::string() const
+{
+	FString tmp = FString(*this);
+	return tmp.GetChars();
 }
