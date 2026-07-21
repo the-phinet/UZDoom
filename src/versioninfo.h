@@ -17,6 +17,8 @@
 
 #include "basics.h"
 
+#include <string>
+
 class FString;
 
 struct VersionInfo
@@ -70,6 +72,7 @@ struct VersionInfo
 
 	void operator=(const char* string);
 	explicit operator FString() const;
+	explicit operator std::string() const;
 };
 
 // Cannot be a constructor because Lemon would puke on it.
@@ -79,7 +82,5 @@ constexpr VersionInfo MakeVersion(unsigned int ma, unsigned int mi, unsigned int
 }
 
 VersionInfo GetCurrentVersion();
-
-VersionInfo GetCurrentVersionForUpdate(UpdateChannel channel);
 
 VersionInfo GetCurrentEngineVersion();
