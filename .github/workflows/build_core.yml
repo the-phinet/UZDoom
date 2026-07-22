@@ -172,13 +172,12 @@ jobs:
           set +e
           local cmd="$*"
           local delay=10
-          local timeout_sec=600
           for i in {1..4}; do
             echo "Running: $cmd"
             bash -c "$cmd" &
             local cmd_pid=$!
 
-            ( sleep 600 ; kill -9 "$cmd_pid" 2>&1 ; ) &
+            ( sleep 1200 ; kill -9 "$cmd_pid" 2>&1 ; ) &
             local watchdog_pid=$!
 
             wait "$cmd_pid" 2>&1
