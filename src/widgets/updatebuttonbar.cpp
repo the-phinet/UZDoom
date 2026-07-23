@@ -1474,7 +1474,10 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 
 		if(!doc.has_value())
 		{
-			DEBUG_LOG("empty response");
+			DEBUG_LOG("empty response"); // TODO: report network issues.
+			                             // For now, the most likely time this will happen is when we are up-to-date
+			ok = true;
+			return std::nullopt;
 		}
 		else
 		{
@@ -1587,7 +1590,7 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 
 				currentUpdate = GetUpdateInfo(ok);
 
-				if(!ok) return;
+				if(!ok || !currentUpdate.has_value()) return;
 
 				new_update = !was_cached || (currentUpdate->version != cachedVer);
 
