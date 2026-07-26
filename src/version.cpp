@@ -42,9 +42,7 @@
 
 const char *GetVersionString()
 {
-	static FString version = FString{GetCurrentVersion()};
-
-	return version.GetChars();
+	return GIT_DESCRIPTION;
 }
 
 //==========================================================================
@@ -91,7 +89,7 @@ int GetGitDistance()
 	return GIT_DISTANCE;
 }
 
-VersionInfo GetCurrentVersion()
+VersionInfo GetCurrentVersionForUpdater()
 {
 	static VersionInfo version = ([]() {
 		VersionInfo v = VersionInfo{GIT_DESCRIPTION};
@@ -105,10 +103,16 @@ VersionInfo GetCurrentVersion()
 	return version;
 }
 
+VersionInfo GetCurrentVersion()
+{
+	return MakeVersion(VER_MAJOR, VER_MINOR, VER_REVISION);
+}
+
 VersionInfo GetCurrentEngineVersion()
 {
 	return MakeVersion(ENG_MAJOR, ENG_MINOR, ENG_REVISION);
 }
+
 
 bool IsValidExtension(const char *data, size_t count)
 {

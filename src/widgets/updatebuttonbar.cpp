@@ -1411,7 +1411,7 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 		}
 
 		// try to get next prerelease tag by incrementing numeric prerelease parts
-		VersionInfo temp = GetCurrentVersion();
+		VersionInfo temp = GetCurrentVersionForUpdater();
 		auto pre = std::string(temp.prerelease);
 		temp.prerelease[0] = temp.build[0] = '\0';
 		if (pre.empty())
@@ -1505,7 +1505,7 @@ std::optional<update_info_t> UpdateButtonBar::GetUpdateInfo(bool &ok)
 
 bool isVersionInvalid(VersionInfo ver)
 {
-	return ver.major == USHRT_MAX || ver.minor == USHRT_MAX || ver.revision == USHRT_MAX || ver == GetCurrentVersion();
+	return ver.major == USHRT_MAX || ver.minor == USHRT_MAX || ver.revision == USHRT_MAX || ver == GetCurrentVersionForUpdater();
 }
 
 void UpdateButtonBar::StartUpdate()
@@ -1608,7 +1608,7 @@ void UpdateButtonBar::CheckForUpdate(bool force)
 
 			if(currentUpdate.has_value())
 			{
-				auto current = GetCurrentVersion();
+				auto current = GetCurrentVersionForUpdater();
 				bool should_update = updater_debug_always_update || (currentUpdate->version > current);
 
 				DEBUG_LOG(

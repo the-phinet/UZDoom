@@ -82,5 +82,6 @@ constexpr VersionInfo MakeVersion(unsigned int ma, unsigned int mi, unsigned int
 }
 
 VersionInfo GetCurrentVersion();
+VersionInfo GetCurrentVersionForUpdater();
 
 VersionInfo GetCurrentEngineVersion();
