@@ -20,8 +20,11 @@
 #include "sc_man.h"
 #include "themedata.h"
 #include "utility/colorspace.h"
+#include "zwidget/widgets/imagebox/imagebox.h"
 
 Colorf Theme::accent;
+ImageBoxAnchor Theme::anchor;
+ImageBoxScale Theme::scale;
 ThemeData Theme::dark = {};
 ThemeData Theme::light = {};
 ThemeData* Theme::theme = nullptr;
@@ -38,6 +41,8 @@ enum ThemeCommands
 	THEME_HOVER,
 	THEME_CLICK,
 	THEME_BORDER,
+	THEME_ANCHOR,
+	THEME_SCALE,
 };
 
 static const char *ThemeCommandStrings[] =
@@ -51,7 +56,65 @@ static const char *ThemeCommandStrings[] =
 	"hover",
 	"click",
 	"border",
+	"anchor",
+	"scale",
 	nullptr
+};
+
+static const ImageBoxAnchor BannerAnchor[] = {
+	Center,
+	North,
+	South,
+	East,
+	West,
+	NorthEast,
+	NorthWest,
+	SouthEast,
+	SouthWest,
+};
+
+static const char* BannerAnchorStrings[2*(sizeof(BannerAnchor)/sizeof(BannerAnchor[0]))+1] = {
+	"Center", "C",
+	"North", "N",
+	"South", "S",
+	"East", "E",
+	"West", "W",
+	"NorthEast", "NE",
+	"NorthWest", "NW",
+	"SouthEast", "SE",
+	"SouthWest", "SW",
+	nullptr,
+};
+
+static const ImageBoxScale BannerScale[] = {
+	None,
+	Contain,
+	Cover,
+	StretchX,
+	GrowX,
+	ShrinkX,
+	StretchY,
+	GrowY,
+	ShrinkY,
+	Stretch,
+	Grow,
+	Shrink,
+};
+
+static const char* BannerScaleStrings[(sizeof(BannerScale)/sizeof(BannerScale[0]))+1] = {
+	"None",
+	"Contain",
+	"Cover",
+	"StretchX",
+	"GrowX",
+	"ShrinkX",
+	"StretchY",
+	"GrowY",
+	"ShrinkY",
+	"Stretch",
+	"Grow",
+	"Shrink",
+	nullptr,
 };
 
 void Theme::initilize(Mode mode, bool contrast)
@@ -71,6 +134,8 @@ void Theme::initilize(Mode mode, bool contrast)
 
 	// basic fallback
 	Theme::accent = Colorf::fromRgb(0x7f7f7f);
+	Theme::anchor = Center;
+	Theme::scale = Contain;
 	simple(Theme::light, 0xffffff, 0x000000, 0xffff00, 0x000000);
 	simple(Theme::dark,  0x000000, 0xffffff, 0x0000ff, 0xffffff);
 
@@ -122,6 +187,37 @@ void Theme::initilize(Mode mode, bool contrast)
 			case THEME_ACCENT:
 				Theme::accent = Colorf::fromRgb(hex(sc));
 				continue;
+			case THEME_ANCHOR:
+				{
+					sc.MustGetString();
+					auto anchor = sc.MatchString(BannerAnchorStrings);
+					if (anchor == -1) DPrintf(DMSG_WARNING, "Unknown anchor '%s'\n", sc.String);
+					else Theme::anchor = BannerAnchor[anchor/2];
+					continue;
+				}
+			case THEME_SCALE:
+				{
+					sc.MustGetString();
+					FString s = sc.String;
+					unsigned scale = None;
+					for (auto &ss: s.Split(','))
+					{
+						size_t i;
+						for (i = 0; BannerScaleStrings[i]; i++)
+						{
+							if (ss.CompareNoCase(BannerScaleStrings[i]) == 0) break;
+						}
+						if (!BannerScaleStrings[i])
+						{
+							DPrintf(DMSG_WARNING, "Unknown scale '%s'\n", ss.GetChars());
+							scale = Theme::scale;
+							break;
+						}
+						scale |= BannerScale[i];
+					}
+					Theme::scale = static_cast<ImageBoxScale>(scale);
+					continue;
+				}
 			}
 			if (!t)
 			{
@@ -157,8 +253,6 @@ Colorf Theme::mix(const ColorLayers& color, float mix)
 	auto c = Color::mix(a, b, mix).rgb;
 	return { c.r, c.g, c.b };
 }
-
-Colorf Theme::getAccent() { return { Theme::accent }; }
 
 Colorf Theme::getMain  (float mix) { return Theme::mix(Theme::theme->main,   mix); }
 Colorf Theme::getHeader(float mix) { return Theme::mix(Theme::theme->header, mix); }

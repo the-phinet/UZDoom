@@ -150,6 +150,8 @@ LauncherBanner::LauncherBanner(Widget* parent, FName colors, float mix) : Widget
 	Logo = new ImageBox(this);
 	auto imgsrc = (useColors || Theme::getMode() == LIGHT) ? "ui/banner-light.png": "ui/banner-dark.png";
 	Logo->SetImage(Image::LoadResource(imgsrc));
+	Logo->SetImageAnchor(Theme::getAnchor());
+	Logo->SetImageScale(Theme::getScale());
 	this->SetStyleColor("background-color", bg);
 }
 
@@ -160,7 +162,7 @@ double LauncherBanner::GetPreferredHeight()
 
 void LauncherBanner::OnGeometryChanged()
 {
-	auto W = GetWidth(), H = Logo->GetPreferredHeight();
+	auto W = GetWidth(), H = GetPreferredHeight();
 	auto w = Logo->GetPreferredWidth();
 	auto h = H/stripes.size();
 	for (unsigned i = 0; i < stripes.size(); i++)
