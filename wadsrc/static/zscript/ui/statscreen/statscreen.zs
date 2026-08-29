@@ -48,7 +48,7 @@ struct PatchInfo ui version("2.5")
 		if (s.Left(1) != "*")
 			mFont = Font.GetFont(gifont.fontname);
 		else if (generic_ui)
-			mFont = Font.GetSmallTextFont(NewSmallFont);
+			mFont = NewSmallFont;
 		else
 		{
 			s = s.Mid(1);
@@ -57,7 +57,7 @@ struct PatchInfo ui version("2.5")
 		mColor = Font.FindFontColor(gifont.color);
 		if (mFont == NULL)
 		{
-			mFont = Font.GetBigTextFont(BigFont);
+			mFont = BigFont;
 		}
 	}
 };
@@ -222,10 +222,8 @@ class StatusScreen : ScreenJob abstract version("2.5")
 
 	int DrawName(int y, TextureID tex, String levelname)
 	{
-		let ourFont = Font.GetBigTextFont(mapname.mFont);
-		bool usingDynamicFont = ourFont.IsValidDynamicFont();
 		// draw <LevelName>
-		if (tex.isValid()  && !usingDynamicFont)
+		if (tex.isValid())
 		{
 			let size = TexMan.GetScaledSize(tex);
 			DrawTexture(tex, (cwidth - size.X * scaleFactorX) /2, y, true);
@@ -239,14 +237,14 @@ class StatusScreen : ScreenJob abstract version("2.5")
 		else if (levelname.Length() > 0)
 		{
 			int h = 0;
-			int lumph = ourFont.GetHeight() * scaleFactorY;
+			int lumph = mapname.mFont.GetHeight() * scaleFactorY;
 
-			BrokenLines lines = ourFont.BreakLines(levelname, wrapwidth / scaleFactorX);
+			BrokenLines lines = mapname.mFont.BreakLines(levelname, wrapwidth / scaleFactorX);
 
 			int count = lines.Count();
 			for (int i = 0; i < count; i++)
 			{
-				DrawText(ourFont, mapname.mColor, (cwidth - lines.StringWidth(i) * scaleFactorX) / 2, y + h, lines.StringAt(i), true);
+				DrawText(mapname.mFont, mapname.mColor, (cwidth - lines.StringWidth(i) * scaleFactorX) / 2, y + h, lines.StringAt(i), true);
 				h += lumph;
 			}
 			return y + h;
@@ -268,11 +266,11 @@ class StatusScreen : ScreenJob abstract version("2.5")
 			int lumph = author.mFont.GetHeight() * scaleFactorY;
 
 			BrokenLines lines = author.mFont.BreakLines(levelname, wrapwidth / scaleFactorX);
-			let authorFont = Font.GetTitleFont(author.mFont);
+
 			int count = lines.Count();
 			for (int i = 0; i < count; i++)
 			{
-				DrawText(authorFont, author.mColor, (cwidth - lines.StringWidth(i) * scaleFactorX) / 2, y + h, lines.StringAt(i), true);
+				DrawText(author.mFont, author.mColor, (cwidth - lines.StringWidth(i) * scaleFactorX) / 2, y + h, lines.StringAt(i), true);
 				h += lumph;
 			}
 			return y + h;
@@ -305,9 +303,8 @@ class StatusScreen : ScreenJob abstract version("2.5")
 	{
 		String string = Stringtable.Localize(stringname);
 		int midx = cwidth / 2;
-		let ourFont = Font.GetBigTextFont(pinfo.mFont);
-		bool usingDynamicFont = ourFont.IsValidDynamicFont();
-		if (TexMan.OkForLocalization(patch, stringname) && !usingDynamicFont)
+
+		if (TexMan.OkForLocalization(patch, stringname))
 		{
 			let size = TexMan.GetScaledSize(patch);
 			DrawTexture(patch, midx - size.X * scaleFactorX/2, y, true);
@@ -315,8 +312,8 @@ class StatusScreen : ScreenJob abstract version("2.5")
 		}
 		else
 		{
-			DrawText(ourFont, pinfo.mColor, midx - ourFont.StringWidth(string) * scaleFactorX/2, y, string, true);
-			return y + ourFont.GetHeight() * scaleFactorY;
+			DrawText(pinfo.mFont, pinfo.mColor, midx - pinfo.mFont.StringWidth(string) * scaleFactorX/2, y, string, true);
+			return y + pinfo.mFont.GetHeight() * scaleFactorY;
 		}
 	}
 
@@ -331,19 +328,13 @@ class StatusScreen : ScreenJob abstract version("2.5")
 
 	virtual int drawLF ()
 	{
-		let ourFont = Font.GetTitleFont(mapname.mFont);
-		bool isFontDynamic = ourFont.IsValidDynamicFont();
-
-		let finishedFont = Font.GetBigTextFont(finishedp.mFont);
-		let authorFont = Font.GetTitleFont(author.mFont);
-
-		bool ispatch = wbs.LName0.isValid() && !isFontDynamic;
+		bool ispatch = wbs.LName0.isValid();
 		int oldy = TITLEY * scaleFactorY;
 		int h;
 
 		if (!ispatch)
 		{
-			let asc = ourFont.GetMaxAscender(lnametexts[1]);
+			let asc = mapname.mFont.GetMaxAscender(lnametexts[1]);
 			if (asc > TITLEY - 2)
 			{
 				oldy = (asc+2) * scaleFactorY;
@@ -357,21 +348,20 @@ class StatusScreen : ScreenJob abstract version("2.5")
 		{
 			int disp = 0;
 			// The offset getting applied here must at least be as tall as the largest ascender in the following text to avoid overlaps.
-			let ourBigTextFont = Font.GetBigTextFont(BigFont);
 			if (authortexts[0].length() == 0)
 			{
-				int h1 = ourBigTextFont.GetHeight() - ourBigTextFont.GetDisplacement();
+				int h1 = BigFont.GetHeight() - BigFont.GetDisplacement();
 				int h2 = (y - oldy) / scaleFactorY / 4;
 				disp = min(h1, h2);
 
 				if (!TexMan.OkForLocalization(finishedPatch, "$WI_FINISHED"))
 				{
-					disp += finishedFont.GetMaxAscender("$WI_FINISHED");
+					disp += finishedp.mFont.GetMaxAscender("$WI_FINISHED");
 				}
 			}
 			else
 			{
-					disp += authorFont.GetMaxAscender(authortexts[0]);
+					disp += author.mFont.GetMaxAscender(authortexts[0]);
 			}
 			y += disp * scaleFactorY;
 		}
@@ -381,7 +371,7 @@ class StatusScreen : ScreenJob abstract version("2.5")
 		// draw "Finished!"
 
 		int statsy = multiplayer? NG_STATSY : SP_STATSY * scaleFactorY;
-		if (y < (statsy - finishedFont.GetHeight()*3/4) * scaleFactorY)
+		if (y < (statsy - finishedp.mFont.GetHeight()*3/4) * scaleFactorY)
 		{
 			// don't draw 'finished' if the level name is too tall
 			y = DrawPatchOrText(y, finishedp, finishedPatch, "$WI_FINISHED");
@@ -400,13 +390,12 @@ class StatusScreen : ScreenJob abstract version("2.5")
 
 	virtual void drawEL ()
 	{
-		let ourFont = Font.GetBigTextFont(entering.mFont);
-		bool ispatch = TexMan.OkForLocalization(enteringPatch, "$WI_ENTERING") && !ourFont.IsValidDynamicFont();
+		bool ispatch = TexMan.OkForLocalization(enteringPatch, "$WI_ENTERING");
 		int oldy = TITLEY * scaleFactorY;
 
 		if (!ispatch)
 		{
-			let asc = ourFont.GetMaxAscender("$WI_ENTERING");
+			let asc = entering.mFont.GetMaxAscender("$WI_ENTERING");
 			if (asc > TITLEY - 2)
 			{
 				oldy = (asc+2) * scaleFactorY;
@@ -435,9 +424,8 @@ class StatusScreen : ScreenJob abstract version("2.5")
 
 		if (wbs.LName1.isValid() && authortexts[1].length() > 0)
 		{
-			let authorFont = Font.GetTitleFont(author.mFont);
 			// Consdider the ascender height of the following text.
-			y += authorFont.GetMaxAscender(authortexts[1]) * scaleFactorY;
+			y += author.mFont.GetMaxAscender(authortexts[1]) * scaleFactorY;
 		}
 
 		DrawAuthor(y, authortexts[1]);
@@ -475,39 +463,26 @@ class StatusScreen : ScreenJob abstract version("2.5")
 			len = text.Length();
 		}
 
-		let originalFnt = fnt;
-		fnt = Font.GetBigTextFont(originalFnt);
-		bool isFontDynamic = fnt.IsValidDynamicFont();
-
-		if (isFontDynamic)
+		for(int text_p = len-1; text_p >= 0; text_p--)
 		{
-			x -= fnt.StringWidth(text);
-			DrawText(fnt, translation, x, y, text, true);
-		}
-		else
-		{
-			for(int text_p = len-1; text_p >= 0; text_p--)
+			// Digits are centered in a box the width of the '3' character.
+			// Other characters (specifically, '-') are right-aligned in their cell.
+			int c = text.ByteAt(text_p);
+			if (c >= "0" && c <= "9")
 			{
-				// Digits are centered in a box the width of the '3' character.
-				// Other characters (specifically, '-') are right-aligned in their cell.
-				int c = text.ByteAt(text_p);
-				if (c >= "0" && c <= "9")
-				{
-					x -= fntwidth;
-					DrawCharPatch(fnt, c, x + (fntwidth - fnt.GetCharWidth(c)) / 2, y, translation, nomove);
-				}
-				else
-				{
-					DrawCharPatch(fnt, c, x - fnt.GetCharWidth(c), y, translation, nomove);
-					x -= fntwidth;
-				}
+				x -= fntwidth;
+				DrawCharPatch(fnt, c, x + (fntwidth - fnt.GetCharWidth(c)) / 2, y, translation, nomove);
 			}
-			if (len < digits)
+			else
 			{
-				x -= fntwidth * (digits - len);
+				DrawCharPatch(fnt, c, x - fnt.GetCharWidth(c), y, translation, nomove);
+				x -= fntwidth;
 			}
 		}
-		
+		if (len < digits)
+		{
+			x -= fntwidth * (digits - len);
+		}
 		return x;
 	}
 
@@ -522,7 +497,6 @@ class StatusScreen : ScreenJob abstract version("2.5")
 		if (p < 0)
 			return;
 
-		fnt = Font.GetBigTextFont(fnt);
 		if (wi_percents)
 		{
 			if (nomove && scalemode == -1)
@@ -577,34 +551,18 @@ class StatusScreen : ScreenJob abstract version("2.5")
 		int colon_spacing = printFont.GetCharWidth(":");
 
 		x = drawNum (printFont, x, y, seconds, 2, true, color) - 1;
-		if (printFont.IsValidDynamicFont())
-		{
-			DrawText(printFont, color, x -= colon_spacing, y, ":", true);
-		}
-		else
-		{
-			DrawCharPatch (printFont, ":", x -= colon_spacing, y, color);
-		}
-		
+		DrawCharPatch (printFont, ":", x -= colon_spacing, y, color);
 		x = drawNum (printFont, x, y, minutes, 2, hours!=0, color);
 		if (hours)
 		{
-			if (printFont.IsValidDynamicFont())
-			{
-				DrawText(printFont, color, x -= colon_spacing, y, ":", true);
-			}
-			else
-			{
-				DrawCharPatch (printFont, ":", x -= colon_spacing, y, color);
-			}
+			DrawCharPatch (printFont, ":", x -= colon_spacing, y, color);
 			drawNum (printFont, x, y, hours, 2, false, color);
 		}
 	}
 
 	void drawTime (int x, int y, int t, bool no_sucks=false)
 	{
-		let printFont = Font.GetBigTextFont(IntermissionFont);
-		drawTimeFont(printFont, x, y, t, Font.CR_UNTRANSLATED);
+		drawTimeFont(IntermissionFont, x, y, t, Font.CR_UNTRANSLATED);
 	}
 
 	//====================================================================

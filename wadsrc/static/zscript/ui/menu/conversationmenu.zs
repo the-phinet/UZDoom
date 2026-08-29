@@ -126,7 +126,7 @@ class ConversationMenu : Menu
 		}
 		else
 		{
-			displayFont = Font.GetSmallTextFont(NewSmallFont);
+			displayFont = NewSmallFont;
 			fontScale = (CleanXfac+1) / 2;
 			refwidth = 640;
 			refheight = 400;
@@ -541,7 +541,7 @@ class ConversationMenu : Menu
 					}
 					else
 					{
-						screen.DrawText(Font.GetConsoleFont(ConFont), colr, x, yy, "\xd", DTA_CellX, 8 * CleanXfac, DTA_CellY, 8 * CleanYfac);
+						screen.DrawText(ConFont, colr, x, yy, "\xd", DTA_CellX, 8 * CleanXfac, DTA_CellY, 8 * CleanYfac);
 					}
 				}
 			}

@@ -253,7 +253,7 @@ void CT_Drawer (void)
 {
 	auto &vp = r_viewpoint;
 	auto drawer = twod;
-	FFont *displayfont = FFont::GetConsoleFont(NewConsoleFont);
+	FFont *displayfont = NewConsoleFont;
 
 	HU_DrawScores(vp.TicFrac);
 
@@ -290,11 +290,6 @@ void CT_Drawer (void)
 
 		promptwidth = displayfont->StringWidth (prompt) * scalex;
 		x = displayfont->GetCharWidth (displayfont->GetCursor()) * scalex * 2 + promptwidth;
-
-		if (displayfont->IsValidDynamicFont())
-		{
-			y -= displayfont->GetHeight();
-		}
 
 		FString printstr = ChatQueue;
 		// figure out if the text is wider than the screen
