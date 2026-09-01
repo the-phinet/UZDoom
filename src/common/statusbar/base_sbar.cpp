@@ -743,41 +743,9 @@ void DStatusBarCore::DrawString(FFont* font, const FString& cstring, double x, d
 		Scale = { 1.,1. };
 	}
 
-	if (font->IsValidDynamicFont() || font->CanBeSubstitutedWithDynamic())
-	{
-		double rx, ry, rw, rh;
-		rx = x + drawOffset.X;
-		ry = y + drawOffset.Y;
-		rw = font->StringWidth(cstring);
-		rh = font->GetHeight();
-
-		if (monospacing == EMonospacing::CellCenter)
-			rx += (spacing - rw) / 2;
-		else if (monospacing == EMonospacing::CellRight)
-			rx += (spacing - rw);
-
-		if (!fullscreenOffsets)
-		{
-			StatusbarToRealCoords(rx, ry, rw, rh);
-		}
-		else
-		{
-			rx *= Scale.X;
-			ry *= Scale.Y;
-			rw *= Scale.X;
-			rh *= Scale.Y;
-
-			rx += orgx;
-			ry += orgy;
-		}
-		ry -= font->GetHeight();
-		int scale     = active_con_scale(twod);
-		int screen_width  = twod->GetWidth() / scale;
-		int screen_height = twod->GetHeight() / scale;
-		DrawText(twod, font, fontcolor, rx / scale, ry / scale, cstring.GetChars(), DTA_KeepRatio, true, DTA_VirtualHeight, screen_height, DTA_VirtualWidth, screen_width, DTA_ScaleX, (double)scale*scaleX,
-		         DTA_ScaleY, (double)scale*scaleY, TAG_DONE);
-	}
-	else
+	//In the case of HUD, the old char-by-char text shaping is used
+	//since doom-based huds are extremely sensitive to the placement of character glyphs.
+	//so, do the old text shaping, but substitute the font char-by-char after placement and try to match the original size.
 	{
 		int ch;
 		while (ch = GetCharFromString(str), ch != '\0')
@@ -833,8 +801,22 @@ void DStatusBarCore::DrawString(FFont* font, const FString& cstring, double x, d
 			}
 
 			// Apply text scale
-			rw *= scaleX;
-			rh *= scaleY;
+			// if the font is going to be dynamically substituted, do the scaling a little different. 
+			if (FFont *dynamicSub = FFont::GetDynamicSubstitutionForStaticFont(font))
+			{
+				//try to match the size of the old text.
+				double sizeMatchScale = (double)dynamicSub->GetHeight() / (double)font->GetHeight();
+				rw *= sizeMatchScale;
+				rh *= sizeMatchScale;
+				rw /= dynamicSub->GetInvSupersampleScale();
+				rh /= dynamicSub->GetInvSupersampleScale();
+			}
+			else
+			{
+				rw *= scaleX;
+				rh *= scaleY;
+			}
+			
 
 			// This is not really such a great way to draw shadows because they can overlap with previously drawn
 			// characters. This may have to be changed to draw the shadow text up front separately.
