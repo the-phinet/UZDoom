@@ -26,7 +26,7 @@
 
 /** Lots of different version numbers **/
 
-#define VERSIONSTR "5.1.0-pre"
+#define VERSIONSTR "5.1.1"
 
 // The version as seen in the Windows resource
 #define RC_FILEVERSION 5,0,9999,0
