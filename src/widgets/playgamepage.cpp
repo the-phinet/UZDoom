@@ -15,6 +15,7 @@
 **
 */
 
+#include <string_view>
 #include <zwidget/widgets/checkboxlabel/checkboxlabel.h>
 #include <zwidget/widgets/lineedit/lineedit.h>
 #include <zwidget/widgets/listview/listview.h>
@@ -101,16 +102,14 @@ bool PlayGamePage::OnFileDrop(std::string path)
 	auto text = ParametersEdit->GetText();
 	if (!text.empty()) text += " ";
 
-	std::string arg;
-	auto ext = path.substr(path.length() - 4u);
-	if (!stricmp(ext.c_str(), ".deh"))
-		arg = "-deh";
-	else if (!stricmp(ext.c_str(), ".bex"))
-		arg = "-bex";
+	ci_string_view pathview = path.c_str();
+	if (pathview.ends_with(".deh"))
+		text += "-deh";
+	else if (pathview.ends_with(".bex"))
+		text += "-bex";
 	else
-		arg = "-file";
+		text += "-file";
 
-	text += arg;
 	text += " \"";
 	text += path;
 	text += "\"";

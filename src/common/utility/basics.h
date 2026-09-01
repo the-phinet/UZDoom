@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <cstdlib>
 #include <limits>
+#include <string>
 #include <type_traits>
 
 #include "m_round.h"
@@ -141,3 +142,35 @@ static inline void PrefetchL3(const void* Address)
 	_mm_prefetch(static_cast<const char*>(Address), _MM_HINT_T1);
 #endif
 }
+
+struct ci_char_traits: public std::char_traits<char>
+{
+	static bool eq(char a, char b) noexcept
+	{
+		return std::tolower(static_cast<unsigned char>(a)) == std::tolower(static_cast<unsigned char>(b));
+	}
+	static bool lt(char a, char b) noexcept
+	{
+		return std::tolower(static_cast<unsigned char>(a)) < std::tolower(static_cast<unsigned char>(b));
+	}
+	static int compare(const char *a, const char *b, std::size_t n) noexcept
+	{
+		for (; n>0; n--, a++, b++)
+		{
+			if (lt(*a, *b)) return -1;
+			if (lt(*b, *a)) return 1;
+		}
+		return 0;
+	}
+	static const char* find(const char* s, std::size_t n, char c)
+	{
+		auto t = std::tolower(static_cast<unsigned char>(c));
+		for (; n > 0; n--, s++)
+		{
+			if (std::tolower(static_cast<unsigned char>(*s)) == t) return s;
+		}
+		return nullptr;
+	}
+};
+using ci_string = std::basic_string<char, ci_char_traits>;
+using ci_string_view = std::basic_string_view<char, ci_char_traits>;
