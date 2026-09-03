@@ -750,7 +750,7 @@ FFont *FFont::GetDynamicSubstitutionForStaticFont(FFont *const fontToSub)
 		const FString cvarName     = "fontchoice_" + subbedFontNameString + "_" + langIDString;
 		if (FStringCVar *const cv = dynamic_cast<FStringCVar *>(FindCVar(cvarName.GetChars(), nullptr)))
 		{
-			foundDynamicRemap = V_GetFont(*cv);
+			foundDynamicRemap = FFont::FindFont(FName(*cv));
 		}
 		
 		if (foundDynamicRemap)
