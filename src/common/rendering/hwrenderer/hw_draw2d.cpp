@@ -56,7 +56,7 @@ void Draw2D(F2DDrawer* drawer, FRenderState& state, int x, int y, int width, int
 
 	state.EnableStencil(false);
 	state.SetStencil(0, SOP_Keep, SF_AllOn);
-	state.Clear(CT_Stencil);
+	state.Clear(CT_Stencil|CT_Color);
 	state.EnableDepthTest(false);
 	state.EnableMultisampling(false);
 	state.EnableLineSmooth(gl_aalines);
