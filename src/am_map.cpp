@@ -331,16 +331,6 @@ struct AMColor
 		RGB = 0xff000000|str(s);
 	}
 
-	constexpr AMColor(uint32_t rgb) noexcept
-	{
-		RGB = 0xff000000|rgb;
-	}
-
-	constexpr AMColor(int r, int g, int b) noexcept
-	{
-		RGB = MAKEARGB(255, r, g, b);
-	}
-
 	constexpr AMColor() = default;
 	constexpr AMColor(AMColor&& rhs) = default;
 	constexpr AMColor(const AMColor& rhs) = default;
@@ -352,7 +342,7 @@ struct AMColor
 
 	void FromCVar(FColorCVar & cv)
 	{
-		RGB = uint32_t(cv) | MAKEARGB(255, 0, 0, 0);
+		RGB = 0xff000000|uint32_t(cv);
 	}
 
 	constexpr void FromRGB(int r,int g, int b)
@@ -491,10 +481,10 @@ struct AMColorset
 
 	void setWhite()
 	{
-		c[0].FromRGB(0,0,0);
+		c[0].FromRGB(COLOR_RGB("#000"));
 		for(int i=1; i<AM_NUM_COLORS; i++)
 		{
-			c[i].FromRGB(255,255,255);
+			c[i].FromRGB(COLOR_RGB("#fff"));
 		}
 	}
 
@@ -2392,9 +2382,9 @@ void DAutomap::showSS()
 	if (am_showsubsector >= 0 && (unsigned)am_showsubsector < Level->subsectors.Size())
 	{
 		AMColor yellow;
-		yellow.FromRGB(255,255,0);
+		yellow.FromRGB(COLOR_RGB("#ff0"));
 		AMColor red;
-		red.FromRGB(255,0,0);
+		red.FromRGB(COLOR_RGB("#f00"));
 
 		subsector_t *sub = &Level->subsectors[am_showsubsector];
 		for (unsigned int i = 0; i < sub->numlines; i++)

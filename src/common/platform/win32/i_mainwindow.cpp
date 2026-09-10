@@ -29,6 +29,7 @@
 
 #include "engineerrors.h"
 #include "gstrings.h"
+#include "colorspace.h"
 #include "i_input.h"
 #include "i_mainwindow.h"
 #include "i_net.h"
@@ -59,7 +60,7 @@ void MainWindow::Create(const FString& caption, int x, int y, int width, int hei
 	WndClass.hInstance = hInstance;
 	WndClass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	WndClass.hbrBackground = CreateSolidBrush(RGB(0,0,0));
+	WndClass.hbrBackground = CreateSolidBrush(RGB(COLOR_RGB("#000")));
 	WndClass.lpszMenuName = NULL;
 	WndClass.lpszClassName = WinClassName;
 
@@ -88,9 +89,9 @@ void MainWindow::Create(const FString& caption, int x, int y, int width, int hei
 		exit(-1);
 	}
 
-	uint32_t bordercolor = RGB(51, 51, 51);
-	uint32_t captioncolor = RGB(33, 33, 33);
-	uint32_t textcolor = RGB(226, 223, 219);
+	uint32_t bordercolor = RGB(COLOR_RGB("#333333"));
+	uint32_t captioncolor = RGB(COLOR_RGB("#212121"));
+	uint32_t textcolor = RGB(COLOR_RGB("#e2dfdb"));
 
 	// Don't error check these as they only exist on Windows 11, and if they fail then that is OK.
 	DwmSetWindowAttribute(Window, 34/*DWMWA_BORDER_COLOR*/, &bordercolor, sizeof(uint32_t));

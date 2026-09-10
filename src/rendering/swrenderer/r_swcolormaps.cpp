@@ -183,7 +183,7 @@ void FDynamicColormap::BuildLights ()
 			Fade.r, Fade.g, Fade.b, l * (256 / NUMCOLORMAPS));
 
 		shade = Maps + 256*l;
-		if ((uint32_t)Color == MAKERGB(255,255,255))
+		if ((uint32_t)Color == Color::str("#fff"))
 		{ // White light, so we can just pick the colors directly
 			for (c = 0; c < 256; c++)
 			{

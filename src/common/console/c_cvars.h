@@ -103,6 +103,7 @@ union UCVarValue
 	UCVarValue() = default;
 	constexpr UCVarValue(bool v) : Bool(v) { }
 	constexpr UCVarValue(int v) : Int(v) { }
+	constexpr UCVarValue(unsigned v) : Int(int(v)) { }
 	constexpr UCVarValue(float v) : Float(v) { }
 	constexpr UCVarValue(double v) : Float(float(v)) { }
 	constexpr UCVarValue(const char * v) : String(v) { }
@@ -111,6 +112,7 @@ union UCVarValue
 
 template <ECVarType t> constexpr UCVarValue CVarValue(bool v) { static_assert(t == CVAR_Bool); return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(int v) { static_assert(t == CVAR_Int || t == CVAR_Color); return v; }
+template <ECVarType t> constexpr UCVarValue CVarValue(unsigned v) { static_assert(t == CVAR_Color); return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(float v) { static_assert(t == CVAR_Float); return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(double v) { static_assert(t == CVAR_Float); return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(const char* v) { static_assert(t == CVAR_String); return v; }

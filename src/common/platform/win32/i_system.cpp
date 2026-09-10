@@ -51,6 +51,7 @@
 
 #include "version.h"
 #include "i_sound.h"
+#include "colorspace.h"
 #include "resource.h"
 #include "stats.h"
 #include "v_text.h"
@@ -469,7 +470,7 @@ static HCURSOR CreateCompatibleCursor(FBitmap &bmp, int leftofs, int topofs)
 			const uint8_t *bgra = &pixels[x*4 + y*bmp.GetPitch()];
 			if (bgra[3] != 0)
 			{
-				SetPixelV(and_mask_dc, x, y, RGB(0,0,0));
+				SetPixelV(and_mask_dc, x, y, RGB(COLOR_RGB("#000")));
 				SetPixelV(xor_mask_dc, x, y, RGB(bgra[2], bgra[1], bgra[0]));
 			}
 		}

@@ -168,12 +168,12 @@ namespace swrenderer
 		{
 			if (invertColormap) // Fade to white
 			{
-				basecolormap = GetSpecialLights(basecolormap->Color, MAKERGB(255, 255, 255), basecolormap->Desaturate);
+				basecolormap = GetSpecialLights(basecolormap->Color, Color::str("#fff"), basecolormap->Desaturate);
 				invertColormap = false;
 			}
 			else // Fade to black
 			{
-				basecolormap = GetSpecialLights(basecolormap->Color, MAKERGB(0, 0, 0), basecolormap->Desaturate);
+				basecolormap = GetSpecialLights(basecolormap->Color, Color::str("#000"), basecolormap->Desaturate);
 			}
 		}
 
