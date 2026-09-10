@@ -316,7 +316,7 @@ void NetStartWindow::OnCallbackTimerExpired()
 	static auto t = 0u;
 	if (timer_callback)
 	{
-		if (t++%60 == 5) DEBUG_LOG("%s", "tick");
+		if (t++%60 == 5) DEBUG_LOG("tick");
 		bool result = false;
 		try
 		{
