@@ -85,4 +85,4 @@ void DebugLog(std::string_view, size_t, const char *, ...) ATTRIBUTE((format(pri
 }
 
 // Heavy print statement that knows where it was called from
-#define DEBUG_LOG(format, ...) ::detail::DebugLog(__FILE__, __LINE__, format, __VA_ARGS__);
+#define DEBUG_LOG(format, ...) ::detail::DebugLog(__FILE__, __LINE__, format __VA_OPT__(,) __VA_ARGS__)
