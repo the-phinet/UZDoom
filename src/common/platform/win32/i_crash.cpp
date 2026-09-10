@@ -54,6 +54,7 @@
 #include "basics.h"
 #include "zstring.h"
 #include "printf.h"
+#include "colorspace.h"
 #include "cmdlib.h"
 #include "i_mainwindow.h"
 
@@ -1732,7 +1733,7 @@ static LRESULT CALLBACK TransparentStaticProc (HWND hWnd, UINT uMsg, WPARAM wPar
 				HBITMAP bitmap = (HBITMAP)SendMessage (hWnd, STM_GETIMAGE, IMAGE_BITMAP, 0);
 				if (bitmap != NULL)
 				{
-					DrawTransparentBitmap (dc, bitmap, 0, 0, RGB(255,0,255));
+					DrawTransparentBitmap (dc, bitmap, 0, 0, RGB(COLOR_RGB("#f0f")));
 				}
 				EndPaint (hWnd, &paint);
 			}
@@ -2154,7 +2155,7 @@ static void SetEditControl (HWND edit, HWND sizedisplay, int filenum)
 		beBlack.cbSize = sizeof(beBlack);
 		beBlack.dwMask = CFM_COLOR;
 		beBlack.dwEffects = 0;
-		beBlack.crTextColor = RGB(0,0,0);
+		beBlack.crTextColor = RGB(COLOR_RGB("#000"));
 		SendMessage (edit, EM_SETCHARFORMAT, 0, (LPARAM)&beBlack);
 		stream.dwCookie = (DWORD_PTR)TarFiles[filenum].File;
 		stream.pfnCallback = StreamEditText;

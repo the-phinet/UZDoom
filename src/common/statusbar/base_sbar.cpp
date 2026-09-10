@@ -589,7 +589,7 @@ void DStatusBarCore::DrawGraphic(FGameTexture* tex, double x, double y, int flag
 		DTA_ClipRight, clipwidth < 0? twod->GetWidth() : int(x + boxwidth * clipwidth),
 		DTA_Color, color,
 		DTA_TranslationIndex, translation? translation : (flags & DI_TRANSLATABLE) ? GetTranslation().index() : 0,
-		DTA_ColorOverlay, (flags & DI_DIM) ? MAKEARGB(170, 0, 0, 0) : 0,
+		DTA_ColorOverlay, (flags & DI_DIM) ? Color::str("#a000") : 0,
 		DTA_Alpha, Alpha,
 		DTA_AlphaChannel, !!(flags & DI_ALPHAMAPPED),
 		DTA_FillColor, (flags & DI_ALPHAMAPPED) ? 0 : -1,
