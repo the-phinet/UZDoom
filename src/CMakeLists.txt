@@ -1436,6 +1436,7 @@ if( MSVC )
 		target_compile_definitions(zdoom PRIVATE MSVC_CONSTEVAL_BUG=1)
 	endif()
 
+	target_compile_options(zdoom PRIVATE /Zc:preprocessor)
 endif()
 
 if (WIN32)
