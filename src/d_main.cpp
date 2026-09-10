@@ -1083,8 +1083,16 @@ static void DrawRateStuff()
 
 static void DrawOverlays()
 {
-	C_DrawConsole ();
-	M_Drawer ();
+	if(menuactive == MENU_GameplayMenu)
+	{ // draw console above gameplay menus
+		M_Drawer ();
+		C_DrawConsole ();
+	}
+	else
+	{
+		C_DrawConsole ();
+		M_Drawer ();
+	}
 	DrawRateStuff();
 	if (!hud_toggled)
 		FStat::PrintStat (twod);
@@ -2982,7 +2990,7 @@ bool System_WantGuiCapture()
 {
 	bool wantCapt;
 
-	if (menuactive == MENU_Off)
+	if (menuactive == MENU_Off || menuactive == MENU_GameplayMenu)
 	{
 		wantCapt = ConsoleState == c_down || ConsoleState == c_falling || chatmodeon;
 	}
@@ -3007,7 +3015,7 @@ static bool System_DispatchEvent(event_t* ev)
 {
 	shiftState.AddEvent(ev);
 
-	if (ev->type == EV_Mouse && menuactive == MENU_Off && ConsoleState != c_down && ConsoleState != c_falling && !primaryLevel->localEventManager->Responder(ev) && !paused)
+	if (ev->type == EV_Mouse && (menuactive == MENU_Off || (menuactive == MENU_GameplayMenu && CurrentMenu && !CurrentMenu->mMouseCapture))&& ConsoleState != c_down && ConsoleState != c_falling && !primaryLevel->localEventManager->Responder(ev) && !paused)
 	{
 		if (buttonMap.ButtonDown(Button_Mlook) || freelook)
 		{
