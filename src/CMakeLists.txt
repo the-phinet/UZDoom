@@ -1433,6 +1433,7 @@ if( MSVC )
 		COMMENT "Adding manifest..."
 	)
 
+	target_compile_options(zdoom PRIVATE /Zc:preprocessor)
 endif()
 
 if (WIN32)
