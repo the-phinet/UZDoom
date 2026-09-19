@@ -619,7 +619,7 @@ namespace AutoMap::Colors
 	static inline const AMColor not_used = AMColor("#010000");
 
 	static inline const std::array<AMColor,AMColorset::EAMColor::AM_NUM_COLORS> DoomColors = {
-		AMColor("#a328f0"), // background
+		AMColor("#000000"), // background
 		AMColor("#ffffff"), // yourcolor
 		AMColor("#fc0000"), // wallcolor
 		AMColor("#808080"), // tswallcolor
