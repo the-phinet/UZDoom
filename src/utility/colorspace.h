@@ -18,9 +18,21 @@
 #include <cstdint>
 #include <string_view>
 
+#if defined(_MSC_VER) && (_MSC_VER < 1951)
+#ifndef NO_MSVC_CONSTEVAL_BUG
+#warning "This project uses c++20 features. Some older MSVC versions have bugs that prevent proper compilation. A workaround is being used for your configuration"
+// Remove this once VS2022 is EOL (2032), or the bug is fixed
+#define MSVC_CONSTEVAL_BUG 1
+#endif
+#endif
+
 namespace Color {
 
+#ifdef MSVC_CONSTEVAL_BUG
+inlineconstexpr int str(std::string_view s)
+#else
 consteval int str(std::string_view s)
+#endif
 {
 	if ((s.length() != 7 && s.length() != 4) || s[0] != '#') throw "Not a color";
 	s = s.substr(1);
