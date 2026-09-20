@@ -20,7 +20,11 @@
 
 namespace Color {
 
+#ifdef MSVC_CONSTEVAL_BUG
+inline constexpr int str(std::string_view s)
+#else
 consteval int str(std::string_view s)
+#endif
 {
 	if ((s.length() != 7 && s.length() != 4) || s[0] != '#') throw "Not a color";
 	s = s.substr(1);
