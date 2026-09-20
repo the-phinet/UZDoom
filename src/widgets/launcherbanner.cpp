@@ -32,12 +32,21 @@
 std::vector<Color::Color> getColors(FName id)
 {
 	using namespace std::chrono;
+#ifdef MSVC_CONSTEVAL_BUG
+	struct ColorNum {
+		uint32_t n;
+		constexpr ColorNum() : n(0) {}
+		constexpr ColorNum(int num) { n = num; }
+		constexpr ColorNum(const char* s) { n = Color::str(s); }
+	};
+#else
 	struct ColorNum {
 		uint32_t n;
 		consteval ColorNum() : n(0) {}
 		consteval ColorNum(int num) { n = num; }
 		consteval ColorNum(const char* s) { n = Color::str(s); }
 	};
+#endif
 	struct Flag {
 		FName flagid;
 		struct ColorNum data[19]; // alternate {space, color}. if space is 0, that is the end of the flag.

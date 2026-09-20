@@ -1429,6 +1429,13 @@ if( MSVC )
 		COMMENT "Adding manifest..."
 	)
 
+	# Workaround for https://developercommunity.visualstudio.com/t/10828473
+	# Remove this once VS2022 is EOL in 2027 (or 2032 for extended support)
+	if(MSVC_VERSION LESS 1951)
+		message(WARNING "MSVC_CONSTEVAL_BUG: This project uses c++20 features. Some older MSVC versions have bugs that prevent proper compilation. A workaround is being used for your configuration")
+		target_compile_definitions(zdoom PRIVATE MSVC_CONSTEVAL_BUG=1)
+	endif()
+
 endif()
 
 if (WIN32)

@@ -616,9 +616,9 @@ CCMD(am_restorecolors)
 
 namespace AutoMap::Colors
 {
-	static inline const AMColor not_used = AMColor("#010000");
+	static inline constexpr AMColor not_used = AMColor("#010000");
 
-	static inline const std::array<AMColor,AMColorset::EAMColor::AM_NUM_COLORS> DoomColors = {
+	static inline const std::array<AMColor,AMColorset::EAMColor::AM_NUM_COLORS> DoomColors = {{
 		AMColor("#000000"), // background
 		AMColor("#ffffff"), // yourcolor
 		AMColor("#fc0000"), // wallcolor
@@ -644,9 +644,9 @@ namespace AutoMap::Colors
 		not_used,           // unexploredsecretsector
 		AMColor("#101010"), // almostbackground
 		AMColor("#404040")  // portal
-	};
+	}};
 
-	static inline const std::array<AMColor, AMColorset::EAMColor::AM_NUM_COLORS> StrifeColors = {
+	static inline const std::array<AMColor, AMColorset::EAMColor::AM_NUM_COLORS> StrifeColors = {{
 		AMColor("#000000"), // background
 		AMColor("#efef00"), // yourcolor
 		AMColor("#c7c3c3"), // wallcolor
@@ -672,9 +672,9 @@ namespace AutoMap::Colors
 		not_used,           // unexploredsecretsector
 		AMColor("#101010"), // almostbackground
 		AMColor("#404040")  // portal
-	};
+	}};
 
-	static inline const std::array<AMColor, AMColorset::EAMColor::AM_NUM_COLORS> RavenColors = {
+	static inline const std::array<AMColor, AMColorset::EAMColor::AM_NUM_COLORS> RavenColors = {{
 		AMColor("#6c5440"), // background
 		AMColor("#ffffff"), // yourcolor
 		AMColor("#4b3210"), // wallcolor
@@ -700,7 +700,7 @@ namespace AutoMap::Colors
 		not_used,           // unexploredsecretsector
 		AMColor("#101010"), // almostbackground
 		AMColor("#505050")  // portal
-	};
+	}};
 }
 
 static AMColorset AMColors;
