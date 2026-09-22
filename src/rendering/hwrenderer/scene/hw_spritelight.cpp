@@ -27,6 +27,7 @@
 #include "hwrenderer/scene/hw_drawinfo.h"
 #include "hwrenderer/scene/hw_drawstructs.h"
 #include "models.h"
+#include "hw_cvars.h"
 #include <cmath>	// needed for std::floor on mac
 
 template<class T>
@@ -228,18 +229,9 @@ void hw_GetDynModelLight(AActor *self, FDynLightData &modellightdata)
 
 	if (self && self->Sector)
 	{
-		auto &addedLights = addedLightsArray;	// avoid going through the thread local storage for each use.
-
-		addedLights.Clear();
-
-		float x = (float)self->X();
-		float y = (float)self->Y();
-		float z = (float)self->Center();
 		float actorradius = (float)self->RenderRadius();
-		float radiusSquared = actorradius * actorradius;
-		dl_validcount++;
 
-		if(actorradius <= 16)
+		if(actorradius <= gl_model_light_optimization_radius)
 		{
 			int group = self->Sector->PortalGroup;
 			int sec = self->section->Index();
@@ -263,6 +255,16 @@ void hw_GetDynModelLight(AActor *self, FDynLightData &modellightdata)
 		}
 		else
 		{
+			auto &addedLights = addedLightsArray;	// avoid going through the thread local storage for each use.
+
+			addedLights.Clear();
+
+			float x = (float)self->X();
+			float y = (float)self->Y();
+			float z = (float)self->Center();
+			float radiusSquared = actorradius * actorradius;
+			dl_validcount++;
+
 			//TODO replace with blockmap search
 			BSPWalkCircle(self->Level, x, y, radiusSquared, [&](subsector_t *subsector) // Iterate through all subsectors potentially touched by actor
 			{
