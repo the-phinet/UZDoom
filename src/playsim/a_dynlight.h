@@ -200,12 +200,6 @@ protected:
 	FLightDefaults * m_AssocLight;
 };
 
-
-struct FLightNode
-{
-	FDynamicLight * lightsource;
-};
-
 struct FDynamicLightTouchLists
 {
 	TArray<FSection*> flat_tlist;

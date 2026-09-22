@@ -421,37 +421,19 @@ void FDynamicLight::AddLightNode(FSection *section, side_t *sidedef)
 {
 	if (section)
 	{
-		if(Level->lightlists.flat_dlist.SSize() <= section->Index())
+		bool ok;
+		section->dlist.SortedAddUnique(this, ok);
+		if(ok)
 		{
-			Level->lightlists.flat_dlist.Resize(section->Index() + 1);
-		}
-
-		auto &flatLightList = Level->lightlists.flat_dlist[section->Index()];
-
-		if (!flatLightList.CheckKey(this))
-		{
-			FLightNode * node = new FLightNode;
-			node->lightsource = this;
-
-			flatLightList.TryEmplace(this, node);
 			touchlists.flat_tlist.SortedAddUnique(section);
 		}
 	}
 	else if (sidedef)
 	{
-		if(Level->lightlists.wall_dlist.SSize() <= sidedef->Index())
+		bool ok;
+		sidedef->dlist.SortedAddUnique(this, ok);
+		if(ok)
 		{
-			Level->lightlists.wall_dlist.Resize(sidedef->Index() + 1);
-		}
-
-		auto &wallLightList = Level->lightlists.wall_dlist[sidedef->Index()];
-
-		if (!wallLightList.CheckKey(this))
-		{
-			FLightNode * node = new FLightNode;
-			node->lightsource = this;
-
-			wallLightList.TryEmplace(this, node);
 			touchlists.wall_tlist.SortedAddUnique(sidedef);
 		}
 	}
@@ -633,7 +615,7 @@ void FDynamicLight::CollectWithinRadius(const DVector3 &opos, FSection *section,
 void FDynamicLight::LinkLight()
 {
 	UnlinkLight();
-	if (radius>0)
+	if(radius > 0)
 	{
 		// passing in radius*radius allows us to do a distance check without any calls to sqrt
 		FSection *sect = Level->PointInRenderSubsector(Pos)->section;
@@ -641,7 +623,6 @@ void FDynamicLight::LinkLight()
 		dl_validcount++;
 		::validcount++;
 		CollectWithinRadius(Pos, sect, float(radius*radius));
-
 	}
 }
 
@@ -653,26 +634,19 @@ void FDynamicLight::LinkLight()
 //==========================================================================
 void FDynamicLight::UnlinkLight()
 {
-
 	for(int i = 0; i < touchlists.wall_tlist.SSize(); i++)
 	{
-		auto sidedef = touchlists.wall_tlist[i];
-		if (!sidedef) continue;
-
-		if(Level->lightlists.wall_dlist.SSize() > sidedef->Index())
+		if(touchlists.wall_tlist[i])
 		{
-			Level->lightlists.wall_dlist[sidedef->Index()].Remove(this);
+			touchlists.wall_tlist[i]->dlist.SortedDelete(this);
 		}
 	}
 
 	for(int i = 0; i < touchlists.flat_tlist.SSize(); i++)
 	{
-		auto sec = touchlists.flat_tlist[i];
-		if (!sec) continue;
-
-		if(Level->lightlists.flat_dlist.SSize() > sec->Index())
+		if(touchlists.flat_tlist[i])
 		{
-			Level->lightlists.flat_dlist[sec->Index()].Remove(this);
+			touchlists.flat_tlist[i]->dlist.SortedDelete(this);
 		}
 	}
 
