@@ -3487,7 +3487,6 @@ void DAutomap::Serialize(FSerializer &arc)
 		.Array("markpoints", &markpoints[0].x, AutoMap::Defaults::num_mark_points * 2) // write as a double array.
 		("scale_mtof", scale_mtof)
 		("scale_ftom", scale_ftom)
-		("bigstate", bigstate)
 		("min_x", min_x)
 		("min_y", min_y)
 		("max_x", max_x)
