@@ -27,6 +27,9 @@
 
 #include "bitmap.h"
 #include "textures.h"
+#include "c_cvars.h"
+
+CVARD(Bool, i_cursor_invert, false, CVAR_ARCHIVE, "Flips cursor along its y axis");
 
 bool I_SetCursor(FGameTexture *cursorpic)
 {
@@ -46,17 +49,20 @@ bool I_SetCursor(FGameTexture *cursorpic)
 		if (cursorSurface == NULL)
 			cursorSurface = SDL_CreateRGBSurface (0, 32, 32, 32, MAKEARGB(0,255,0,0), MAKEARGB(0,0,255,0), MAKEARGB(0,0,0,255), MAKEARGB(255,0,0,0));
 
+		int xhot = i_cursor_invert? src.GetWidth(): 0;
+		int yhot = 0;
+
 		SDL_LockSurface(cursorSurface);
 		uint8_t buffer[32*32*4];
 		memset(buffer, 0, 32*32*4);
 		FBitmap bmp(buffer, 32*4, 32, 32);
-		bmp.Blit(0, 0, src);	// expand to 32*32
+		bmp.Blit(0, 0, src, src.GetWidth(), src.GetHeight(), i_cursor_invert? 4: 0); // expand to 32*32
 		memcpy(cursorSurface->pixels, bmp.GetPixels(), 32*32*4);
 		SDL_UnlockSurface(cursorSurface);
 
 		if (cursor)
 			SDL_FreeCursor (cursor);
-		cursor = SDL_CreateColorCursor (cursorSurface, 0, 0);
+		cursor = SDL_CreateColorCursor (cursorSurface, xhot, yhot);
 		SDL_SetCursor (cursor);
 		SDL_ShowCursor(SDL_ENABLE);
 	}
