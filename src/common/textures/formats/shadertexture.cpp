@@ -111,7 +111,7 @@ public:
 
 	int CopyPixels(FBitmap *bmp, int conversion, int frame = 0) override
 	{
-		bmp->CopyPixelData(0, 0, Pixels, Width, Height, Height, 1, 0, GPalette.GrayRamp.Palette);
+		bmp->CopyPixelData(0, 0, Pixels, Width, Height, Height, 1, OrthoTransform::NONE, GPalette.GrayRamp.Palette);
 		return 0;
 	}
 
