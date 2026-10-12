@@ -38,6 +38,22 @@ class VideoOptions : OptionMenu
 	//
 	//=============================================================================
 
+	// BEGIN HACK
+	// this is a hack to get around the fact that menu code can't disable present shaders (yet)
+	CVar gamma;
+	override void Init(Menu parent, OptionMenuDescriptor desc)
+	{
+		gamma = CVar.FindCVar("vid_fixgamma");
+		gamma.setFloat(-gamma.getFloat());
+		super.Init(parent, desc);
+	}
+	override void OnDestroy()
+	{
+		gamma.setFloat(-gamma.getFloat());
+		super.OnDestroy();
+	}
+	// END HACK
+
 	override void Drawer()
 	{
 		DontDim = true;

@@ -21,10 +21,6 @@ void main()
 	vec3 colour = texture(InputTexture, TexCoord).rgb;
 	if (gl_FragCoord.x > uXmin && gl_FragCoord.x < uXmax && gl_FragCoord.y > uYmin && gl_FragCoord.y < uYmax)
 	{
-		float u_gamma = 1.0;
-		float u_black_point = 0.0;
-		float u_white_point = 1.0;
-
 		float checker_size = 32.0;
 		vec2 checker_coord = floor(gl_FragCoord.xy / checker_size);
 		vec3 base_color;
