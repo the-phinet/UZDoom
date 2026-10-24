@@ -108,6 +108,11 @@
 #define GAME_DIR "config/settings/" GAMENAME
 #endif
 
+// in case we're not built through cmake
+#ifndef CMAKE_BUILD_TYPE
+#define CMAKE_BUILD_TYPE "Unknown"
+#endif
+
 #define DEFAULT_DISCORD_APP_ID "1428620310302691349"
 
 const int SAVEPICWIDTH = 216;
