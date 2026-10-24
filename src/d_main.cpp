@@ -4181,6 +4181,8 @@ static int D_DoomMain_Internal (void)
 		I_DetectOS().GetChars()
 	);
 
+	assert(false);
+
 	bool wantsVersion = Args->CheckParm(FArg_version)
 		|| Args->CheckParm(FArg_v);
 	bool wantsHelp = Args->CheckParm(FArg_help)
