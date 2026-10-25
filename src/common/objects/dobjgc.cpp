@@ -51,7 +51,7 @@
 ** infinity, where each step performs a full collection.) You can also
 ** change this value dynamically.
 */
-#ifndef _DEBUG
+#ifdef NDEBUG
 #define DEFAULT_GCMUL		600 // GC runs gcmul% the speed of memory allocation
 #else
 // Higher in debug builds to account for the extra time spent freeing objects
@@ -65,7 +65,7 @@
 #define GCSWEEPGRANULARITY	40
 
 // Cost of deleting an object
-#ifndef _DEBUG
+#ifdef NDEBUG
 #define GCDELETECOST		75
 #else
 // Freeing memory is much more costly in debug builds

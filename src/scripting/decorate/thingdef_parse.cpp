@@ -1120,7 +1120,7 @@ static PClassActor *ParseActorHeader(FScanner &sc, Baggage *bag)
 		ResetBaggage (bag, ValidateActor(info->ParentClass));
 		bag->Info = info;
 		bag->Lumpnum = sc.LumpNum;
-#ifdef _DEBUG
+#ifndef NDEBUG
 		bag->ClassName = typeName.GetChars();
 #endif
 		return info;

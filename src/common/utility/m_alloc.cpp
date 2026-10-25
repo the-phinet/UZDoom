@@ -51,7 +51,7 @@ size_t _msize(void* block)
 #define _realloc_dbg(p,s,b,f,l)	realloc(p,s)
 #endif
 
-#ifndef _DEBUG
+#ifdef NDEBUG
 #if !defined(__solaris__) && !defined(__sun__) && !defined(_sun) && !defined(__OpenBSD__) && !defined(__DragonFly__)
 void *M_Malloc(size_t size)
 {

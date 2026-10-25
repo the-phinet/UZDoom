@@ -894,7 +894,7 @@ void HWWall::SplitWall(HWWallDispatcher *di, sector_t * frontsector, bool transl
 	}
 	//::SplitWall.Clock();
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (seg->linedef->Index() == 1)
 	{
 		int a = 0;
@@ -2135,7 +2135,7 @@ void HWWall::Process(HWWallDispatcher *di, seg_t *seg, sector_t * frontsector, s
 	sector_t * segfront;
 	sector_t * segback;
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (seg->linedef->Index() == 759)
 	{
 		int a = 0;

@@ -338,7 +338,7 @@ CCMD(printinv)
 {
 	unsigned int pnum = consoleplayer;
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	// Only allow peeking on other players' inventory in debug builds.
 	if (argv.argc() > 1)
 	{

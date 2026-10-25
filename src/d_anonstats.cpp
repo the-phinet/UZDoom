@@ -339,7 +339,7 @@ static FString GetDeviceName()
 }
 void D_DoAnonStats()
 {
-#ifndef _DEBUG
+#ifdef NDEBUG
 	// Do not repeat if already sent.
 	if (anonstats_enabled411 != 1 || sentstats_hwr_done >= CHECKVERSION)
 	{
@@ -356,7 +356,7 @@ void D_DoAnonStats()
 	mysnprintf(requeststring, sizeof requeststring, "GET /stats_202309.py?render=%i&cores=%i&os=%s&glversion=%i&vendor=%s&model=%s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nUser-Agent: %s %s\r\n\r\n",
 		GetRenderInfo(), GetCoreInfo(), URLencode(GetOSVersion()).GetChars(), GetGLVersion(), URLencode(screen->vendorstring).GetChars(), URLencode(GetDeviceName()).GetChars(), *anonstats_host, GAMENAME, VERSIONSTR);
 	DPrintf(DMSG_NOTIFY, "Sending %s", requeststring);
-#if 1//ndef _DEBUG
+#if 1//def NDEBUG
 	// Don't send info in debug builds
 	std::thread t1(D_DoHTTPRequest, requeststring);
 	t1.detach();

@@ -224,7 +224,7 @@ sector_t * hw_FakeFlat(sector_t * sec, area_t in_area, bool back, sector_t *loca
 		return sec;
 	}
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (sec->sectornum==560)
 	{
 		int a = 0;

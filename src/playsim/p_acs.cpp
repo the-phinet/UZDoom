@@ -1479,7 +1479,7 @@ void P_CollectACSGlobalStrings()
 	GlobalACSStrings.PurgeStrings();
 }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 CCMD(acsgc)
 {
 	P_CollectACSGlobalStrings();

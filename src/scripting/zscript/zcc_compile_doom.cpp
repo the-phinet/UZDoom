@@ -872,7 +872,7 @@ void ZCCDoomCompiler::InitDefaults()
 				}
 
 				Baggage bag;
-			#ifdef _DEBUG
+			#ifndef NDEBUG
 				bag.ClassName = cls->TypeName.GetChars();
 			#endif
 				bag.Version = mVersion;

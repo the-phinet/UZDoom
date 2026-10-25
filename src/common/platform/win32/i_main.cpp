@@ -519,7 +519,7 @@ namespace
 
 LONG WINAPI CatchAllExceptions (LPEXCEPTION_POINTERS info)
 {
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (info->ExceptionRecord->ExceptionCode == EXCEPTION_BREAKPOINT)
 	{
 		return EXCEPTION_CONTINUE_SEARCH;
@@ -574,7 +574,7 @@ LONG WINAPI CatchAllExceptions (LPEXCEPTION_POINTERS info)
 //
 //==========================================================================
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 static void infiniterecursion(int foo)
 {
 	if (foo)
@@ -652,7 +652,7 @@ int WINAPI wWinMain (HINSTANCE hInstance, HINSTANCE nothing, LPWSTR cmdline, int
 		0, FALSE, DUPLICATE_SAME_ACCESS);
 	MainThreadID = GetCurrentThreadId();
 
-#ifndef _DEBUG
+#ifdef NDEBUG
 	if (MainThread != INVALID_HANDLE_VALUE)
 	{
 #ifndef _M_ARM64

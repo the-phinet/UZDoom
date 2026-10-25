@@ -101,7 +101,7 @@ void ParseOldDecoration(FScanner &sc, EDefinitionType def, PNamespace *ns)
 	bag.Info = type;
 	bag.fromDecorate = true;
 	bag.Version = { 2, 0, 0 };
-#ifdef _DEBUG
+#ifndef NDEBUG
 	bag.ClassName = type->TypeName.GetChars();
 #endif
 

@@ -152,7 +152,7 @@ static int BunchInFront(FBunch *b1, FBunch *b2)
 		// Find the wall in b1 that overlaps b2->startangle
 		for(int i = b1->startline; i <= b1->endline; i++)
 		{
-			#ifdef _DEBUG
+			#ifndef NDEBUG
 				angle_t startang = SectionLines[i].start->GetClipAngleInverse() - b1->startangle;
 			#endif
 			endang = SectionLines[i].end->GetClipAngleInverse() - b1->startangle;
@@ -179,7 +179,7 @@ static int BunchInFront(FBunch *b1, FBunch *b2)
 		// Find the wall in b2 that overlaps b1->startangle
 		for(int i = b2->startline; i <= b2->endline; i++)
 		{
-			#ifdef _DEBUG
+			#ifndef NDEBUG
 				angle_t startang = SectionLines[i].start->GetClipAngleInverse() - b2->startangle;
 			#endif
 			endang = SectionLines[i].end->GetClipAngleInverse() - b2->startangle;

@@ -51,7 +51,7 @@ public:
 		return vkGetBufferDeviceAddress(device->device, &info);
 	}
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	void SetDebugName(const char* name) { debugName = name; device->SetObjectName(name, (uint64_t)buffer, VK_OBJECT_TYPE_BUFFER); }
 	std::string debugName;
 #else
@@ -186,7 +186,7 @@ public:
 	VulkanDescriptorSet(VulkanDevice *device, VulkanDescriptorPool *pool, VkDescriptorSet set);
 	~VulkanDescriptorSet();
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	void SetDebugName(const char* name) { debugName = name; device->SetObjectName(name, (uint64_t)set, VK_OBJECT_TYPE_DESCRIPTOR_SET); }
 	std::string debugName;
 #else
@@ -208,7 +208,7 @@ public:
 	VulkanDescriptorPool(VulkanDevice *device, VkDescriptorPool pool);
 	~VulkanDescriptorPool();
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	void SetDebugName(const char* name) { debugName = name; device->SetObjectName(name, (uint64_t)pool, VK_OBJECT_TYPE_DESCRIPTOR_POOL); }
 	std::string debugName;
 #else

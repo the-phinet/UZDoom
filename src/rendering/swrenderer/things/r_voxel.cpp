@@ -864,7 +864,7 @@ namespace swrenderer
 		span->Stop = stop;
 		*span_p = span;
 	check:
-#ifdef _DEBUG
+#ifndef NDEBUG
 		// Validate the span list: Spans must be in order, and there must be
 		// at least one pixel between spans.
 		for (span = Spans[listnum]; span != nullptr; span = span->NextSpan)

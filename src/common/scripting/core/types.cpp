@@ -3593,7 +3593,7 @@ PType *FTypeTable::FindType(FName type_name, intptr_t parm1, intptr_t parm2, siz
 
 void FTypeTable::AddType(PType *type, FName type_name, intptr_t parm1, intptr_t parm2, size_t bucket)
 {
-#ifdef _DEBUG
+#ifndef NDEBUG
 	size_t bucketcheck;
 	assert(FindType(type_name, parm1, parm2, &bucketcheck) == nullptr && "Type must not be inserted more than once");
 	assert(bucketcheck == bucket && "Passed bucket was wrong");

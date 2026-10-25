@@ -704,7 +704,7 @@ bool Joy_ManageThumbstick(
 	return ret_value;
 }
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 CCMD(debug_joystick_curves)
 {
 	constexpr auto radial_steps = 360;

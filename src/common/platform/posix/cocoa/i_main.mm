@@ -547,7 +547,7 @@ int main(int argc, char** argv)
 	{
 		const char* const argument = argv[i];
 
-#if _DEBUG
+#ifndef NDEBUG
 		if (0 == strcmp(argument, "-wait_for_debugger"))
 		{
 			NSAlert* alert = [[NSAlert alloc] init];
@@ -556,7 +556,7 @@ int main(int argc, char** argv)
 			[alert addButtonWithTitle:@"Continue"];
 			[alert runModal];
 		}
-#endif // _DEBUG
+#endif // !NDEBUG
 
 		s_argv.Push(argument);
 	}

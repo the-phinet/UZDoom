@@ -63,7 +63,7 @@ FBasicStartupScreen::FBasicStartupScreen(int maxProgress)
 	consoleWindow.AddText(TEXTCOLOR_NORMAL "TEXTCOLOR_NORMAL\n" TEXTCOLOR_BOLD "TEXTCOLOR_BOLD\n");
 	consoleWindow.AddText(TEXTCOLOR_CHAT "TEXTCOLOR_CHAT\n" TEXTCOLOR_TEAMCHAT "TEXTCOLOR_TEAMCHAT\n");
 	consoleWindow.AddText("----------------------------------------------------------------\n");
-#endif // _DEBUG
+#endif // !NDEBUG
 }
 
 FBasicStartupScreen::~FBasicStartupScreen()

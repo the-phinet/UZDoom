@@ -302,7 +302,7 @@ void HWDrawInfo::AddLine (seg_t *seg, bool portalclip)
 	const bool doOob = Viewpoint.bDoOob;
 	bool isculled = false;
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (seg->linedef && seg->linedef->Index() == 38)
 	{
 		int a = 0;
@@ -769,7 +769,7 @@ void HWDrawInfo::DoSubsector(subsector_t * sub)
 	sector_t * sector;
 	sector_t * fakesector;
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (sub->sector->sectornum==931)
 	{
 		int a = 0;

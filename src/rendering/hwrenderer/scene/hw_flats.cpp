@@ -40,7 +40,7 @@
 #include "hw_viewpointbuffer.h"
 #include "m_round.h"
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 CVAR(Int, gl_breaksec, -1, 0)
 #endif
 //==========================================================================
@@ -292,7 +292,7 @@ void HWFlat::DrawFloodPlanes(HWDrawInfo *di, FRenderState &state)
 //==========================================================================
 void HWFlat::DrawFlat(HWDrawInfo *di, FRenderState &state, bool translucent)
 {
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (sector->sectornum == gl_breaksec)
 	{
 		int a = 0;
@@ -482,7 +482,7 @@ void HWFlat::ProcessSector(HWDrawInfo *di, sector_t * frontsector, int which)
 	lightlist_t * light;
 	FSectorPortal *port;
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 	if (frontsector->sectornum == gl_breaksec)
 	{
 		int a = 0;

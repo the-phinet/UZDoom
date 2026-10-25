@@ -142,7 +142,7 @@ struct FDropItem;
 
 struct Baggage
 {
-#ifdef _DEBUG
+#ifndef NDEBUG
 	FString ClassName;	// This is here so that during debugging the class name can be seen
 #endif
 	PNamespace *Namespace;
