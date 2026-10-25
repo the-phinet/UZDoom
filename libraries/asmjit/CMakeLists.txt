@@ -1,4 +1,4 @@
-#make_release_only()
+# include(${CMAKE_SOURCE_DIR}/cmake/make_release_only.cmake)
 
 project(asmjit C)
 

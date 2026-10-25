@@ -1,4 +1,4 @@
-make_release_only()
+include(${CMAKE_SOURCE_DIR}/cmake/make_release_only.cmake)
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DZ7_PPMD_SUPPORT" )
 

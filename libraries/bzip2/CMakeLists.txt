@@ -1,4 +1,4 @@
-make_release_only()
+include(${CMAKE_SOURCE_DIR}/cmake/make_release_only.cmake)
 
 if (MSVC)
 	set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4244" )
