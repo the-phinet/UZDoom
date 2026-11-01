@@ -62,10 +62,10 @@ jobs:
 
           cmake -P cmake/UpdateRevision.cmake $PWD/src/gitinfo.h
 
-          git archive --format=tar HEAD > source.tar
-          tar --append src/gitinfo.h -f source.tar
+          git archive --prefix=UZDoom/ --format=tar $(git rev-parse HEAD) > UZDoom-Source.tar
+          tar --append src/gitinfo.h --transform=s:^:UZDoom/: --owner=0 --group=0 -f UZDoom-Source.tar
 
-          tarlz -z source.tar
+          tarlz -z UZDoom-Source.tar
 
       - name: Download Artifacts
         uses: actions/download-artifact@v8
@@ -79,7 +79,7 @@ jobs:
         id: files
         run: |
           mkdir -p release
-          mv source.tar.lz release
+          mv UZDoom-Source.tar.lz release
 
           platforms=""
           function move() {
