@@ -408,9 +408,9 @@ jobs:
 
           - name: Windows MSYS2 Clang
             os: windows-latest
-            build_opts: &linux_opts
+            build_opts: *linux_opts
             build_opts_extra: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-            deps_cmdline: &msys2_deps
+            deps_cmdline: *msys2_deps
             extra_files: ""
             build_type: RelWithDebInfo
 
