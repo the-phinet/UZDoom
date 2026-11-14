@@ -314,6 +314,7 @@ jobs:
                 ninja-build
                 p7zip-full
                 appstream
+                gpg-agent
                 clang-19
                 ccache
                 cmake
