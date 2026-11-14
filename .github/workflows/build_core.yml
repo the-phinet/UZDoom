@@ -48,7 +48,7 @@ jobs:
       options: --device /dev/fuse --cap-add SYS_ADMIN --security-opt apparmor:unconfined
     defaults:
       run:
-        shell: ${{ contains(inputs.name, 'MinGW') && 'msys2 {0}' || 'bash' }}
+        shell: ${{ contains(inputs.name, 'MSYS2') && 'msys2 {0}' || 'bash' }}
 
     steps:
     - name: Dump Event
@@ -152,16 +152,16 @@ jobs:
         fi
 
     - name: Setup MSVC
-      if: runner.os == 'Windows' && !contains(inputs.name, 'MinGW')
+      if: runner.os == 'Windows' && !contains(inputs.name, 'MSYS2')
       uses: TheMrMilchmann/setup-msvc-dev@v4
       with:
         arch: x64
 
     - name: Setup MSYS2
-      if: runner.os == 'Windows' && contains(inputs.name, 'MinGW')
+      if: runner.os == 'Windows' && contains(inputs.name, 'MSYS2')
       uses: msys2/setup-msys2@v2
       with:
-        msystem: MINGW64
+        msystem: UCRT64
         update: true
 
     - name: Dependencies
