@@ -268,7 +268,7 @@ jobs:
         echo ::endgroup::
 
         echo ::group::Configure
-        cmake \
+        eval cmake \
           -B build \
           -S . \
           -G Ninja \
