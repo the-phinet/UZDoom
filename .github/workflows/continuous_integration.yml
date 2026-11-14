@@ -363,7 +363,7 @@ jobs:
           - name: Windows MSYS2 GCC
             os: windows-latest
             build_opts: -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
-            build_opts_extra:
+            build_opts_extra: -DFORCE_NO_LTO=true
             deps_cmdline: &msys2_deps |
               pacman -S --noconfirm --needed
                 mingw-w64-ucrt-x86_64-ccache
