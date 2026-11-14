@@ -357,21 +357,21 @@ jobs:
             extra_files: *linux_files_x86_64
             build_type: RelWithDebInfo
 
-          - name: Windows MinGW GCC
+          - name: Windows MSYS2 GCC
             os: windows-latest
             build_opts: -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
             build_opts_extra: -DFORCE_NO_LTO=true
-            deps_cmdline: &mingw_deps |
+            deps_cmdline: &msys2_deps |
               pacman -S --noconfirm --needed
-                mingw-w64-x86_64-ccache
-                mingw-w64-x86_64-openal
-                mingw-w64-x86_64-libvpx
-                mingw-w64-x86_64-cmake
-                mingw-w64-x86_64-ninja
-                mingw-w64-x86_64-bzip2
-                mingw-w64-x86_64-clang
-                mingw-w64-x86_64-gcc
-                mingw-w64-x86_64-git
+                mingw-w64-ucrt-x86_64-ccache
+                mingw-w64-ucrt-x86_64-openal
+                mingw-w64-ucrt-x86_64-libvpx
+                mingw-w64-ucrt-x86_64-cmake
+                mingw-w64-ucrt-x86_64-ninja
+                mingw-w64-ucrt-x86_64-bzip2
+                mingw-w64-ucrt-x86_64-clang
+                mingw-w64-ucrt-x86_64-gcc
+                mingw-w64-ucrt-x86_64-git
             extra_files: ""
             build_type: RelWithDebInfo
 
@@ -403,11 +403,11 @@ jobs:
             extra_files: ""
             build_type: RelWithDebInfo
 
-          - name: Windows MinGW Clang
+          - name: Windows MSYS2 Clang
             os: windows-latest
             build_opts: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
             build_opts_extra: ""
-            deps_cmdline: *mingw_deps
+            deps_cmdline: *msys2_deps
             extra_files: ""
             build_type: RelWithDebInfo
 
