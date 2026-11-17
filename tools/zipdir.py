@@ -139,7 +139,11 @@ def main():
 					info.external_attr = (0o644 & 0xFFFF) << 16
 
 					preprocess = file.lower().endswith(extensions)
-					with open(filepath, "r" if preprocess else "rb") as f:
+					with open(
+						filepath,
+						"r" if preprocess else "rb",
+						encoding="utf-8" if preprocess else None
+					) as f:
 						data = read_file(f, defs)[1] if preprocess else f.read()
 						zipf.writestr(info, data)
 
