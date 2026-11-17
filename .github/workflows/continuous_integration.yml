@@ -276,14 +276,14 @@ jobs:
               winget install --accept-source-agreements --verbose --exact --id=Ccache.Ccache
             extra_files: &msvc_x86_files >-
               oalsoft.zip
-                ea8bc36fd7fa05f64e13400d20886de753a227202a4ea3781913489a26b36fc6
-                https://github.com/kcat/openal-soft/releases/download/1.23.1/openal-soft-1.23.1-bin.zip
+                67a0c4b800bd860c93c04f38caf8cbe4875f9c84700ac430efc451f70e265434
+                https://github.com/kcat/openal-soft/releases/download/1.25.2/openal-soft-1.25.2-bin.zip
               sndfile.zip
                 2173935c0c1ed13cf627951d34483f9d405ead2eb473190461c42ba220643a3f
                 https://github.com/libsndfile/libsndfile/releases/download/1.2.2/libsndfile-1.2.2-win64.zip
               libcurl.zip
-                d290b4ee475968b04dcb2e0c4f046f2ff25c35c65d3e54259cef7cc6cea069e2
-                https://curl.se/windows/dl-8.20.0_5/curl-8.20.0_5-win64-mingw.zip
+                89cb71930f4242d884e8e349463455932ab1d089b20f4f99318261a3cbff9167
+                https://curl.se/windows/dl-8.23.0_9/curl-8.23.0_9-win64-mingw.zip
 
           - name: MacOS
             os: macos-latest
