@@ -22,10 +22,6 @@ if( DEM_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
 	endif()
 endif()
 
-if( APPLE )
-		option( OSX_COCOA_BACKEND "Use native Cocoa backend instead of SDL" ON )
-endif()
-
 option( ZDOOM_ENABLE_SWR "Enable software renderer" ON )
 if( NOT ZDOOM_ENABLE_SWR )
 	add_definitions( -DNO_SWRENDERER )
@@ -94,11 +90,8 @@ else()
 		endif()
 	endif()
 
-	# Non-Windows version also needs SDL except native OS X backend
-	if( NOT APPLE OR NOT OSX_COCOA_BACKEND )
-		find_package( SDL2 CONFIG REQUIRED )
-		list( APPEND PROJECT_LIBRARIES SDL2::SDL2 )
-	endif()
+	find_package( SDL2 CONFIG REQUIRED )
+	list( APPEND PROJECT_LIBRARIES SDL2::SDL2 )
 
 endif()
 
@@ -411,32 +404,18 @@ set( PLAT_OSX_SOURCES
 	common/platform/posix/osx/iwadpicker_cocoa.mm
 	common/platform/posix/osx/i_specialpaths.mm
 	posix/osx/zdoom.icns )
-set( PLAT_COCOA_SOURCES
-	common/platform/posix/cocoa/i_input.mm
-	common/platform/posix/cocoa/i_joystick.cpp
-	common/platform/posix/cocoa/i_main.mm
-	common/platform/posix/cocoa/i_system.mm
-	common/platform/posix/cocoa/i_video.mm
-	common/platform/posix/cocoa/st_console.mm
-	common/platform/posix/cocoa/st_start.mm )
 
 if( WIN32 )
 	set( SYSTEM_SOURCES_DIR common/platform/win32 )
 	set( SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} )
-	set( OTHER_SYSTEM_SOURCES ${PLAT_POSIX_SOURCES} ${PLAT_SDL_SOURCES} ${PLAT_OSX_SOURCES} ${PLAT_COCOA_SOURCES} ${PLAT_UNIX_SOURCES} )
+	set( OTHER_SYSTEM_SOURCES ${PLAT_POSIX_SOURCES} ${PLAT_SDL_SOURCES} ${PLAT_OSX_SOURCES} ${PLAT_UNIX_SOURCES} )
 
 	set( SYSTEM_SOURCES ${SYSTEM_SOURCES} win32/zdoom.rc )
 elseif( APPLE )
-	if( OSX_COCOA_BACKEND )
-		set( SYSTEM_SOURCES_DIR common/platform/posix common/platform/posix/cocoa )
-		set( SYSTEM_SOURCES ${PLAT_COCOA_SOURCES} )
-		set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_SDL_SOURCES} ${PLAT_UNIX_SOURCES} )
-	else()
-		set( SYSTEM_SOURCES_DIR common/platform/posix common/platform/posix/sdl )
-		set( SYSTEM_SOURCES ${PLAT_SDL_SOURCES} )
-		set( PLAT_OSX_SOURCES ${PLAT_OSX_SOURCES} common/platform/posix/sdl/i_system.mm )
-		set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_COCOA_SOURCES} ${PLAT_UNIX_SOURCES} )
-	endif()
+	set( SYSTEM_SOURCES_DIR common/platform/posix common/platform/posix/sdl )
+	set( SYSTEM_SOURCES ${PLAT_SDL_SOURCES} )
+	set( PLAT_OSX_SOURCES ${PLAT_OSX_SOURCES} common/platform/posix/sdl/i_system.mm )
+	set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_UNIX_SOURCES} )
 
 	set( SYSTEM_SOURCES ${SYSTEM_SOURCES} ${PLAT_POSIX_SOURCES} ${PLAT_OSX_SOURCES} )
 
@@ -447,7 +426,7 @@ else()
 
 	set( SYSTEM_SOURCES_DIR common/platform/posix common/platform/posix/sdl )
 	set( SYSTEM_SOURCES ${PLAT_POSIX_SOURCES} ${PLAT_SDL_SOURCES} ${PLAT_UNIX_SOURCES} )
-	set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_OSX_SOURCES} ${PLAT_COCOA_SOURCES} )
+	set( OTHER_SYSTEM_SOURCES ${PLAT_WIN32_SOURCES} ${PLAT_OSX_SOURCES} )
 
 	if ( SYSTEMINSTALL )
 		add_definitions( -DPROGDIR="${CMAKE_INSTALL_PREFIX}/${INSTALL_PK3_PATH}" )
@@ -544,7 +523,6 @@ file( GLOB HEADER_FILES
 	common/objects/*.h
 	common/filesystem/include/*.h
 	common/filesystem/source/*.h
-	common/platform/posix/cocoa/*.h
 	common/platform/posix/sdl/*.h
 	common/platform/win32/*.h
 	common/models/*.h
@@ -1603,7 +1581,6 @@ source_group("Common\\Scripting\\Backend" REGULAR_EXPRESSION "^${CMAKE_CURRENT_S
 source_group("Common\\Scripting\\Core" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/scripting/core/.+")
 source_group("Common\\Scripting\\JIT" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/scripting/jit/.+")
 source_group("Common\\Scripting\\VM" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/scripting/vm/.+")
-source_group("Common\\Platforms\\Cocoa Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/posix/cocoa/.+")
 source_group("Common\\Platforms\\OS X Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/posix/osx/.+")
 source_group("Common\\Platforms\\Unix Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/posix/unix/.+")
 source_group("Common\\Platforms\\SDL Files" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/platform/posix/sdl/.+")
