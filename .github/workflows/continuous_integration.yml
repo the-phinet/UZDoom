@@ -299,6 +299,7 @@ jobs:
                 ccache
                 libvpx
                 sdl2
+              && pip install dmgbuild
             extra_files: ""
 
           - name: Linux

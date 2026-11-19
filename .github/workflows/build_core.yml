@@ -400,10 +400,9 @@ jobs:
 
         /usr/bin/codesign --force --deep $SIGN_OPTS -s "$SIGN_ID" ${app} -v
 
-        $(brew --prefix python)/bin/python3 -m venv venv
-        source venv/bin/activate
-        pip install dmgbuild
-        dmgbuild -s ../tools/dmgbuild-settings.py -D app=${app} "UZDoom" UZDoom.dmg
+        dmgbuild -s ../tools/dmgbuild-settings.py \
+          -D app=${app} \
+          UZDoom UZDoom.dmg
         mv UZDoom.dmg package
 
         cd ..
