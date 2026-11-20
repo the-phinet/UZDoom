@@ -1079,7 +1079,7 @@ bool FTextureAnimator::InitStandaloneAnimation(FStandaloneAnimation &animInfo, F
 	animInfo.AnimIndex = *index;
 	animInfo.CurFrame = 0;
 	animInfo.SwitchTic = curTic;
-	animInfo.AnimType = (anim->AnimType == FAnimDef::ANIM_OscillateDown) ? FAnimDef::ANIM_OscillateUp : anim->AnimType;
+	animInfo.AnimType = (anim->AnimType == FAnimDef::ANIM_OscillateDown) ? static_cast<uint8_t>(FAnimDef::ANIM_OscillateUp) : anim->AnimType;
 	uint32_t time = anim->Frames[0].SpeedMin;
 	if(anim->Frames[0].SpeedRange != 0)
 	{
