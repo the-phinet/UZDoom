@@ -111,7 +111,7 @@ bool IsPortable()
 FString GetKnownFolder(int shell_folder, REFKNOWNFOLDERID known_folder, bool create)
 {
 	PWSTR wpath;
-	if (FAILED(SHGetKnownFolderPath(known_folder, create ? KF_FLAG_CREATE : 0, NULL, &wpath)))
+	if (FAILED(SHGetKnownFolderPath(known_folder, create ? (unsigned)KF_FLAG_CREATE : 0, NULL, &wpath)))
 	{
 		// This should never be triggered unless the OS was compromised
 		I_FatalError("Unable to retrieve known folder.");
