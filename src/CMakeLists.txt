@@ -202,17 +202,8 @@ if( DEM_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
 	set( CMAKE_C_FLAGS "${SANITIZER_FLAG} ${CMAKE_C_FLAGS}" )
 	set( CMAKE_EXE_LINKER_FLAGS "${SANITIZER_FLAG} ${CMAKE_EXE_LINKER_FLAGS}" )
 
-	if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "4.5")
-		set( CMAKE_C_FLAGS "-Wno-unused-result ${CMAKE_C_FLAGS}" )
-		set( CMAKE_CXX_FLAGS "-Wno-unused-result ${CMAKE_CXX_FLAGS}" )
-	endif()
-	if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-		if( APPLE OR CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "3.6" )
-			set( CMAKE_CXX_FLAGS "-Wno-inconsistent-missing-override ${CMAKE_CXX_FLAGS}" )
-		endif()
-	endif()
-	set( CMAKE_C_FLAGS "-Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-missing-field-initializers -ffp-contract=off ${CMAKE_C_FLAGS}" )
-	set( CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused -Wno-unused-parameter -Wno-missing-field-initializers -ffp-contract=off ${CMAKE_CXX_FLAGS}" )
+	set( CMAKE_C_FLAGS "-ffp-contract=off ${CMAKE_C_FLAGS}" )
+	set( CMAKE_CXX_FLAGS "-ffp-contract=off ${CMAKE_CXX_FLAGS}" )
 
 	if( NOT X64 AND NOT CAN_DO_MFPMATH )
 		set( CMAKE_C_FLAGS "-DNO_SSE ${CMAKE_C_FLAGS}" )
@@ -224,7 +215,6 @@ if( DEM_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
 	# which is a royal pain. The previous version I had been using was fine with them.
 	# MinGW: switch to the Windows Unicode API.
 	if( WIN32 )
-		set( CMAKE_CXX_FLAGS "-Wno-unknown-pragmas -Wno-comment -Wno-format ${CMAKE_CXX_FLAGS}" )
 		set( CMAKE_CXX_FLAGS "-D_UNICODE -DUNICODE ${CMAKE_CXX_FLAGS}" )
 		set( CMAKE_CXX_FLAGS "-D_WIN32_WINNT=0x0600 ${CMAKE_CXX_FLAGS}" )
 		set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -municode" )
@@ -292,9 +282,9 @@ if (HAVE_VULKAN)
 	list( APPEND PROJECT_LIBRARIES "zvulkan" )
 endif()
 
-add_subdirectory("common/thirdparty/freetype-2.13.3")
-add_subdirectory("common/thirdparty/harfbuzz-7.3.0")
-add_subdirectory("utility/trex")
+add_subdirectory("common/thirdparty/freetype-2.13.3" SYSTEM)
+add_subdirectory("common/thirdparty/harfbuzz-7.3.0" SYSTEM)
+add_subdirectory("utility/trex" SYSTEM)
 list( APPEND PROJECT_LIBRARIES "trex" )
 list( APPEND PROJECT_LIBRARIES "zmusic" )
 list( APPEND PROJECT_LIBRARIES "zwidget" )
@@ -1536,6 +1526,104 @@ endif()
 
 target_compile_options(zdoom PRIVATE
 	$<$<CXX_COMPILER_ID:AppleClang>:-fconstexpr-steps=100000000> )
+
+# these are the warnings that the project currently emits
+# the goal is to remove this block, but that takes time
+# please don't add new things here unless you intend to remove them soon
+# if a warning is meant to be allowed indefinitely, leave a note as to why
+set(WARNING_FLAGS
+	$<$<CXX_COMPILER_ID:MSVC>:
+		/WX /W4
+		/wd4100 # unreferenced parameter
+		/wd4189 # local variable is initialized but not referenced
+		/wd4244 # conversion with possible loss of data
+		/wd4245 # conversion with signed/unsigned mismatch
+		/wd4267 # conversion with possible loss of data
+		/wd4324 # structure was padded due to alignment specifier
+		/wd4389 # signed/unsigned mismatch
+		/wd4456 # declaration hides previous local declaration
+		/wd4457 # declaration hides function parameter
+		/wd4458 # declaration hides class member
+		/wd4505 # unreferenced function with internal linkage has been removed
+		/wd5287 # operands are different enum types
+		/wd4101 # unreferenced local variable
+		/wd4201 # nonstandard extension used: nameless struct/union
+		/wd4459 # declaration hides global declaration
+		/wd5054 # operator deprecated between enumerations of different types
+		/wd4310 # cast truncates constant value
+		/wd4210 # nonstandard extension used: function given file scope
+	>
+	$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
+		-Werror -Wall -Wextra
+		@deprecated-declarations
+		@enum-compare
+		@format
+		@free-nonheap-object
+		@ignored-attributes
+		@int-in-bool-context
+		@missing-braces
+		@missing-field-initializers
+		@sign-compare
+		@switch
+		@strict-aliasing
+		@sequence-point
+		@unused-but-set-variable
+		@unused-function
+		@unused-local-typedefs
+		@unused-parameter
+		@unused-result
+		@unused-value
+		@unused-variable
+		@array-bounds
+		@parentheses
+		@implicit-fallthrough
+		@type-limits
+		@return-type
+		@reorder-ctor
+		@unknown-pragmas
+		@multichar
+		@cast-function-type
+		@constant-conversion
+		$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:
+			@deprecated-anon-enum-enum-conversion
+			@deprecated-enum-compare
+			@inconsistent-missing-override
+			@logical-op-parentheses
+			@unsequenced
+			@unused-lambda-capture
+			@unused-local-typedef
+			@unused-private-field
+			@nontrivial-memaccess
+			$<$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20>:
+				@nontrivial-memcall
+			>
+			$<$<CXX_COMPILER_ID:AppleClang>:
+				@vla-cxx-extension
+			>
+		>
+		$<$<CXX_COMPILER_ID:GNU>:
+			@maybe-uninitialized
+			@switch-outside-range
+			@dangling-pointer
+			@stringop-truncation
+			$<$<COMPILE_LANGUAGE:CXX>:
+				@interference-size
+				@class-memaccess
+			>
+		>
+		$<$<COMPILE_LANGUAGE:CXX>:
+			@deprecated-copy
+			@deprecated-enum-enum-conversion
+			@invalid-offsetof
+		>
+	>
+)
+message(${WARNING_FLAGS})
+list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-")
+target_compile_options(zdoom PRIVATE ${WARNING_FLAGS})
+target_compile_options(zmusic PRIVATE ${WARNING_FLAGS})
+target_compile_options(zvulkan PRIVATE ${WARNING_FLAGS})
+target_compile_options(zwidget PRIVATE ${WARNING_FLAGS})
 
 if( WIN32 )
 	set( INSTALL_PATH . CACHE STRING "Directory where the executable will be placed during install." )
