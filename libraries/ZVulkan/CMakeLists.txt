@@ -13,12 +13,7 @@ else()
 	endif()
 endif()
 
-set(ZVULKAN_SOURCES
-	src/vulkanbuilders.cpp
-	src/vulkandevice.cpp
-	src/vulkaninstance.cpp
-	src/vulkansurface.cpp
-	src/vulkanswapchain.cpp
+set(ZVULKAN_THIRDPARTY_SOURCES
 	src/vk_mem_alloc/vk_mem_alloc.cpp
 	src/vk_mem_alloc/vk_mem_alloc.natvis
 	src/volk/volk.c
@@ -113,6 +108,15 @@ set(ZVULKAN_SOURCES
 	src/glslang/spirv/NonSemanticDebugPrintf.h
 	src/glslang/OGLCompilersDLL/InitializeDll.cpp
 	src/glslang/OGLCompilersDLL/InitializeDll.h
+)
+
+set(ZVULKAN_SOURCES
+	src/vulkanbuilders.cpp
+	src/vulkandevice.cpp
+	src/vulkaninstance.cpp
+	src/vulkansurface.cpp
+	src/vulkanswapchain.cpp
+	${ZVULKAN_THIRDPARTY_SOURCES}
 )
 
 set(ZVULKAN_INCLUDES
@@ -222,6 +226,12 @@ set_target_properties(zvulkan PROPERTIES CXX_STANDARD 17)
 
 if(MSVC)
 	set_property(TARGET zvulkan PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
+if(MSVC)
+	set_source_files_properties(${ZVULKAN_THIRDPARTY_SOURCES} PROPERTIES COMPILE_OPTIONS "/WX-")
+else()
+	set_source_files_properties(${ZVULKAN_THIRDPARTY_SOURCES} PROPERTIES COMPILE_OPTIONS "-Wno-error")
 endif()
 
 option( BUILD_EXAMPLE "Build exmaple" OFF )
