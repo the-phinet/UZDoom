@@ -1579,12 +1579,12 @@ set(WARNING_FLAGS
 		@implicit-fallthrough
 		@type-limits
 		@return-type
-		@reorder-ctor
 		@unknown-pragmas
 		@multichar
 		@cast-function-type
-		@constant-conversion
 		$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:
+			@constant-conversion
+			@reorder-ctor
 			@deprecated-anon-enum-enum-conversion
 			@deprecated-enum-compare
 			@inconsistent-missing-override
