@@ -1619,7 +1619,7 @@ set(WARNING_FLAGS
 	>
 )
 message(${WARNING_FLAGS})
-list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-")
+list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-error=")
 target_compile_options(zdoom PRIVATE ${WARNING_FLAGS})
 target_compile_options(zmusic PRIVATE ${WARNING_FLAGS})
 target_compile_options(zvulkan PRIVATE ${WARNING_FLAGS})
