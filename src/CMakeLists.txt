@@ -1552,6 +1552,9 @@ set(WARNING_FLAGS
 		/wd5054 # operator deprecated between enumerations of different types
 		/wd4310 # cast truncates constant value
 		/wd4210 # nonstandard extension used: function given file scope
+		/wd4702 # unreachable code
+		/wd4701 # potentially uninitialized local variable used
+		/wd4703 # potentially uninitialized local pointer variable used
 	>
 	$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
 		-Werror -Wall -Wextra
@@ -1582,6 +1585,7 @@ set(WARNING_FLAGS
 		@unknown-pragmas
 		@multichar
 		@cast-function-type
+		@format-extra-args
 		$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:
 			@constant-conversion
 			@reorder-ctor
