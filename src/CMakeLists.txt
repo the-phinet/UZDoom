@@ -1557,7 +1557,8 @@ set(WARNING_FLAGS
 		/wd4703 # potentially uninitialized local pointer variable used
 	>
 	$<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
-		-Werror -Wall -Wextra
+		-Werror -Wall -Wextra -pedantic
+		@pedantic
 		@deprecated-declarations
 		@enum-compare
 		@format
@@ -1623,7 +1624,7 @@ set(WARNING_FLAGS
 	>
 )
 message(${WARNING_FLAGS})
-list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-error=")
+list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-")
 target_compile_options(zdoom PRIVATE ${WARNING_FLAGS})
 target_compile_options(zmusic PRIVATE ${WARNING_FLAGS})
 target_compile_options(zvulkan PRIVATE ${WARNING_FLAGS})
