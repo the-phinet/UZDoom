@@ -253,7 +253,7 @@ struct MidiDeviceList
 #elif __APPLE__
 		CFStringRef name;
 		char string_buffer[128];
-		auto midiout_device_count = MIDIGetNumberOfDestinations();
+		auto midiout_device_count = static_cast<int>(MIDIGetNumberOfDestinations());
 		for (int i = 0; i < midiout_device_count; i++)
 		{
 			auto endpoint = MIDIGetDestination(i);

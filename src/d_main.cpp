@@ -1182,7 +1182,7 @@ void RenderGraph(F2DDrawer *drawer, const GraphBuffer& buffer, DVector2 pos, DVe
 
 	DVector2 prev = DVector2(pos.X, calcYPos(data[startIndex]));
 
-	for (int i = 1; i < data.size(); ++i)
+	for (auto i = 1u; i < data.size(); ++i)
 	{
 		pos.X += stepX;
 		DVector2 next = DVector2(pos.X, calcYPos(data[(startIndex + i) % data.size()]));

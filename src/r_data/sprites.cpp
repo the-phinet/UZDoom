@@ -476,7 +476,7 @@ static void R_ExtendSpriteFrames(spritedef_t &spr, int frame)
 		return;
 	}
 
-	if (spr.numframes == 0 || (spr.spriteframes + spr.numframes == SpriteFrames.Size()))
+	if (spr.numframes == 0 || (spr.spriteframes + spr.numframes == SpriteFrames.SSize()))
 	{ // Sprite's frames are at the end of the array, or it has no frames
 	  // at all, so we can tack the new frames directly on to the end
 	  // of the SpriteFrames array.

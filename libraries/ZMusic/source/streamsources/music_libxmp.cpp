@@ -56,7 +56,7 @@ static unsigned long xmp_read(void *dest, unsigned long len, unsigned long nmemb
 	MusicIO::FileInterface* interface = (MusicIO::FileInterface*)priv;
 
 	auto origpos = interface->tell();
-	auto length = interface->read(dest, (int32_t)(len * nmemb));
+	unsigned long length = interface->read(dest, (int32_t)(len * nmemb));
 
 	if (length != len * nmemb)
 	{

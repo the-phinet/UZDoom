@@ -119,7 +119,7 @@ static void FreeParticle(FLevelLocals* Level, particle_t* particle)
 		assert(next->tprev == pindex);
 		next->tprev = particle->tprev;
 	}
-	if (Level->OldestParticle == pindex)
+	if (Level->OldestParticle == (uint32_t)pindex)
 	{
 		assert(tnext == NO_PARTICLE);
 		Level->OldestParticle = particle->tprev;

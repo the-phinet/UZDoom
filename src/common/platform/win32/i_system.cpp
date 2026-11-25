@@ -732,7 +732,7 @@ static void SetupNumaNodes()
 		{
 			// Find the numa node each processor belongs to
 			std::map<int, NumaNode> nodes;
-			for (int i = 0; i < sizeof(DWORD_PTR) * 8; i++)
+			for (auto i = 0u; i < sizeof(DWORD_PTR) * 8; i++)
 			{
 				DWORD_PTR processorMask = (((DWORD_PTR)1) << i);
 				if (processMask & processorMask)

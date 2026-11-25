@@ -1525,7 +1525,7 @@ void NetUpdate(int tics)
 		// If player count is < 8, scale the number of commands by 1 per every 1 less player.
 		// If player count is < 4, scale the number of commands by 4 per every 1 less player.
 		constexpr size_t MaxTicsPerPacket = 2u;
-		if (players > 1u)
+		if (players > 1)
 		{
 			maxCommands = MaxTicsPerPacket;
 			if (players >= MaxPlayersPerPacket / 2 && players < MaxPlayersPerPacket)
@@ -1957,7 +1957,7 @@ bool D_CheckNetGame()
 	for (auto client : NetworkClients)
 		playeringame[client] = true;
 
-	if (MaxClients > 1u)
+	if (MaxClients > 1)
 	{
 		Printf("Player %d of %d\n", consoleplayer + 1, MaxClients);
 	}
@@ -3537,7 +3537,7 @@ CCMD(muteall)
 		return;
 	}
 
-	for (int i = 0; i < MAXPLAYERS; ++i)
+	for (int i = 0; i < SMAXPLAYERS; ++i)
 	{
 		if (playeringame[i] && i != consoleplayer)
 			MutedClients |= (uint64_t)1u << i;

@@ -438,7 +438,7 @@ bool ImageBuilder::IsFormatSupported(VulkanDevice* device, VkFormatFeatureFlags 
 	if (imageInfo.extent.depth > properties.maxExtent.depth) return false;
 	if (imageInfo.mipLevels > properties.maxMipLevels) return false;
 	if (imageInfo.arrayLayers > properties.maxArrayLayers) return false;
-	if ((imageInfo.samples & properties.sampleCounts) != imageInfo.samples) return false;
+	if (static_cast<VkSampleCountFlagBits>(imageInfo.samples & properties.sampleCounts) != imageInfo.samples) return false;
 	if (bufferFeatures != 0)
 	{
 		VkFormatProperties formatProperties = { };

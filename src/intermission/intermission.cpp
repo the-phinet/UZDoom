@@ -520,7 +520,7 @@ void DIntermissionScreenText::Drawer ()
 				font->GetDynamicTextShaper()->ShapeUtf8(std::span<const char>(str.cbegin(), str.cend()));
 			TArray<FString> lines;
 			mText.Split(lines, '\n', FString::TOK_SKIPEMPTY);
-			int countAtEndOfLine = 0;
+			size_t countAtEndOfLine = 0;
 			for (auto l : lines)
 			{
 				if (count > countAtEndOfLine)

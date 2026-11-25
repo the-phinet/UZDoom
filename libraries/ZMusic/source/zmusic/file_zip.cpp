@@ -161,7 +161,7 @@ static uint32_t Zip_FindCentralDir(FILE* fin, bool* zip64)
 
 		if (fseek(fin, uReadPos, SEEK_SET) != 0) break;
 
-		if (fread(buf, 1, (int32_t)uReadSize, fin) != (int32_t)uReadSize) break;
+		if ((int32_t)fread(buf, 1, (int32_t)uReadSize, fin) != (int32_t)uReadSize) break;
 
 		for (i = (int)uReadSize - 3; (i--) > 0;)
 		{

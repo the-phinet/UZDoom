@@ -1131,7 +1131,7 @@ void FGameConfigFile::SetRavenDefaults (bool isHexen)
 
 	// Fix the Heretic/Hexen automap colors so they are correct.
 	// (They were wrong on older versions.)
-	if (*am_wallcolor == str("#2c1808") && *am_fdwallcolor == str("#887058") && *am_cdwallcolor == str("#4c3820"))
+	if (*am_wallcolor == str<unsigned>("#2c1808") && *am_fdwallcolor == str<unsigned>("#887058") && *am_cdwallcolor == str<unsigned>("#4c3820"))
 	{
 		am_wallcolor->ResetToDefault ();
 		am_fdwallcolor->ResetToDefault ();

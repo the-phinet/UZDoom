@@ -1544,7 +1544,6 @@ set(WARNING_FLAGS
 		/wd4267 # conversion with possible loss of data
 		/wd4310 # cast truncates constant value
 		/wd4324 # structure was padded due to alignment specifier
-		/wd4389 # signed/unsigned mismatch
 		/wd4456 # declaration hides previous local declaration
 		/wd4457 # declaration hides function parameter
 		/wd4458 # declaration hides class member
@@ -1576,7 +1575,6 @@ set(WARNING_FLAGS
 		@pedantic
 		@return-type
 		@sequence-point
-		@sign-compare
 		@strict-aliasing
 		@switch
 		@type-limits
@@ -1598,7 +1596,6 @@ set(WARNING_FLAGS
 				@nontrivial-memcall
 			>
 			$<$<CXX_COMPILER_ID:AppleClang>:
-				@c++11-narrowing
 				@vla-cxx-extension
 			>
 		>
@@ -1619,7 +1616,7 @@ set(WARNING_FLAGS
 	>
 )
 message(${WARNING_FLAGS})
-list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-error=")
+list(TRANSFORM WARNING_FLAGS REPLACE "@" "-Wno-")
 target_compile_options(zdoom PRIVATE ${WARNING_FLAGS})
 target_compile_options(zmusic PRIVATE ${WARNING_FLAGS})
 target_compile_options(zvulkan PRIVATE ${WARNING_FLAGS})

@@ -20,15 +20,16 @@
 
 namespace Color {
 
+template <typename T = int>
 #ifdef MSVC_CONSTEVAL_BUG
-inline constexpr int str(std::string_view s)
+inline constexpr T str(std::string_view s)
 #else
-consteval int str(std::string_view s)
+consteval T str(std::string_view s)
 #endif
 {
 	if ((s.length() != 7 && s.length() != 4) || s[0] != '#') throw "Not a color";
 	s = s.substr(1);
-	int rgb = 0;
+	T rgb = 0;
     for (int i = 0, b = 0; i < 6; i++, b = i/(6/s.length())) {
 		rgb <<= 4;
 		if (s[b] >= '0' && s[b] <= '9') rgb |= (s[b] - '0');

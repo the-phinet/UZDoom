@@ -211,7 +211,7 @@ static void getNextXABlock(xa_data *xad, bool looping )
         decodeSoundSectMono(&ssct, xad);
     }
 
-    if (xad->length == xad->reader->tell())
+    if (xad->length == static_cast<unsigned long>(xad->reader->tell()))
     {
         if (looping)
         {
