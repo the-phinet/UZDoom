@@ -15,10 +15,6 @@
 **
 */
 
-#ifdef _WIN32
-#pragma warning(disable:4305)
-#endif
-
 {
 -0.525731f, 0.000000f, 0.850651f},
 

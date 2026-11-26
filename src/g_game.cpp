@@ -250,12 +250,6 @@ CVAR (Bool,  cl_analog_straferun,         false, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
 
 CVAR (Bool, teamplay, false, CVAR_SERVERINFO)
 
-// Workaround for x64 code generation bug in MSVC 2015
-// Optimized targets contain illegal instructions in the function below
-#if defined _M_X64 && _MSC_VER < 1910
-#pragma optimize("", off)
-#endif // _M_X64 && _MSC_VER < 1910
-
 int forwardmove[2], sidemove[2];
 
 // [RH] Allow turbo setting anytime during game
@@ -279,10 +273,6 @@ CUSTOM_CVAR (Float, turbo, 100.f, CVAR_NOINITCALL | CVAR_CHEAT)
 		sidemove[1] = (int)(gameinfo.normsidemove[1]*scale);
 	}
 }
-
-#if defined _M_X64 && _MSC_VER < 1910
-#pragma optimize("", on)
-#endif // _M_X64 && _MSC_VER < 1910
 
 CVAR (Bool, bot_allowspy, false, 0);
 

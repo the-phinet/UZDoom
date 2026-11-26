@@ -17,9 +17,6 @@
 
 #pragma once
 
-#ifndef PARALLEL_FOR_H_INCLUDED
-#define PARALLEL_FOR_H_INCLUDED
-
 #ifdef HAVE_PARALLEL_FOR
 
 #include <ppl.h>
@@ -50,7 +47,9 @@ inline void parallel_for(const Index first, const Index last, const Index step, 
 template <typename Index, typename Function>
 inline void parallel_for(const Index first, const Index last, const Index step, const Function& function)
 {
+#if defined(_OPENMP)
 #pragma omp parallel for
+#endif
 	for (Index i = first; i < last; i += step)
 	{
 		function(i);
@@ -70,5 +69,3 @@ inline void parallel_for(const Index count, const Index step, const Function& fu
 {
 	parallel_for(0, count, step, function);
 }
-
-#endif // PARALLEL_FOR_H_INCLUDED

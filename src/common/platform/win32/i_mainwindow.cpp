@@ -41,7 +41,9 @@
 #include "version.h"
 #include "widgets/errorwindow.h"
 
+#ifdef _MSC_VER
 #pragma comment(lib, "dwmapi.lib")
+#endif
 
 MainWindow mainwindow;
 

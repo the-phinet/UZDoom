@@ -7,7 +7,9 @@
 #include <dwmapi.h>
 #include <malloc.h>
 
+#ifdef _MSC_VER
 #pragma comment(lib, "dwmapi.lib")
+#endif
 
 #define MESSAGE_NOTIFY_WINDOW (WM_APP + 100)
 
