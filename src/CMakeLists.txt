@@ -1569,7 +1569,6 @@ set(WARNING_FLAGS
 		@int-in-bool-context
 		@missing-braces
 		@missing-field-initializers
-		@multichar
 		@overflow
 		@parentheses
 		@pedantic

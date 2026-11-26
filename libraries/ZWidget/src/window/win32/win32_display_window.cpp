@@ -568,7 +568,14 @@ void Win32DisplayWindow::PresentBitmap(int width, int height, const uint32_t* pi
 	header.bV5GreenMask = 0x0000ff00;
 	header.bV5BlueMask = 0x000000ff;
 	header.bV5SizeImage = width * height * sizeof(uint32_t);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmultichar"
+#endif // Why are you like this windows?
 	header.bV5CSType = LCS_sRGB;
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 	HDC dc = PaintDC;
 	if (dc != 0)
