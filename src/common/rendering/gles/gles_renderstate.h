@@ -50,7 +50,7 @@ class FGLRenderState final : public FRenderState
 
 	FShader *activeShader;
 
-	int mNumDrawBuffers = 1;
+	[[maybe_unused]] int mNumDrawBuffers = 1;
 
 	bool ApplyShader();
 	void ApplyState();
@@ -60,8 +60,8 @@ class FGLRenderState final : public FRenderState
 	int lastClamp = 0;
 	int lastTranslation = 0;
 	int maxBoundMaterial = -1;
-	size_t mLastMappedLightIndex = SIZE_MAX;
-	size_t mLastMappedBoneIndexBase = SIZE_MAX;
+	[[maybe_unused]] size_t mLastMappedLightIndex = SIZE_MAX;
+	[[maybe_unused]] size_t mLastMappedBoneIndexBase = SIZE_MAX;
 
 	IVertexBuffer *mCurrentVertexBuffer;
 	int mCurrentVertexOffsets[2];	// one per binding point

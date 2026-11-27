@@ -147,7 +147,7 @@ void ZScriptDebugger::RegisterSessionHandlers()
 	// The Initialize request is the first message sent from the client and the response reports debugger capabilities.
 	// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Initialize
 	m_session->registerHandler([this](const dap::InitializeRequest &request) { return dap::ConvertResponseOrErrorToClient(Initialize(request), request, m_serverCaps); });
-	m_session->onError([this](const char *msg) { LogInternalError("%s", msg); });
+	m_session->onError([](const char *msg) { LogInternalError("%s", msg); });
 	m_session->registerSentHandler(
 		// After an intialize response is sent, we send an initialized event to indicate that the client can now send requests.
 		[this](const dap::ResponseOrError<dap::InitializeResponse> &)
@@ -159,7 +159,7 @@ void ZScriptDebugger::RegisterSessionHandlers()
 		});
 
 	// Client is done configuring.
-	m_session->registerHandler([this](const dap::ConfigurationDoneRequest &) { return dap::ConfigurationDoneResponse {}; });
+	m_session->registerHandler([](const dap::ConfigurationDoneRequest &) { return dap::ConfigurationDoneResponse {}; });
 
 	// The Disconnect request is sent by the client before it disconnects from the server.
 	// https://microsoft.github.io/debug-adapter-protocol/specification#Requests_Disconnect

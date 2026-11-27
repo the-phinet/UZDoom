@@ -101,7 +101,7 @@ class FSectionCreator
 	FMemArena allocator;
 	TArray<WorkSectionLine *>AllAllocatedLines;
 
-	bool verbose = false;
+	[[maybe_unused]] bool verbose = false;
 	TMap<int, TArray<int>> subsectormap;
 	TArray<WorkSection> sections;
 

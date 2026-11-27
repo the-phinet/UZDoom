@@ -42,10 +42,8 @@ class TextBlock : public Widget
 	};
 	std::vector<std::unique_ptr<Line>> lines;
 	Canvas *canvas = nullptr;
-	Canvas *surface = nullptr;
 	size_t lastwidth = 0;
 	Scrollbar *scrollbar = nullptr;
-	double scroll = 0;
 
 public:
 	TextBlock(Widget* parent): Widget(parent)

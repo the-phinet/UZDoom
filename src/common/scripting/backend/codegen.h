@@ -925,8 +925,8 @@ class FxMultiAssign : public FxExpression
 	FxCompoundStatement *LocalVarContainer;	// for handling the temporary variables of the results, which may need type casts.
 	FArgumentList Base;
 	FxExpression *Right;
-	bool AddressRequested = false;
-	bool AddressWritable = false;
+	[[maybe_unused]] bool AddressRequested = false;
+	[[maybe_unused]] bool AddressWritable = false;
 
 public:
 	FxMultiAssign(FArgumentList &base, FxExpression *right, const FScriptPosition &pos);
@@ -1628,7 +1628,7 @@ class FxMemberFunctionCall : public FxExpression
 	FxExpression *Self;
 	FName MethodName;
 	FArgumentList ArgList;
-	bool ResolveSelf;
+	[[maybe_unused]] bool ResolveSelf;
 
 public:
 
@@ -1684,7 +1684,7 @@ public:
 
 class FxVectorPlusZ : public FxExpression
 {
-	FName Function;
+	[[maybe_unused]] FName Function;
 	FxExpression* Self;
 	FxExpression* Z;
 
@@ -2337,7 +2337,7 @@ public:
 
 class FxLocalArrayDeclaration : public FxLocalVariableDeclaration
 {
-	PType *ElementType;
+	[[maybe_unused]] PType *ElementType;
 	FArgumentList values;
 
 public:

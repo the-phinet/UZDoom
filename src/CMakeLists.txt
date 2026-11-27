@@ -448,17 +448,17 @@ if( HAVE_MMX )
 	add_definitions( -DHAVE_MMX=1 )
 
 	set( SYSTEM_SOURCES ${SYSTEM_SOURCES}
-		common/textures/hires/hqnx_asm/hq2x_asm.cpp
-		common/textures/hires/hqnx_asm/hq3x_asm.cpp
-		common/textures/hires/hqnx_asm/hq4x_asm.cpp
-		common/textures/hires/hqnx_asm/hqnx_asm_Image.cpp)
+		common/thirdparty/hqnx_asm/hq2x_asm.cpp
+		common/thirdparty/hqnx_asm/hq3x_asm.cpp
+		common/thirdparty/hqnx_asm/hq4x_asm.cpp
+		common/thirdparty/hqnx_asm/hqnx_asm_Image.cpp)
 
 	if( DEM_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
 		set_source_files_properties(
-			common/textures/hires/hqnx_asm/hq2x_asm.cpp
-			common/textures/hires/hqnx_asm/hq3x_asm.cpp
-			common/textures/hires/hqnx_asm/hq4x_asm.cpp
-			common/textures/hires/hqresize.cpp
+			common/thirdparty/hqnx_asm/hq2x_asm.cpp
+			common/thirdparty/hqnx_asm/hq3x_asm.cpp
+			common/thirdparty/hqnx_asm/hq4x_asm.cpp
+			common/textures/hqresize.cpp
 			PROPERTIES COMPILE_FLAGS "-mmmx" )
 	endif( DEM_CMAKE_COMPILER_IS_GNUCXX_COMPATIBLE )
 endif( HAVE_MMX )
@@ -540,15 +540,15 @@ file( GLOB HEADER_FILES
 	common/models/*.h
 	common/textures/*.h
 	common/startscreen/*.h
-	common/textures/hires/hqnx/*.h
-	common/textures/hires/hqnx_asm/*.h
-	common/textures/hires/xbr/*.h
 	common/thirdparty/*.h
+	common/thirdparty/hqnx/*.h
+	common/thirdparty/hqnx_asm/*.h
+	common/thirdparty/libsmackerdec/include/*.h
+	common/thirdparty/math/*h
 	common/thirdparty/rapidjson/*.h
 	common/thirdparty/rapidxml/*.hpp
-	common/thirdparty/math/*h
-	common/thirdparty/libsmackerdec/include/*.h
 	common/thirdparty/utf8proc/*.h
+	common/thirdparty/xbr/*.h
 	common/rendering/*.h
 	common/rendering/gl_load/*.h
 	common/rendering/gl/*.h
@@ -670,12 +670,12 @@ set( VM_JIT_SOURCES
 set( FASTMATH_SOURCES
 	rendering/swrenderer/r_all.cpp
 	rendering/swrenderer/r_swscene.cpp
-	common/textures/hires/hqnx/init.cpp
-	common/textures/hires/hqnx/hq2x.cpp
-	common/textures/hires/hqnx/hq3x.cpp
-	common/textures/hires/hqnx/hq4x.cpp
-	common/textures/hires/xbr/xbrz.cpp
-	common/textures/hires/xbr/xbrz_old.cpp
+	common/thirdparty/hqnx/init.cpp
+	common/thirdparty/hqnx/hq2x.cpp
+	common/thirdparty/hqnx/hq3x.cpp
+	common/thirdparty/hqnx/hq4x.cpp
+	common/thirdparty/xbr/xbrz.cpp
+	common/thirdparty/xbr/xbrz_old.cpp
 	common/rendering/gl_load/gl_load.c
 	rendering/hwrenderer/hw_dynlightdata.cpp
 	rendering/hwrenderer/scene/hw_bsp.cpp
@@ -1034,7 +1034,7 @@ set (PCH_SOURCES
 	common/textures/formats/startscreentexture.cpp
 	common/textures/formats/qoitexture.cpp
 	common/textures/formats/webptexture.cpp
-	common/textures/hires/hqresize.cpp
+	common/textures/hqresize.cpp
 	common/models/models_md3.cpp
 	common/models/models_md2.cpp
 	common/models/models_voxel.cpp
@@ -1277,7 +1277,7 @@ set_source_files_properties( ${FASTMATH_SOURCES} PROPERTIES COMPILE_FLAGS ${ZD_F
 set_source_files_properties( xlat/parse_xlat.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/xlat_parser.c" )
 set_source_files_properties( common/engine/sc_man.cpp PROPERTIES OBJECT_DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/sc_man_scanner.h" )
 set_source_files_properties( ${NOT_COMPILED_SOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE )
-set_source_files_properties( ${GAME_NONPCH_SOURCES} common/textures/hires/hqresize.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS TRUE )
+set_source_files_properties( ${GAME_NONPCH_SOURCES} common/textures/hqresize.cpp PROPERTIES SKIP_PRECOMPILE_HEADERS TRUE )
 
 option(ENABLE_IWYU "Enable Include-What-You-Use analysis" ON)
 if (ENABLE_IWYU)
@@ -1327,7 +1327,6 @@ include_directories(
 	common/thirdparty/utf8proc
 	common/textures
 	common/textures/formats
-	common/textures/hires
 	common/textures
 	common/models
 	common/filesystem/include
@@ -1586,8 +1585,6 @@ set(WARNING_FLAGS
 			@constant-conversion
 			@deprecated-anon-enum-enum-conversion
 			@reorder-ctor
-			@unused-lambda-capture
-			@unused-private-field
 			$<$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,20>:
 				@nontrivial-memcall
 			>
@@ -1715,15 +1712,14 @@ source_group("Common\\Rendering\\Vulkan Renderer\\Shaders" REGULAR_EXPRESSION "^
 source_group("Common\\Rendering\\Vulkan Renderer\\Textures" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/rendering/vulkan/textures/.+")
 source_group("Common\\Models" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/models/.+")
 source_group("Common\\Textures" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/textures/.+")
-source_group("Common\\Textures\\Hires" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/textures/hires/.+")
-source_group("Common\\Textures\\Hires\\HQ Resize" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/textures/hires/hqnx/.+")
-source_group("Common\\Textures\\Hires\\HQ Resize MMX version" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/textures/hires/hqnx_asm/.+")
-source_group("Common\\Textures\\Hires\\XBRZ" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/textures/hires/xbr/.+")
 source_group("Common\\Textures\\Formats" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/textures/formats/.+")
 source_group("Common\\Third Party" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/.+")
+source_group("Common\\Third Party\\HQ Resize MMX version" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/hqnx_asm/.+")
+source_group("Common\\Third Party\\HQ Resize" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/hqnx/.+")
 source_group("Common\\Third Party\\Math" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/math/.+")
 source_group("Common\\Third Party\\RapidJSON" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/rapidjson/.+")
 source_group("Common\\Third Party\\RapidXML" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/rapidxml/.+")
+source_group("Common\\Third Party\\XBRZ" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/xbr/.+")
 source_group("Common\\Third Party\\stb" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/stb/.+")
 source_group("Common\\Third Party\\utf8proc" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/common/thirdparty/utf8proc/.+")
 source_group("Utility" REGULAR_EXPRESSION "^${CMAKE_CURRENT_SOURCE_DIR}/utility/.+")

@@ -91,7 +91,7 @@ class BreakpointManager
 	std::map<std::string_view, BreakpointInfo, ci_less> m_nativeFunctionBreakpoints;
 	IdProvider m_idProvider;
 	std::atomic<int64_t> m_CurrentID = 0;
-	size_t times_seen = 0;
+	[[maybe_unused]] size_t times_seen = 0;
 
 	void ClearBreakpointsType(BreakpointInfo::Type type);
 };

@@ -106,7 +106,7 @@ class ZScriptDebugger
 	std::map<std::string, std::string> m_ModuleNameToPath;
 	dap::InitializeRequest m_clientCaps;
 	dap::ServerCaps m_serverCaps;
-	bool m_printLog = false;
+	[[maybe_unused]] bool m_printLog = false;
 
 	RuntimeEvents::CreateStackEventHandle m_createStackEventHandle;
 	RuntimeEvents::CleanupStackEventHandle m_cleanupStackEventHandle;

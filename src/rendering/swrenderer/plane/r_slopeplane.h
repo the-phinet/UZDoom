@@ -43,7 +43,8 @@ namespace swrenderer
 		int lightlevel;
 		bool foggy;
 		fixed_t pviewx, pviewy;
-		fixed_t xscale, yscale;
+		[[maybe_unused]] fixed_t xscale;
+		[[maybe_unused]] fixed_t yscale;
 		FDynamicColormap *basecolormap;
 		SpanDrawerArgs drawerargs;
 

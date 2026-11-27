@@ -41,7 +41,7 @@ std::string FS_FullPath(const char* directory);
 
 class FDirectory : public FResourceFile
 {
-	const bool nosubdir;
+	[[maybe_unused]] const bool nosubdir;
 	const char* mBasePath;
 	const char** SystemFilePath;
 

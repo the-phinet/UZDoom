@@ -276,7 +276,7 @@ public:
 // throw this object to regularly terminate a script's execution.
 class CFsTerminator
 {
-	int fill;
+	[[maybe_unused]] int fill;
 };
 
 //==========================================================================

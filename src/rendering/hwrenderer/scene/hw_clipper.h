@@ -48,7 +48,7 @@ class Clipper
 	FMemArena nodearena;
 	ClipNode * freelist = nullptr;
 
-	ClipNode * clipnodes = nullptr;
+	[[maybe_unused]] ClipNode * clipnodes = nullptr;
 	ClipNode * cliphead = nullptr;
 	ClipNode * silhouette = nullptr;	// will be preserved even when RemoveClipRange is called
 	FRenderViewpoint *viewpoint = nullptr;

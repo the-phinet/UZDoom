@@ -43,6 +43,6 @@ namespace swrenderer
 		int y1 = 0, y2 = 0;
 
 		uint32_t Translation = 0;
-		uint32_t FillColor = 0;
+		[[maybe_unused]] uint32_t FillColor = 0;
 	};
 }

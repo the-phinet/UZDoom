@@ -648,7 +648,7 @@ class SmkPlayer : public MoviePlayer
 	TArray<uint8_t> pFrame;
 	TArray<int16_t> audioBuffer;
 	int nFrames;
-	bool fullscreenScale;
+	[[maybe_unused]] bool fullscreenScale;
 	uint64_t nFrameNs;
 	int nFrame = 0;
 	const TArray<int> animSnd;

@@ -32,7 +32,7 @@ class SWSceneDrawer
 	FTexture *PaletteTexture;
 	std::unique_ptr<FGameTexture> FBTexture[2];
 	int FBTextureIndex = 0;
-	bool FBIsTruecolor = false;
+	[[maybe_unused]] bool FBIsTruecolor = false;
 	std::unique_ptr<DCanvas> Canvas;
 
 public:

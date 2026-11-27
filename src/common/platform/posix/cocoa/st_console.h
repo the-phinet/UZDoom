@@ -60,16 +60,16 @@ private:
 	NSScrollView*        m_scrollView;
 	NSProgressIndicator* m_progressBar;
 
-	NSView*              m_netView;
-	NSTextField*         m_netMessageText;
-	NSTextField*         m_netCountText;
-	NSProgressIndicator* m_netProgressBar;
-	NSButton*            m_netAbortButton;
+	[[maybe_unused]] NSView*              m_netView;
+	[[maybe_unused]] NSTextField*         m_netMessageText;
+	[[maybe_unused]] NSTextField*         m_netCountText;
+	[[maybe_unused]] NSProgressIndicator* m_netProgressBar;
+	[[maybe_unused]] NSButton*            m_netAbortButton;
 
 	unsigned int         m_characterCount;
 
-	int                  m_netCurPos;
-	int                  m_netMaxPos;
+	[[maybe_unused]] int m_netCurPos;
+	[[maybe_unused]] int m_netMaxPos;
 
 	FConsoleWindow();
 

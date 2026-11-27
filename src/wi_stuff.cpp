@@ -200,7 +200,7 @@ private:
 	FTextureID		splat{};		// splat
 	FTextureID		background{};
 	wbstartstruct_t *wbs;
-	level_info_t	*exitlevel;
+	[[maybe_unused]] level_info_t	*exitlevel;
 	int			bgwidth = -1;
 	int			bgheight = -1;
 	bool		tilebackground = false;

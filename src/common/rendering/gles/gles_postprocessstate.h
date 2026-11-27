@@ -48,7 +48,7 @@ private:
 	GLboolean blendEnabled;
 	GLboolean scissorEnabled;
 	GLboolean depthEnabled;
-	GLboolean multisampleEnabled;
+	[[maybe_unused]] GLboolean multisampleEnabled;
 	GLint currentProgram;
 	GLint blendEquationRgb;
 	GLint blendEquationAlpha;
