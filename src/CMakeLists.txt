@@ -1585,7 +1585,6 @@ set(WARNING_FLAGS
 		$<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:
 			@constant-conversion
 			@deprecated-anon-enum-enum-conversion
-			@inconsistent-missing-override
 			@reorder-ctor
 			@unused-lambda-capture
 			@unused-private-field

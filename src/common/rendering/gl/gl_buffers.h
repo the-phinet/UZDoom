@@ -55,8 +55,8 @@ protected:
 	void *Lock(unsigned int size) override;
 	void Unlock() override;
 
-	void GPUDropSync();
-	void GPUWaitSync();
+	void GPUDropSync() override;
+	void GPUWaitSync() override;
 public:
 	void Bind();
 };

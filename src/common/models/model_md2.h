@@ -135,7 +135,7 @@ public:
 	virtual void AddSkins(uint8_t *hitlist, const FTextureID* surfaceskinids) override;
 
 	void UnloadGeometry();
-	void BuildVertexBuffer(FModelRenderer *renderer);
+	void BuildVertexBuffer(FModelRenderer *renderer) override;
 
 };
 

@@ -72,23 +72,23 @@ class WinMIDIDevice : public MIDIDevice
 public:
 	WinMIDIDevice(int dev_id, bool precache);
 	~WinMIDIDevice();
-	int Open();
-	void Close();
-	bool IsOpen() const;
-	int GetTechnology() const;
-	int SetTempo(int tempo);
-	int SetTimeDiv(int timediv);
-	int StreamOut(MidiHeader *data);
-	int StreamOutSync(MidiHeader *data);
-	int Resume();
-	void Stop();
-	int PrepareHeader(MidiHeader *data);
-	int UnprepareHeader(MidiHeader *data);
-	bool FakeVolume();
-	bool Pause(bool paused);
+	int Open() override;
+	void Close() override;
+	bool IsOpen() const override;
+	int GetTechnology() const override;
+	int SetTempo(int tempo) override;
+	int SetTimeDiv(int timediv) override;
+	int StreamOut(MidiHeader *data) override;
+	int StreamOutSync(MidiHeader *data) override;
+	int Resume() override;
+	void Stop() override;
+	int PrepareHeader(MidiHeader *data) override;
+	int UnprepareHeader(MidiHeader *data) override;
+	bool FakeVolume() override;
+	bool Pause(bool paused) override;
 	void InitPlayback() override;
 	bool Update() override;
-	void PrecacheInstruments(const uint16_t *instruments, int count);
+	void PrecacheInstruments(const uint16_t *instruments, int count) override;
 	DWORD PlayerLoop();
 	bool CanHandleSysex() const override
 	{

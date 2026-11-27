@@ -45,7 +45,7 @@ class DRotatePoly : public DPolyAction
 	DECLARE_CLASS (DRotatePoly, DPolyAction)
 public:
 	void Construct(FPolyObj *polyNum);
-	void Tick ();
+	void Tick() override;
 
 	friend bool EV_RotatePoly (FLevelLocals *Level, line_t *line, int polyNum, int speed, int byteAngle, int direction, bool overRide);
 };
@@ -56,8 +56,8 @@ class DMovePoly : public DPolyAction
 	DECLARE_CLASS (DMovePoly, DPolyAction)
 public:
 	void Construct(FPolyObj *polyNum);
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 protected:
 	DAngle m_Angle;
 	DVector2 m_Speedv;
@@ -70,8 +70,8 @@ class DMovePolyTo : public DPolyAction
 	DECLARE_CLASS(DMovePolyTo, DPolyAction)
 public:
 	void Construct(FPolyObj *polyNum);
-	void Serialize(FSerializer &arc);
-	void Tick();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 protected:
 	DVector2 m_Speedv;
 	DVector2 m_Target;
@@ -85,8 +85,8 @@ class DPolyDoor : public DMovePoly
 	DECLARE_CLASS (DPolyDoor, DMovePoly)
 public:
 	void Construct(FPolyObj *polyNum, podoortype_t type);
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 protected:
 	DAngle m_Direction;
 	double m_TotalDist;

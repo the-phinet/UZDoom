@@ -33,8 +33,8 @@ class DFireFlicker : public DLighting
 public:
 	void Construct(sector_t *sector);
 	void Construct(sector_t *sector, int upper, int lower);
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	int 		m_Count;
 	int 		m_MaxLight;
@@ -46,8 +46,8 @@ class DFlicker : public DLighting
 	DECLARE_CLASS(DFlicker, DLighting)
 public:
 	void Construct(sector_t *sector, int upper, int lower);
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	int 		m_Count;
 	int 		m_MaxLight;
@@ -60,8 +60,8 @@ class DLightFlash : public DLighting
 public:
 	void Construct(sector_t *sector);
 	void Construct(sector_t *sector, int min, int max);
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	int 		m_Count;
 	int 		m_MaxLight;
@@ -76,8 +76,8 @@ class DStrobe : public DLighting
 public:
 	void Construct(sector_t *sector, int utics, int ltics, bool inSync);
 	void Construct(sector_t *sector, int upper, int lower, int utics, int ltics);
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	int 		m_Count;
 	int 		m_MinLight;
@@ -91,8 +91,8 @@ class DGlow : public DLighting
 	DECLARE_CLASS(DGlow, DLighting)
 public:
 	void Construct(sector_t *sector);
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	int 		m_MinLight;
 	int 		m_MaxLight;
@@ -105,8 +105,8 @@ class DGlow2 : public DLighting
 	DECLARE_CLASS(DGlow2, DLighting)
 public:
 	void Construct(sector_t *sector, int start, int end, int tics, bool oneshot);
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	int			m_Start;
 	int			m_End;
@@ -125,8 +125,8 @@ public:
 	void Construct();
 	void Propagate();
 
-	void		Serialize(FSerializer &arc);
-	void		Tick();
+	void		Serialize(FSerializer &arc) override;
+	void		Tick() override;
 protected:
 	uint8_t		m_BaseLevel;
 	uint8_t		m_Phase;

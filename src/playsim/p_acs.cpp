@@ -690,7 +690,7 @@ public:
 	DLevelScript(FLevelLocals *l, AActor *who, line_t *where, int num, const ScriptPtr *code, FBehavior *module,
 		const int *args, int argcount, int flags, bool clientside);
 
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	int RunScript();
 	PClass *GetClassForIndex(int index) const;
 
@@ -1843,8 +1843,8 @@ public:
 	void Construct(AActor *it, line_t *line, int lineSide, bool ceiling,
 		sector_t *sec, int height, int special,
 		int arg0, int arg1, int arg2, int arg3, int arg4);
-	void Tick ();
-	void Serialize(FSerializer &arc);
+	void Tick() override;
+	void Serialize(FSerializer &arc) override;
 private:
 	sector_t *Sector;
 	double WatchD, LastD;

@@ -455,8 +455,8 @@ public:
 	void Construct() {}
 	~DACSThinker();
 
-	void Serialize(FSerializer &arc);
-	void Tick();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	typedef TMap<int, DLevelScript *> ScriptMap;
 	ScriptMap RunningScripts;	// Array of all synchronous scripts

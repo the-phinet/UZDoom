@@ -51,8 +51,8 @@ public:
 	void Construct(double dx, double dy, const line_t *l, sector_t *control, int accel, EScrollPos scrollpos = EScrollPos::scw_all);
 	void OnDestroy() override;
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	bool AffectsWall (side_t * wall) const { return m_Side == wall; }
 	side_t *GetWall () const { return m_Side; }

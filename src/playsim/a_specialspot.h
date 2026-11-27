@@ -45,7 +45,7 @@ public:
 	FSpotList *FindSpotList(PClassActor *type);
 	bool AddSpot(AActor *spot);
 	bool RemoveSpot(AActor *spot);
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	AActor *GetNextInList(PClassActor *type, int skipcounter);
 	AActor *GetSpotWithMinMaxDistance(PClassActor *type, double x, double y, double mindist, double maxdist);
 	AActor *GetRandomSpot(PClassActor *type, bool onlyonce = false);

@@ -41,7 +41,7 @@ public:
 	};
 
 	void Construct(EPusher type, line_t *l, int magnitude, int angle, AActor *source, int affectee);
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	int CheckForSectorMatch (EPusher type, int tag);
 	void ChangeValues (int magnitude, int angle)
 	{
@@ -50,7 +50,7 @@ public:
 		m_Magnitude = magnitude;
 	}
 
-	void Tick ();
+	void Tick() override;
 
 protected:
 	EPusher m_Type;
@@ -74,7 +74,7 @@ class DThruster : public DThinker
 
 public:
 	void Construct(sector_t* sec, double dx, double dy, int type, int location);
-	void Serialize(FSerializer& arc);
-	void Tick();
+	void Serialize(FSerializer& arc) override;
+	void Tick() override;
 
 };

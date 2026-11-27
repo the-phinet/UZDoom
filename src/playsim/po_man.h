@@ -33,7 +33,7 @@ class DPolyAction : public DThinker
 	HAS_OBJECT_POINTERS
 public:
 	void Construct(FPolyObj *polyNum);
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	void OnDestroy() override;
 	void Stop();
 	double GetSpeed() const { return m_Speed; }

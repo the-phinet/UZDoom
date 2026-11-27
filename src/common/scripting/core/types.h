@@ -610,8 +610,8 @@ public:
 		MAP_STR_STR,
 	} BackingClass;
 
-	virtual bool IsMatch(intptr_t id1, intptr_t id2) const;
-	virtual void GetTypeIDs(intptr_t &id1, intptr_t &id2) const;
+	virtual bool IsMatch(intptr_t id1, intptr_t id2) const override;
+	virtual void GetTypeIDs(intptr_t &id1, intptr_t &id2) const override;
 
 	void WriteValue(FSerializer &ar, const char *key, const void *addr) const override;
 	bool ReadValue(FSerializer &ar, const char *key, void *addr) const override;
@@ -637,8 +637,8 @@ public:
 
 	PMap::EBackingClass BackingClass;
 
-	virtual bool IsMatch(intptr_t id1, intptr_t id2) const;
-	virtual void GetTypeIDs(intptr_t &id1, intptr_t &id2) const;
+	virtual bool IsMatch(intptr_t id1, intptr_t id2) const override;
+	virtual void GetTypeIDs(intptr_t &id1, intptr_t &id2) const override;
 
 	void WriteValue(FSerializer &ar, const char *key, const void *addr) const override;
 	bool ReadValue(FSerializer &ar, const char *key, void *addr) const override;

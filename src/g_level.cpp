@@ -1327,7 +1327,7 @@ class DAutosaver : public DThinker
 	DECLARE_CLASS (DAutosaver, DThinker)
 public:
 	void Construct() {}
-	void Tick ();
+	void Tick() override;
 };
 
 IMPLEMENT_CLASS(DAutosaver, false, false)
@@ -2292,7 +2292,7 @@ class DSectorMarker : public DObject
 	DECLARE_CLASS(DSectorMarker, DObject)
 public:
 	DSectorMarker(FLevelLocals *l) : Level(l), SecNum(0),PolyNum(0),SideNum(0) {}
-	size_t PropagateMark();
+	size_t PropagateMark() override;
 	FLevelLocals *Level;
 	int SecNum;
 	int PolyNum;

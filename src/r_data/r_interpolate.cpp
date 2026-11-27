@@ -52,12 +52,12 @@ public:
 	DSectorPlaneInterpolation() {}
 	DSectorPlaneInterpolation(sector_t *sector, bool plane, bool attach);
 	void UnlinkFromMap() override;
-	void UpdateInterpolation();
-	void Restore();
-	void Interpolate(double smoothratio);
+	void UpdateInterpolation() override;
+	void Restore() override;
+	void Interpolate(double smoothratio) override;
 
-	virtual void Serialize(FSerializer &arc);
-	size_t PropagateMark();
+	virtual void Serialize(FSerializer &arc) override;
+	size_t PropagateMark() override;
 };
 
 //==========================================================================
@@ -80,11 +80,11 @@ public:
 	DSectorScrollInterpolation() {}
 	DSectorScrollInterpolation(sector_t *sector, bool plane);
 	void UnlinkFromMap() override;
-	void UpdateInterpolation();
-	void Restore();
-	void Interpolate(double smoothratio);
+	void UpdateInterpolation() override;
+	void Restore() override;
+	void Interpolate(double smoothratio) override;
 
-	virtual void Serialize(FSerializer &arc);
+	virtual void Serialize(FSerializer &arc) override;
 };
 
 
@@ -108,11 +108,11 @@ public:
 	DWallScrollInterpolation() {}
 	DWallScrollInterpolation(side_t *side, int part);
 	void UnlinkFromMap() override;
-	void UpdateInterpolation();
-	void Restore();
-	void Interpolate(double smoothratio);
+	void UpdateInterpolation() override;
+	void Restore() override;
+	void Interpolate(double smoothratio) override;
 
-	virtual void Serialize(FSerializer &arc);
+	virtual void Serialize(FSerializer &arc) override;
 };
 
 //==========================================================================
@@ -135,11 +135,11 @@ public:
 	DPolyobjInterpolation() {}
 	DPolyobjInterpolation(FPolyObj *poly);
 	void UnlinkFromMap() override;
-	void UpdateInterpolation();
-	void Restore();
-	void Interpolate(double smoothratio);
+	void UpdateInterpolation() override;
+	void Restore() override;
+	void Interpolate(double smoothratio) override;
 
-	virtual void Serialize(FSerializer &arc);
+	virtual void Serialize(FSerializer &arc) override;
 };
 
 

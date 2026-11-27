@@ -82,7 +82,7 @@ public:
 protected:
 	void CheckFON1Chars ();
 	void FixupPalette (uint8_t *identity, const PalEntry *palette, int* minlum ,int* maxlum);
-	void LoadTranslations ();
+	void LoadTranslations() override;
 	void LoadFON1 (int lump, const uint8_t *data);
 	void LoadFON2 (int lump, const uint8_t *data);
 	void LoadBMF (int lump, const uint8_t *data);

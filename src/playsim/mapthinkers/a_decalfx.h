@@ -35,7 +35,7 @@ public:
 	{
 		TheDecal = decal;
 	}
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	TObjPtr<DBaseDecal*> TheDecal;
 };
 
@@ -47,8 +47,8 @@ public:
 	{
 		Super::Construct(decal);
 	}
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	int TimeToStartDecay;
 	int TimeToEndDecay;
@@ -63,8 +63,8 @@ public:
 	{
 		Super::Construct(decal);
 	}
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	int TimeToStartDecay;
 	int TimeToEndDecay;
@@ -80,8 +80,8 @@ public:
 	{
 		Super::Construct(decal);
 	}
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	int TimeToStart;
 	int TimeToStop;
@@ -102,8 +102,8 @@ public:
 	{
 		Super::Construct(decal);
 	}
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	int TimeToStart;
 	int TimeToStop;

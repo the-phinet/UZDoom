@@ -604,7 +604,7 @@ public:
 	TObjPtr<AActor*> Pawn;
 
 	void Construct() {}
-	void Tick()
+	void Tick() override
 	{
 		Pawn->flags |= MF_SHOOTABLE;
 		Pawn->flags2 &= ~MF2_INVULNERABLE;
@@ -624,7 +624,7 @@ public:
 	}
 	// You'll probably never be able to catch this in a save game, but
 	// just in case, add a proper serializer.
-	void Serialize(FSerializer &arc)
+	void Serialize(FSerializer &arc) override
 	{
 		Super::Serialize(arc);
 		arc("pawn", Pawn);

@@ -57,11 +57,11 @@ protected:
 	void *Lock(unsigned int size) override;
 	void Unlock() override;
 
-	void GPUDropSync();
-	void GPUWaitSync();
+	void GPUDropSync() override;
+	void GPUWaitSync() override;
 public:
 	void Bind();
-	void Upload(size_t start, size_t end);
+	void Upload(size_t start, size_t end) override;
 };
 
 

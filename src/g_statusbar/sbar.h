@@ -64,7 +64,7 @@ class DHUDMessageBase : public DObject
 	HAS_OBJECT_POINTERS
 
 public:
-	virtual void Serialize(FSerializer &arc);
+	virtual void Serialize(FSerializer &arc) override;
 	virtual bool Tick() { return true; }	// Returns true to indicate time for removal
 	virtual void ScreenSizeChanged() {}
 	virtual void Draw(int bottom, int visibility) {}
@@ -90,7 +90,7 @@ public:
 	DHUDMessage (FFont *font, const char *text, float x, float y, int hudwidth, int hudheight,
 		EColorRange textColor, float holdTime);
 
-	virtual void Serialize(FSerializer &arc);
+	virtual void Serialize(FSerializer &arc) override;
 
 	virtual void Draw (int bottom, int visibility) override;
 	virtual void ResetText (const char *text);
@@ -173,9 +173,9 @@ public:
 	DHUDMessageFadeOut (FFont *font, const char *text, float x, float y, int hudwidth, int hudheight,
 		EColorRange textColor, float holdTime, float fadeOutTime);
 
-	virtual void Serialize(FSerializer &arc);
-	virtual void DoDraw (int linenum, int x, int y, bool clean, int hudheight);
-	virtual bool Tick ();
+	virtual void Serialize(FSerializer &arc) override;
+	virtual void DoDraw (int linenum, int x, int y, bool clean, int hudheight) override;
+	virtual bool Tick () override;
 
 protected:
 	int FadeOutTics;
@@ -192,9 +192,9 @@ public:
 	DHUDMessageFadeInOut (FFont *font, const char *text, float x, float y, int hudwidth, int hudheight,
 		EColorRange textColor, float holdTime, float fadeInTime, float fadeOutTime);
 
-	virtual void Serialize(FSerializer &arc);
-	virtual void DoDraw (int linenum, int x, int y, bool clean, int hudheight);
-	virtual bool Tick ();
+	virtual void Serialize(FSerializer &arc) override;
+	virtual void DoDraw (int linenum, int x, int y, bool clean, int hudheight) override;
+	virtual bool Tick() override;
 
 protected:
 	int FadeInTics;
@@ -211,10 +211,10 @@ public:
 	DHUDMessageTypeOnFadeOut (FFont *font, const char *text, float x, float y, int hudwidth, int hudheight,
 		EColorRange textColor, float typeTime, float holdTime, float fadeOutTimee);
 
-	virtual void Serialize(FSerializer &arc);
-	virtual void DoDraw (int linenum, int x, int y, bool clean, int hudheight);
-	virtual bool Tick ();
-	virtual void ScreenSizeChanged ();
+	virtual void Serialize(FSerializer &arc) override;
+	virtual void DoDraw (int linenum, int x, int y, bool clean, int hudheight) override;
+	virtual bool Tick() override;
+	virtual void ScreenSizeChanged() override;
 
 protected:
 	float TypeOnTime;
@@ -374,8 +374,8 @@ public:
 	// do not make this a DObject Serialize function because it's not used like one!
 	void SerializeMessages(FSerializer &arc);
 
-	void SetScale();
-	virtual void Tick ();
+	void SetScale() override;
+	virtual void Tick();
 	void CallTick();
 	void CallDraw(EHudState state, double ticFrac);
 	void DrawBottomStuff (EHudState state);

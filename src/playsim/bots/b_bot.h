@@ -189,8 +189,8 @@ public:
 	void Construct ();
 
 	void Clear ();
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	//(b_think.cpp)
 	void WhatToGet (AActor *item);

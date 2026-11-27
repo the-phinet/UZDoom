@@ -236,11 +236,11 @@ public:
 	{
 		return (joint >= 0 && joint < Joints.SSize() && frame >= 0 && ((frame * Joints.SSize()) + joint) < TRSData.SSize()) ? TRSData[(frame * Joints.SSize()) + joint] : TRS{} ;
 	}
-	virtual int NumFrames()
+	virtual int NumFrames() override
 	{
 		return Joints.SSize() > 0 ? (TRSData.SSize() / Joints.SSize()) : 0;
 	}
-	virtual const TArray<VSMatrix>* GetBasePose() { return &baseframe; }
+	virtual const TArray<VSMatrix>* GetBasePose() override { return &baseframe; }
 };
 
 struct IQMReadErrorException { };

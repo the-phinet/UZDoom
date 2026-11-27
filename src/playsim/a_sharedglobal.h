@@ -48,7 +48,7 @@ public:
 	void Construct(const AActor *actor);
 	void Construct(const DBaseDecal *basis);
 
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	void OnDestroy() override;
 	virtual void Expired() {}	// For thinkers that can remove their decal. For impact decal bookkeeping.
 	FTextureID StickToWall(side_t *wall, double x, double y, F3DFloor * ffloor);
@@ -104,7 +104,7 @@ public:
 	void Expired() override;
 
 protected:
-	DBaseDecal *CloneSelf(const FDecalTemplate *tpl, double x, double y, double z, side_t *wall, F3DFloor * ffloor) const;
+	DBaseDecal *CloneSelf(const FDecalTemplate *tpl, double x, double y, double z, side_t *wall, F3DFloor * ffloor) const override;
 	void CheckMax ();
 };
 
@@ -117,8 +117,8 @@ public:
 				 float r2, float g2, float b2, float a2,
 				 float time, AActor *who, bool terminate = false);
 	void OnDestroy() override;
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 	AActor *WhoFor() { return ForWho; }
 	void Cancel ();
 
@@ -166,8 +166,8 @@ public:
 		double damrad, double tremrad, FSoundID quakesfx, int flags,
 		double waveSpeedX, double waveSpeedY, double waveSpeedZ, double falloff, int highpoint, double rollIntensity, double rollWave, double damageMultiplier, double thrustMultiplier, int damage);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 	TObjPtr<AActor*> m_Spot;
 	double m_TremorRadius, m_DamageRadius;
 	int m_Countdown;

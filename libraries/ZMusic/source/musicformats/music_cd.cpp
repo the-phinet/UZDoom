@@ -47,13 +47,13 @@ class CDSong : public MusInfo
 public:
 	CDSong(int track, int id);
 	~CDSong();
-	void Play(bool looping, int subsong);
-	void Pause();
-	void Resume();
-	void Stop();
-	bool IsPlaying();
+	void Play(bool looping, int subsong) override;
+	void Pause() override;
+	void Resume() override;
+	void Stop() override;
+	bool IsPlaying() override;
 	SoundStreamInfoEx GetStreamInfoEx() const override { return {}; }
-	bool IsValid() const { return m_Inited; }
+	bool IsValid() const override { return m_Inited; }
 
 protected:
 	CDSong() : m_Inited(false) {}

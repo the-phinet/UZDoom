@@ -236,11 +236,11 @@ class DIntermissionScreenCutscene : public DIntermissionScreen
 public:
 	DObject* mScreenJobRunner;
 	DIntermissionScreenCutscene() {}
-	virtual void Init(FIntermissionAction *desc, bool first);
-	virtual int Responder (FInputEvent *ev);
-	virtual int Ticker ();
-	virtual void Drawer ();
-	virtual void OnDestroy ();
+	virtual void Init(FIntermissionAction *desc, bool first) override;
+	virtual int Responder(FInputEvent *ev) override;
+	virtual int Ticker() override;
+	virtual void Drawer() override;
+	virtual void OnDestroy() override;
 };
 
 class DIntermissionScreenFader : public DIntermissionScreen
@@ -252,10 +252,10 @@ class DIntermissionScreenFader : public DIntermissionScreen
 public:
 
 	DIntermissionScreenFader() {}
-	virtual void Init(FIntermissionAction *desc, bool first);
-	virtual int Responder (FInputEvent *ev);
-	virtual int Ticker ();
-	virtual void Drawer ();
+	virtual void Init(FIntermissionAction *desc, bool first) override;
+	virtual int Responder(FInputEvent *ev) override;
+	virtual int Ticker() override;
+	virtual void Drawer() override;
 };
 
 class DIntermissionScreenText : public DIntermissionScreen
@@ -277,9 +277,9 @@ class DIntermissionScreenText : public DIntermissionScreen
 public:
 
 	DIntermissionScreenText() {}
-	virtual void Init(FIntermissionAction *desc, bool first);
-	virtual int Responder (FInputEvent *ev);
-	virtual void Drawer ();
+	virtual void Init(FIntermissionAction *desc, bool first) override;
+	virtual int Responder(FInputEvent *ev) override;
+	virtual void Drawer() override;
 };
 
 class DIntermissionScreenCast : public DIntermissionScreen
@@ -306,10 +306,10 @@ class DIntermissionScreenCast : public DIntermissionScreen
 public:
 
 	DIntermissionScreenCast() {}
-	virtual void Init(FIntermissionAction *desc, bool first);
-	virtual int Responder (FInputEvent *ev);
-	virtual int Ticker ();
-	virtual void Drawer ();
+	virtual void Init(FIntermissionAction *desc, bool first) override;
+	virtual int Responder (FInputEvent *ev) override;
+	virtual int Ticker() override;
+	virtual void Drawer() override;
 };
 
 class DIntermissionScreenScroller : public DIntermissionScreen
@@ -325,9 +325,9 @@ class DIntermissionScreenScroller : public DIntermissionScreen
 public:
 
 	DIntermissionScreenScroller() {}
-	virtual void Init(FIntermissionAction *desc, bool first);
-	virtual int Responder (FInputEvent *ev);
-	virtual void Drawer ();
+	virtual void Init(FIntermissionAction *desc, bool first) override;
+	virtual int Responder(FInputEvent *ev) override;
+	virtual void Drawer() override;
 };
 
 class DIntermissionController : public DObject
@@ -365,7 +365,5 @@ DIntermissionController* F_StartIntermission(FName desc, int state);
 DIntermissionController* F_StartFinale (const char *music, int musicorder, int cdtrack, unsigned int cdid, const char *flat,
 					const char *text, INTBOOL textInLump, INTBOOL finalePic, INTBOOL lookupText,
 					bool ending, FName endsequence = NAME_None);
-
-
 
 #endif

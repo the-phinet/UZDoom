@@ -71,8 +71,8 @@ class DoomSoundEngine : public SoundEngine
 	// client specific parts of the sound engine go in this class.
 
 	void CalcPosVel(int type, const void* source, const float pt[3], int channum, int chanflags, FSoundID soundid, FVector3* pos, FVector3* vel, FSoundChan *) override;
-	bool ValidatePosVel(int sourcetype, const void* source, const FVector3& pos, const FVector3& vel);
-	TArray<uint8_t> ReadSound(int lumpnum);
+	bool ValidatePosVel(int sourcetype, const void* source, const FVector3& pos, const FVector3& vel) override;
+	TArray<uint8_t> ReadSound(int lumpnum) override;
 	FSoundID PickReplacement(FSoundID refid);
 	FSoundID ResolveSound(const void *ent, int type, FSoundID soundid, float &attenuation) override;
 	void CacheSound(sfxinfo_t* sfx) override;

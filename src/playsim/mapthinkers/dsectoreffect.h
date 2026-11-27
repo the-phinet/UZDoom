@@ -31,7 +31,7 @@ public:
 	void Construct(sector_t *sector);
 
 
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	void OnDestroy() override;
 
 	sector_t *GetSector() const { return m_Sector; }
@@ -52,7 +52,7 @@ public:
 
 protected:
 
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 	void OnDestroy() override;
 };
 

@@ -56,8 +56,8 @@ public:
 	void Construct(sector_t *sector);
 	void Construct(sector_t *sec, EVlDoor type, double speed, int delay, int lightTag, int topcountdown);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 protected:
 	void DoorSound (bool raise, class DSeqNode *curseq=NULL) const;
 
@@ -79,8 +79,8 @@ public:
 	void Construct(sector_t *sector);
 	void Construct(sector_t *sec, line_t *line, int speed, int delay, FDoorAnimation *anim, EADType type);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	bool StartClosing ();
 protected:

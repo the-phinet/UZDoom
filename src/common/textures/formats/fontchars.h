@@ -35,7 +35,7 @@ public:
 	FFontChar2 (int sourcelump, int sourcepos, int width, int height, int leftofs=0, int topofs=0);
 
 	PalettedPixels CreatePalettedPixels(int conversion, int frame = 0) override;
-	int CopyPixels(FBitmap* bmp, int conversion, int frame = 0);
+	int CopyPixels(FBitmap* bmp, int conversion, int frame = 0) override;
 
 	void SetSourceRemap(const PalEntry* sourceremap)
 	{

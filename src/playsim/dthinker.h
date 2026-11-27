@@ -103,7 +103,7 @@ public:
 	virtual void CallPostBeginPlay(); // different in actor.
 	virtual void PostSerialize();
 	void Serialize(FSerializer &arc) override;
-	size_t PropagateMark();
+	size_t PropagateMark() override;
 
 	void ChangeStatNum (int statnum);
 	inline int GetStatNum() const { return _statNum; }

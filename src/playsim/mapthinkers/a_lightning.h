@@ -34,8 +34,8 @@ public:
 	static const int DEFAULT_STAT = STAT_LIGHTNING;
 	void Construct(FSoundID tempSound = NO_SOUND);
 	~DLightningThinker ();
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 	void ForceLightning (int mode, FSoundID tempSound = NO_SOUND);
 	void TerminateLightning();
 

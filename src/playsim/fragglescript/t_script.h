@@ -178,7 +178,7 @@ public:
 
 	void GetValue(svalue_t &result);
 	void SetValue(FLevelLocals *Level, const svalue_t &newvalue);
-	void Serialize(FSerializer &ar);
+	void Serialize(FSerializer &ar) override;
 };
 
 //==========================================================================
@@ -227,7 +227,7 @@ public:
 		next = nullptr;
 	}
 
-	void Serialize(FSerializer &ar);
+	void Serialize(FSerializer &ar) override;
 };
 
 
@@ -326,7 +326,7 @@ public:
 
 	DFsScript();
 	void OnDestroy() override;
-	void Serialize(FSerializer &ar);
+	void Serialize(FSerializer &ar) override;
 
 	DFsVariable *NewVariable(const char *name, int vtype);
 	void NewFunction(const char *name, void (FParser::*handler)());
@@ -652,7 +652,7 @@ class DRunningScript : public DObject
 public:
 	DRunningScript(AActor *trigger=NULL, DFsScript *owner = NULL, int index = 0) ;
 	void OnDestroy() override;
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 
 	TObjPtr<DFsScript*> script;
 
@@ -692,11 +692,11 @@ public:
 	void OnDestroy() override;
 
 
-	void Serialize(FSerializer & arc);
-	void Tick();
+	void Serialize(FSerializer & arc) override;
+	void Tick() override;
 	void InitFunctions();
-	size_t PropagateMark();
-	size_t PointerSubstitution (DObject *old, DObject *notOld, bool nullOnFail);
+	size_t PropagateMark() override;
+	size_t PointerSubstitution(DObject *old, DObject *notOld, bool nullOnFail) override;
 	bool wait_finished(DRunningScript *script);
 	void AddRunningScript(DRunningScript *runscr);
 

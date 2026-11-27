@@ -56,15 +56,15 @@ public:
 	OpenALSoundRenderer();
 	virtual ~OpenALSoundRenderer();
 
-	virtual void SetSfxVolume(float volume);
-	virtual void SetMusicVolume(float volume);
-	virtual void UpdateMusicParams();
-	virtual SoundHandle LoadSound(uint8_t *sfxdata, int length, int def_loop_start, int def_loop_end);
-	virtual SoundHandle LoadSoundRaw(uint8_t *sfxdata, int length, int frequency, int channels, int bits, int loopstart, int loopend = -1);
-	virtual void UnloadSound(SoundHandle sfx);
-	virtual unsigned int GetMSLength(SoundHandle sfx);
-	virtual unsigned int GetSampleLength(SoundHandle sfx);
-	virtual float GetOutputRate();
+	virtual void SetSfxVolume(float volume) override;
+	virtual void SetMusicVolume(float volume) override;
+	virtual void UpdateMusicParams() override;
+	virtual SoundHandle LoadSound(uint8_t *sfxdata, int length, int def_loop_start, int def_loop_end) override;
+	virtual SoundHandle LoadSoundRaw(uint8_t *sfxdata, int length, int frequency, int channels, int bits, int loopstart, int loopend = -1) override;
+	virtual void UnloadSound(SoundHandle sfx) override;
+	virtual unsigned int GetMSLength(SoundHandle sfx) override;
+	virtual unsigned int GetSampleLength(SoundHandle sfx) override;
+	virtual float GetOutputRate() override;
 
 	// Streaming sounds.
 	SoundStream *CreateStream(SoundStreamCallback callback, int buffbytes, SampleType stype, ChannelConfig chans, int samplerate, void *userdata) override;
@@ -74,40 +74,40 @@ public:
 	FISoundChannel *StartSound3D(SoundHandle sfx, SoundListener *listener, float vol, FRolloffInfo *rolloff, float distscale, float pitch, int priority, const FVector3 &pos, const FVector3 &vel, int channum, int chanflags, FISoundChannel *reuse_chan, float startTime) override;
 
 	// Changes a channel's volume.
-	virtual void ChannelVolume(FISoundChannel *chan, float volume);
+	virtual void ChannelVolume(FISoundChannel *chan, float volume) override;
 
 	// Changes a channel's pitch.
-	virtual void ChannelPitch(FISoundChannel *chan, float pitch);
+	virtual void ChannelPitch(FISoundChannel *chan, float pitch) override;
 
 	// Stops a sound channel.
-	virtual void StopChannel(FISoundChannel *chan);
+	virtual void StopChannel(FISoundChannel *chan) override;
 
 	// Returns position of sound on this channel, in samples.
-	virtual unsigned int GetPosition(FISoundChannel *chan);
+	virtual unsigned int GetPosition(FISoundChannel *chan) override;
 
 	// Synchronizes following sound startups.
-	virtual void Sync(bool sync);
+	virtual void Sync(bool sync) override;
 
 	// Pauses or resumes all sound effect channels.
-	virtual void SetSfxPaused(bool paused, int slot);
+	virtual void SetSfxPaused(bool paused, int slot) override;
 
 	// Pauses or resumes *every* channel, including environmental reverb.
-	virtual void SetInactive(SoundRenderer::EInactiveState inactive);
+	virtual void SetInactive(SoundRenderer::EInactiveState inactive) override;
 
 	// Updates the volume, separation, and pitch of a sound channel.
-	virtual void UpdateSoundParams3D(SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel);
+	virtual void UpdateSoundParams3D(SoundListener *listener, FISoundChannel *chan, bool areasound, const FVector3 &pos, const FVector3 &vel) override;
 
-	virtual void UpdateListener(SoundListener *);
-	virtual void UpdateSounds();
+	virtual void UpdateListener(SoundListener *) override;
+	virtual void UpdateSounds() override;
 
-	virtual void MarkStartTime(FISoundChannel*, float startTime);
-	virtual float GetAudibility(FISoundChannel*);
+	virtual void MarkStartTime(FISoundChannel*, float startTime) override;
+	virtual float GetAudibility(FISoundChannel*) override;
 
 
-	virtual bool IsValid();
-	virtual void PrintStatus();
-	virtual void PrintDriversList();
-	virtual FString GatherStats();
+	virtual bool IsValid() override;
+	virtual void PrintStatus() override;
+	virtual void PrintDriversList() override;
+	virtual FString GatherStats() override;
 
 private:
 	struct {

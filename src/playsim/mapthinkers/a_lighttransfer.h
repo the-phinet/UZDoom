@@ -31,8 +31,8 @@ class DLightTransfer : public DThinker
 public:
 	static const int DEFAULT_STAT = STAT_LIGHTTRANSFER;
 	void Construct(sector_t *srcSec, int target, bool copyFloor);
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 protected:
 	void DoTransfer (int level, int target, bool floor);
@@ -56,8 +56,8 @@ class DWallLightTransfer : public DThinker
 public:
 	static const int DEFAULT_STAT = STAT_LIGHTTRANSFER;
 	void Construct(sector_t *srcSec, int target, uint8_t flags);
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 protected:
 	void DoTransfer (short level, int target, uint8_t flags);

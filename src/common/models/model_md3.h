@@ -86,6 +86,6 @@ public:
 	virtual int FindFrame(const char* name, bool nodefault) override;
 	virtual void RenderFrame(FModelRenderer *renderer, FGameTexture * skin, int frame, int frame2, double inter, FTranslationID translation, const FTextureID* surfaceskinids, int boneStartPosition, AActor * act) override;
 	void LoadGeometry();
-	void BuildVertexBuffer(FModelRenderer *renderer);
+	void BuildVertexBuffer(FModelRenderer *renderer) override;
 	virtual void AddSkins(uint8_t *hitlist, const FTextureID* surfaceskinids) override;
 };

@@ -84,8 +84,8 @@ public:
 
 	void Construct(sector_t *sec);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 //protected:
 	EFloor	 	m_Type;
@@ -136,8 +136,8 @@ public:
 	void Construct(sector_t *sec);
 
 	void OnDestroy() override;
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 protected:
 	TObjPtr<DInterpolation*> m_Interp_Ceiling;
@@ -155,7 +155,7 @@ class DWaggleBase : public DMover
 public:
 	void Construct(sector_t *sec);
 
-	void Serialize(FSerializer &arc);
+	void Serialize(FSerializer &arc) override;
 
 protected:
 	double m_OriginalDist;
@@ -176,7 +176,7 @@ class DFloorWaggle : public DWaggleBase
 	DECLARE_CLASS (DFloorWaggle, DWaggleBase)
 public:
 	void Construct(sector_t *sec);
-	void Tick ();
+	void Tick() override;
 };
 
 class DCeilingWaggle : public DWaggleBase
@@ -184,7 +184,7 @@ class DCeilingWaggle : public DWaggleBase
 	DECLARE_CLASS (DCeilingWaggle, DWaggleBase)
 public:
 	void Construct(sector_t *sec);
-	void Tick ();
+	void Tick() override;
 };
 
 //jff 3/15/98 pure texture/type change for better generalized support

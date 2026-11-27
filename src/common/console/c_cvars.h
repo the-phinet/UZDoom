@@ -356,13 +356,13 @@ class FBoolCVar : public FBaseCVar
 public:
 	CALLBACK_DEFINE(FBoolCVar, bool, DefaultValue)
 
-	virtual ECVarType GetRealType () const;
+	virtual ECVarType GetRealType () const override;
 
-	virtual UCVarValue GetGenericRep (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRep (ECVarType *type) const;
-	virtual UCVarValue GetGenericRepDefault (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
-	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
+	virtual UCVarValue GetGenericRep (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRep (ECVarType *type) const override;
+	virtual UCVarValue GetGenericRepDefault (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const override;
+	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type) override;
 
 	inline bool operator= (bool boolval)
 		{ UCVarValue val; val.Bool = boolval; SetGenericRep (val, CVAR_Bool); return boolval; }
@@ -370,7 +370,7 @@ public:
 	inline bool operator *() const { return Value; }
 
 protected:
-	virtual UCVarValue DoSet (UCVarValue value, ECVarType type);
+	virtual UCVarValue DoSet (UCVarValue value, ECVarType type) override;
 
 	bool Value;
 	bool DefaultValue;
@@ -382,13 +382,13 @@ class FIntCVar : public FBaseCVar
 public:
 	CALLBACK_DEFINE(FIntCVar, int, DefaultValue);
 
-	virtual ECVarType GetRealType () const;
+	virtual ECVarType GetRealType () const override;
 
-	virtual UCVarValue GetGenericRep (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRep (ECVarType *type) const;
-	virtual UCVarValue GetGenericRepDefault (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
-	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
+	virtual UCVarValue GetGenericRep (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRep (ECVarType *type) const override;
+	virtual UCVarValue GetGenericRepDefault (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const override;
+	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type) override;
 
 	int operator= (int intval)
 		{ UCVarValue val; val.Int = intval; SetGenericRep (val, CVAR_Int); return intval; }
@@ -396,7 +396,7 @@ public:
 	inline int operator *() const { return Value; }
 
 protected:
-	virtual UCVarValue DoSet (UCVarValue value, ECVarType type);
+	virtual UCVarValue DoSet (UCVarValue value, ECVarType type) override;
 
 	int Value;
 	int DefaultValue;
@@ -439,13 +439,13 @@ public:
 	CALLBACK_DEFINE(FStringCVar, const char *, mDefaultValue.GetChars());
 	~FStringCVar ();
 
-	virtual ECVarType GetRealType () const;
+	virtual ECVarType GetRealType () const override;
 
-	virtual UCVarValue GetGenericRep (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRep (ECVarType *type) const;
-	virtual UCVarValue GetGenericRepDefault (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
-	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
+	virtual UCVarValue GetGenericRep (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRep (ECVarType *type) const override;
+	virtual UCVarValue GetGenericRepDefault (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const override;
+	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type) override;
 
 	const char *operator= (const char *stringrep)
 		{ UCVarValue val; val.String = const_cast<char *>(stringrep); SetGenericRep (val, CVAR_String); return stringrep; }
@@ -454,7 +454,7 @@ public:
 	inline int Length() const { assert(mValue.Len() < INT32_MAX); return static_cast<int>(mValue.Len()); }
 
 protected:
-	virtual UCVarValue DoSet (UCVarValue value, ECVarType type);
+	virtual UCVarValue DoSet (UCVarValue value, ECVarType type) override;
 
 	FString mValue;
 	FString mOldValue;
@@ -467,17 +467,17 @@ class FColorCVar : public FIntCVar
 public:
 	CALLBACK_DEFINE(FColorCVar, int, DefaultValue);
 
-	virtual ECVarType GetRealType () const;
+	virtual ECVarType GetRealType () const override;
 
-	virtual UCVarValue GetGenericRep (ECVarType type) const;
-	virtual UCVarValue GetGenericRepDefault (ECVarType type) const;
-	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
+	virtual UCVarValue GetGenericRep (ECVarType type) const override;
+	virtual UCVarValue GetGenericRepDefault (ECVarType type) const override;
+	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type) override;
 
 	inline operator uint32_t () const { return Value; }
 	inline uint32_t operator *() const { return Value; }
 
 protected:
-	virtual UCVarValue DoSet (UCVarValue value, ECVarType type);
+	virtual UCVarValue DoSet (UCVarValue value, ECVarType type) override;
 
 	static UCVarValue FromInt2 (int value, ECVarType type);
 	static int ToInt2 (UCVarValue value, ECVarType type);
@@ -489,13 +489,13 @@ class FFlagCVar : public FBaseCVar
 public:
 	FFlagCVar (const char *name, FIntCVar &realvar, uint32_t bitval, const char* descr = nullptr);
 
-	virtual ECVarType GetRealType () const;
+	virtual ECVarType GetRealType () const override;
 
-	virtual UCVarValue GetGenericRep (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRep (ECVarType *type) const;
-	virtual UCVarValue GetGenericRepDefault (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
-	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
+	virtual UCVarValue GetGenericRep (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRep (ECVarType *type) const override;
+	virtual UCVarValue GetGenericRepDefault (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const override;
+	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type) override;
 
 	inline void Callback() override {}
 	inline void DoCallback(UCVarValue) override {}
@@ -508,7 +508,7 @@ public:
 	inline int operator *() const { return (ValueVar & BitVal); }
 
 protected:
-	virtual UCVarValue DoSet (UCVarValue value, ECVarType type);
+	virtual UCVarValue DoSet (UCVarValue value, ECVarType type) override;
 
 	FIntCVar &ValueVar;
 	uint32_t BitVal;
@@ -521,13 +521,13 @@ class FMaskCVar : public FBaseCVar
 public:
 	FMaskCVar (const char *name, FIntCVar &realvar, uint32_t bitval, const char* descr = nullptr);
 
-	virtual ECVarType GetRealType () const;
+	virtual ECVarType GetRealType () const override;
 
-	virtual UCVarValue GetGenericRep (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRep (ECVarType *type) const;
-	virtual UCVarValue GetGenericRepDefault (ECVarType type) const;
-	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const;
-	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type);
+	virtual UCVarValue GetGenericRep (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRep (ECVarType *type) const override;
+	virtual UCVarValue GetGenericRepDefault (ECVarType type) const override;
+	virtual UCVarValue GetFavoriteRepDefault (ECVarType *type) const override;
+	virtual void SetGenericRepDefault (UCVarValue value, ECVarType type) override;
 
 	inline void Callback() override {}
 	inline void DoCallback(UCVarValue) override {}
@@ -536,7 +536,7 @@ public:
 	inline int operator *() const { return (ValueVar & BitVal) >> BitNum; }
 
 protected:
-	virtual UCVarValue DoSet (UCVarValue value, ECVarType type);
+	virtual UCVarValue DoSet (UCVarValue value, ECVarType type) override;
 
 	FIntCVar &ValueVar;
 	uint32_t BitVal;

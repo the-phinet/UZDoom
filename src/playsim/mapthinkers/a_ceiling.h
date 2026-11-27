@@ -82,8 +82,8 @@ public:
 	void Construct(sector_t *sec);
 	void Construct(sector_t *sec, double speed1, double speed2, int silent);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	int getCrush() const { return m_Crush; }
 	int getDirection() const { return m_Direction; }

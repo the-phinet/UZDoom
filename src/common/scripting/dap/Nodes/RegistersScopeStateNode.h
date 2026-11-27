@@ -65,7 +65,7 @@ class PointerRegistersNode : public RegistersNode
 
 			PointerRegistersNode(std::string name, VMFrame *stackFrame) : RegistersNode(name, stackFrame) { };
 
-			bool GetChildNode(std::string name, std::shared_ptr<StateNodeBase> &node);
+			bool GetChildNode(std::string name, std::shared_ptr<StateNodeBase> &node) override;
 };
 
 class StringRegistersNode : public RegistersNode

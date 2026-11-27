@@ -44,8 +44,8 @@ class DActiveButton : public DThinker
 public:
 	void Construct(side_t *, int, FSwitchDef *, const DVector2 &pos, bool flippable);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	side_t			*m_Side;
 	int8_t			m_Part;

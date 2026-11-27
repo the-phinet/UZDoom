@@ -42,8 +42,8 @@ public:
 
 	void Construct (sector_t *sector, EPillar type, double speed, double height, double height2, int crush, bool hexencrush);
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 	void OnDestroy() override;
 
 protected:

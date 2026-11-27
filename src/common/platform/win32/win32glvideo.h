@@ -39,7 +39,7 @@ public:
 
 	DFrameBuffer *CreateFrameBuffer() override;
 	bool InitHardware(HWND Window, int multisample);
-	void Shutdown();
+	void Shutdown() override;
 
 protected:
 	HGLRC m_hRC;

@@ -323,7 +323,7 @@ public:
 	}
 
 
-	virtual bool Play(bool loop, float vol)
+	virtual bool Play(bool loop, float vol) override
 	{
 		SetVolume(vol);
 
@@ -356,7 +356,7 @@ public:
 		return true;
 	}
 
-	virtual void Stop()
+	virtual void Stop() override
 	{
 		if(!Playing.load())
 			return;
@@ -370,7 +370,7 @@ public:
 		Playing.store(false);
 	}
 
-	virtual void SetVolume(float vol)
+	virtual void SetVolume(float vol) override
 	{
 		Volume = vol;
 		UpdateParams();
@@ -384,7 +384,7 @@ public:
 		getALError();
 	}
 
-	virtual bool SetPaused(bool pause)
+	virtual bool SetPaused(bool pause) override
 	{
 		if(pause)
 			alSourcePause(Source);
@@ -393,7 +393,7 @@ public:
 		return (getALError()==AL_NO_ERROR);
 	}
 
-	virtual bool IsEnded()
+	virtual bool IsEnded() override
 	{
 		return !Playing.load();
 	}
@@ -436,7 +436,7 @@ public:
 		return Position{0, nanoseconds{0}};
 	}
 
-	virtual FString GetStats()
+	virtual FString GetStats() override
 		{
 		FString stats;
 		ALfloat volume;

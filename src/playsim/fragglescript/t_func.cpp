@@ -1738,9 +1738,9 @@ class DLightLevel : public DLighting
 public:
 
 	void Construct(sector_t * s,int destlevel,int speed);
-	void	Serialize(FSerializer &arc);
-	void		Tick ();
-	void		OnDestroy() { Super::OnDestroy(); m_Sector->lightingdata = nullptr; }
+	void	Serialize(FSerializer &arc) override;
+	void		Tick () override;
+	void		OnDestroy() override { Super::OnDestroy(); m_Sector->lightingdata = nullptr; }
 };
 
 IMPLEMENT_CLASS(DLightLevel, false, false)

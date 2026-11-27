@@ -117,20 +117,20 @@ class DSeqActorNode : public DSeqNode
 public:
 	DSeqActorNode(AActor *actor, int sequence, int modenum);
 	void OnDestroy() override;
-	void Serialize(FSerializer &arc);
-	void MakeSound(int loop, FSoundID id)
+	void Serialize(FSerializer &arc) override;
+	void MakeSound(int loop, FSoundID id) override
 	{
 		S_Sound(m_Actor, CHAN_BODY, EChanFlags::FromInt(loop), id, clamp(m_Volume, 0.f, 1.f), m_Atten);
 	}
-	bool IsPlaying()
+	bool IsPlaying() override
 	{
 		return S_IsActorPlayingSomething (m_Actor, CHAN_BODY, m_CurrentSoundID);
 	}
-	void *Source()
+	void *Source() override
 	{
 		return m_Actor;
 	}
-	DSeqNode *SpawnChild(int seqnum)
+	DSeqNode *SpawnChild(int seqnum) override
 	{
 		return SN_StartSequence (m_Actor, seqnum, SEQ_NOTRANS, m_ModeNum, true);
 	}
@@ -145,20 +145,20 @@ class DSeqPolyNode : public DSeqNode
 public:
 	DSeqPolyNode(FPolyObj *poly, int sequence, int modenum);
 	void OnDestroy() override;
-	void Serialize(FSerializer &arc);
-	void MakeSound(int loop, FSoundID id)
+	void Serialize(FSerializer &arc) override;
+	void MakeSound(int loop, FSoundID id) override
 	{
 		S_Sound (m_Poly, CHAN_BODY, EChanFlags::FromInt(loop), id, clamp(m_Volume, 0.f, 1.f), m_Atten);
 	}
-	bool IsPlaying()
+	bool IsPlaying() override
 	{
 		return m_CurrentSoundID.isvalid() && S_GetSoundPlayingInfo (m_Poly, m_CurrentSoundID);
 	}
-	void *Source()
+	void *Source() override
 	{
 		return m_Poly;
 	}
-	DSeqNode *SpawnChild (int seqnum)
+	DSeqNode *SpawnChild (int seqnum) override
 	{
 		return SN_StartSequence (m_Poly, seqnum, SEQ_NOTRANS, m_ModeNum, true);
 	}
@@ -173,21 +173,21 @@ class DSeqSectorNode : public DSeqNode
 public:
 	DSeqSectorNode(sector_t *sec, int chan, int sequence, int modenum);
 	void OnDestroy() override;
-	void Serialize(FSerializer &arc);
-	void MakeSound(int loop, FSoundID id)
+	void Serialize(FSerializer &arc) override;
+	void MakeSound(int loop, FSoundID id) override
 	{
 		// The Channel here may have CHANF_LOOP encoded into it.
 		S_Sound(m_Sector, Channel & 7, CHANF_AREA | EChanFlags::FromInt(loop| (Channel & ~7)), id, clamp(m_Volume, 0.f, 1.f), m_Atten);
 	}
-	bool IsPlaying()
+	bool IsPlaying() override
 	{
 		return m_CurrentSoundID.isvalid() && S_GetSoundPlayingInfo (m_Sector, m_CurrentSoundID);
 	}
-	void *Source()
+	void *Source() override
 	{
 		return m_Sector;
 	}
-	DSeqNode *SpawnChild(int seqnum)
+	DSeqNode *SpawnChild(int seqnum) override
 	{
 		return SN_StartSequence (m_Sector, Channel, seqnum, SEQ_NOTRANS, m_ModeNum, true);
 	}

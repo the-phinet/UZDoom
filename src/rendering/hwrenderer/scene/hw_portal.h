@@ -224,7 +224,7 @@ struct HWLinePortal : public HWScenePortalBase, public linebase_t
 
 	int ClipSeg(seg_t *seg, const DVector3 &viewpos) override;
 	int ClipSubsector(subsector_t *sub) override;
-	int ClipPoint(const DVector2 &pos);
+	int ClipPoint(const DVector2 &pos) override;
 	bool NeedCap() override { return false; }
 };
 
@@ -241,7 +241,7 @@ protected:
 
 public:
 
-	virtual int GetHWPortalType() { return HWP_MIRROR; }
+	virtual int GetHWPortalType() override { return HWP_MIRROR; }
 	HWMirrorPortal(FPortalSceneState *state, line_t * line)
 		: HWLinePortal(state, line)
 	{
@@ -262,7 +262,7 @@ protected:
 
 public:
 
-	virtual int GetHWPortalType() { return HWP_LINETOLINE; }
+	virtual int GetHWPortalType() override { return HWP_LINETOLINE; }
 	HWLineToLinePortal(FPortalSceneState *state, FLinePortalSpan *ll)
 		: HWLinePortal(state, ll)
 	{
@@ -280,14 +280,14 @@ struct HWSkyboxPortal : public HWScenePortalBase
 protected:
 	bool Setup(HWDrawInfo *di, FRenderState &rstate, Clipper *clipper) override;
 	void Shutdown(HWDrawInfo *di, FRenderState &rstate) override;
-	virtual void * GetSource() const { return portal; }
-	virtual bool IsSky() { return true; }
-	virtual const char *GetName();
+	virtual void * GetSource() const override { return portal; }
+	virtual bool IsSky() override { return true; }
+	virtual const char *GetName() override;
 	virtual bool AllowSSAO() override;
 
 public:
 
-	virtual int GetHWPortalType() { return HWP_SKYBOX; }
+	virtual int GetHWPortalType() override { return HWP_SKYBOX; }
 	HWSkyboxPortal(FPortalSceneState *state, FSectorPortal * pt) : HWScenePortalBase(state)
 	{
 		portal = pt;
@@ -304,14 +304,14 @@ protected:
 	bool Setup(HWDrawInfo *di, FRenderState &rstate, Clipper *clipper) override;
 	void DrawPortalStencil(FRenderState &state, int pass) override;
 	void Shutdown(HWDrawInfo *di, FRenderState &rstate) override;
-	virtual void * GetSource() const { return origin; }
-	virtual bool IsSky() { return true; }	// although this isn't a real sky it can be handled as one.
-	virtual const char *GetName();
+	virtual void * GetSource() const override { return origin; }
+	virtual bool IsSky() override { return true; }	// although this isn't a real sky it can be handled as one.
+	virtual const char *GetName() override;
 	FSectorPortalGroup *origin;
 
 public:
 
-	virtual int GetHWPortalType() { return HWP_SECTORSTACK; }
+	virtual int GetHWPortalType() override { return HWP_SECTORSTACK; }
 	HWSectorStackPortal(FPortalSceneState *state, FSectorPortalGroup *pt) : HWScenePortalBase(state)
 	{
 		origin = pt;
@@ -331,13 +331,13 @@ protected:
 	bool Setup(HWDrawInfo *di, FRenderState &rstate, Clipper *clipper) override;
 	void Shutdown(HWDrawInfo *di, FRenderState &rstate) override;
 	void DrawPortalStencil(FRenderState &state, int pass) override;
-	virtual void * GetSource() const { return origin; }
-	virtual const char *GetName();
+	virtual void * GetSource() const override { return origin; }
+	virtual const char *GetName() override;
 	secplane_t * origin;
 
 public:
 
-	virtual int GetHWPortalType() { return HWP_PLANEMIRROR; }
+	virtual int GetHWPortalType() override { return HWP_PLANEMIRROR; }
 	int GetMirrorSide() const override;
 
 	HWPlaneMirrorPortal(FPortalSceneState *state, secplane_t * pt) : HWScenePortalBase(state)

@@ -53,8 +53,8 @@ public:
 		platRaiseAndStayLockout,
 	};
 
-	void Serialize(FSerializer &arc);
-	void Tick ();
+	void Serialize(FSerializer &arc) override;
+	void Tick() override;
 
 	bool IsLift() const { return m_Type == platDownWaitUpStay || m_Type == platDownWaitUpStayStone; }
 	void Construct(sector_t *sector);
