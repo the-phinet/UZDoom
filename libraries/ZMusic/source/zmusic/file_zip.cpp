@@ -424,7 +424,7 @@ static size_t DecompressZip(FILE* file, void* buffer, size_t len)
 		} while (err == Z_OK && Stream.avail_out != 0);
 	}
 
-	if (err != Z_OK && err != Z_STREAM_END || Stream.avail_out != 0)
+	if ((err != Z_OK && err != Z_STREAM_END) || Stream.avail_out != 0)
 	{
 		inflateEnd (&Stream);
 		return 0;

@@ -371,7 +371,7 @@ void Net_ClearBuffers()
 	for (unsigned int i = 0; i < MAXPLAYERS; ++i)
 	{
 		playeringame[i] = false;
-		players[i].waiting = players[i].inconsistant = false;
+		players[i].waiting = (players[i].inconsistant = false);
 
 		auto& state = ClientStates[i];
 		state.AverageLatency = state.CurrentLatency = 0u;
@@ -3229,7 +3229,7 @@ void Net_SkipCommand(int cmd, TArrayView<uint8_t>& stream)
 
 		case DEM_ZSC_CMD:
 			skip = strlen((char*)(stream.Data())) + 1;
-			skip += (stream[skip] << 8) | (stream[skip + 1]) + 2;
+			skip += (stream[skip] << 8) | ((stream[skip + 1]) + 2);
 			break;
 
 		case DEM_SUMMON2:

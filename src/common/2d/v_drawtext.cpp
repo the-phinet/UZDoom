@@ -483,13 +483,13 @@ void DrawDynamicFontText(F2DDrawer *drawer, FFont* originalFont, FFont* substitu
 	std::vector<IntermediateDrawString> DrawStrings;
 	ParseIntoIntermediateDrawStrings(utf32String, font, normalcolor, DrawStrings);
 
-	assert(originalFont == substitutedFont || originalFont && substitutedFont->IsValidDynamicFont());
+	assert(originalFont == substitutedFont || (originalFont && substitutedFont->IsValidDynamicFont()));
 
 	double                 cursorx             = x;
 	double                 cursory             = y;
 	double                 scalex              = parms.scalex;
 	double                 scaley              = parms.scaley;
-	constexpr FRenderStyle trexTextRenderStyle = {STYLEOP_Add, STYLEALPHA_Src, STYLEALPHA_InvSrc, STYLEF_RedIsAlpha};
+	constexpr FRenderStyle trexTextRenderStyle = {{ STYLEOP_Add, STYLEALPHA_Src, STYLEALPHA_InvSrc, STYLEF_RedIsAlpha }};
 
 	for (auto &s : DrawStrings) 
 	{

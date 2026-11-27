@@ -1567,10 +1567,8 @@ set(WARNING_FLAGS
 		@ignored-attributes
 		@implicit-fallthrough
 		@int-in-bool-context
-		@missing-braces
 		@missing-field-initializers
 		@overflow
-		@parentheses
 		@pedantic
 		@return-type
 		@sequence-point
